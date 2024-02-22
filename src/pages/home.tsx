@@ -2,10 +2,15 @@ import { Buffer } from 'buffer';
 import { ChangeEvent, useState } from 'react';
 import { getRomData } from '../rom-parser/rom-file';
 import { getRomHeader, RomHeader } from '../rom-parser/rom-header';
+import { useNavigate } from 'react-router';
+import { SelectedRom } from '../types/selected-rom';
+import { ViewerState } from './viewer';
 
 export const Home = () => {
+  const navigate = useNavigate();
+
   const [filePath, setFilePath] = useState('');
-  const [romHeader, setRomHeader] = useState<RomHeader>();
+  const [selectedRom, setSelectedRom] = useState<SelectedRom>();
   const [error, setError] = useState('');
 
   const handleFileChange = async (
@@ -27,15 +32,22 @@ export const Home = () => {
       const buffer: Buffer = Buffer.from(bytes);
 
       const romData: Buffer = getRomData(buffer);
-      const header: RomHeader = getRomHeader(romData);
+      const romHeader: RomHeader = getRomHeader(romData);
 
-      setRomHeader(header);
+      setSelectedRom({ header: romHeader, data: romData });
     } catch (e: unknown) {
       const errorMessage: string =
         e instanceof Error ? e.message : 'An error occurred';
       setError(errorMessage);
-      setRomHeader(undefined);
+      setSelectedRom(undefined);
     }
+  };
+
+  const onUseRomClick = () => {
+    if (!selectedRom) return;
+
+    const viewState: ViewerState = { selectedRom: selectedRom };
+    navigate('/viewer', { state: viewState });
   };
 
   return (
@@ -69,19 +81,17 @@ export const Home = () => {
               </span>
               <span className="file-label">Choose a Rom…</span>
             </span>
-            <span className="file-name">
-              {filePath.replace(/.*[\/\\]/, '')}
-            </span>
+            <span className="file-name">{filePath.replace(/.*[/\\]/, '')}</span>
           </label>
         </div>
 
-        {romHeader && (
+        {selectedRom && (
           <div className="block">
             <h4 className="subtitle is-4">Rom Header</h4>
             <table className="table">
               <tbody>
-                {Object.keys(romHeader).map((k) => {
-                  const value = romHeader[k as keyof RomHeader];
+                {Object.keys(selectedRom.header).map((k) => {
+                  const value = selectedRom.header[k as keyof RomHeader];
                   return (
                     <tr>
                       <th>{k}</th>
@@ -99,7 +109,11 @@ export const Home = () => {
         )}
 
         <div className="block">
-          <button className="button is-primary" disabled={!romHeader}>
+          <button
+            className="button is-primary"
+            disabled={!selectedRom}
+            onClick={onUseRomClick}
+          >
             Use this Rom
           </button>
         </div>
