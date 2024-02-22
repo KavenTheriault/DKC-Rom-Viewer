@@ -1,0 +1,33 @@
+export const SNES_REGIONS: Record<number, string> = {
+    0: 'Japan',
+    1: 'USA/Canada',
+    2: 'Europe/Asia/Oceania',
+    3: 'Sweden',
+    4: 'Finland',
+    5: 'Denmark',
+    6: 'France',
+    7: 'Holland',
+    8: 'Spain',
+    9: 'Germany/Austria/Switzerland',
+    10: 'Italy',
+    11: 'Hong Kong/China',
+    12: 'Indonesia',
+    13: 'South Korea',
+};
+
+export const REGIONS_VIDEO_OUTPUT: Record<number, 'NTSC' | 'PAL'> = {
+    0: 'NTSC',
+    1: 'NTSC',
+    2: 'PAL',
+    3: 'PAL',
+    4: 'PAL',
+    5: 'PAL',
+    6: 'PAL',
+    7: 'PAL',
+    8: 'PAL',
+    9: 'PAL',
+    10: 'PAL',
+    11: 'PAL',
+    12: 'PAL',
+    13: 'NTSC',
+};
