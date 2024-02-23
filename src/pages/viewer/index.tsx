@@ -70,7 +70,10 @@ export const Viewer = () => {
       <div className="tabs is-centered">
         <ul>
           {Object.values(ViewerMode).map((mode) => (
-            <li className={viewerMode === mode ? 'is-active' : undefined}>
+            <li
+              key={mode}
+              className={viewerMode === mode ? 'is-active' : undefined}
+            >
               <a onClick={() => setViewerMode(mode)}>
                 <span className="icon is-small">
                   <i

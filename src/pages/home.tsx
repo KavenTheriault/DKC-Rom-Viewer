@@ -93,7 +93,7 @@ export const Home = () => {
                 {Object.keys(selectedRom.header).map((k) => {
                   const value = selectedRom.header[k as keyof RomHeader];
                   return (
-                    <tr>
+                    <tr key={k}>
                       <th>{k}</th>
                       <td>
                         {typeof value === 'number'
