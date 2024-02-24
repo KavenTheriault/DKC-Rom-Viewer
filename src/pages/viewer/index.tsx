@@ -61,7 +61,7 @@ export const Viewer = () => {
           </li>
           <li className="is-active">
             <a href="/viewer" aria-current="page">
-              View
+              Viewer
             </a>
           </li>
         </ul>
