@@ -1,12 +1,10 @@
 import { SpriteHeader } from '../../../rom-parser/sprites/header';
 import { SimpleTable } from '../../../components/simple-table';
+import { toHexString } from '../../../utils/hex';
 
 interface SpriteHeaderTableProps {
   spriteHeader: SpriteHeader;
 }
-
-const toHexString = (val: number) =>
-  '0x' + val.toString(16).toString().toUpperCase();
 
 export const SpriteHeaderTable = ({ spriteHeader }: SpriteHeaderTableProps) => {
   return (
@@ -21,7 +19,9 @@ export const SpriteHeaderTable = ({ spriteHeader }: SpriteHeaderTableProps) => {
           <th>
             <h6 className="subtitle is-6">2x2</h6>
           </th>
-          <td>{toHexString(spriteHeader.tileQuantity.large)}</td>
+          <td>
+            {toHexString(spriteHeader.tileQuantity.large, { addPrefix: true })}
+          </td>
           <td>
             <strong>{spriteHeader.tileQuantity.large}</strong>
           </td>
@@ -30,7 +30,9 @@ export const SpriteHeaderTable = ({ spriteHeader }: SpriteHeaderTableProps) => {
           <th>
             <h6 className="subtitle is-6">1x1 (Group 1)</h6>
           </th>
-          <td>{toHexString(spriteHeader.tileQuantity.small1)}</td>
+          <td>
+            {toHexString(spriteHeader.tileQuantity.small1, { addPrefix: true })}
+          </td>
           <td>
             <strong>{spriteHeader.tileQuantity.small1}</strong>
           </td>
@@ -39,7 +41,9 @@ export const SpriteHeaderTable = ({ spriteHeader }: SpriteHeaderTableProps) => {
           <th>
             <h6 className="subtitle is-6">1x1 (Group 2)</h6>
           </th>
-          <td>{toHexString(spriteHeader.tileQuantity.small2)}</td>
+          <td>
+            {toHexString(spriteHeader.tileQuantity.small2, { addPrefix: true })}
+          </td>
           <td>
             <strong>{spriteHeader.tileQuantity.small2}</strong>
           </td>
@@ -53,7 +57,11 @@ export const SpriteHeaderTable = ({ spriteHeader }: SpriteHeaderTableProps) => {
           <th>
             <h6 className="subtitle is-6">Group 1</h6>
           </th>
-          <td>{toHexString(spriteHeader.offsets.small1Offset)}</td>
+          <td>
+            {toHexString(spriteHeader.offsets.small1Offset, {
+              addPrefix: true,
+            })}
+          </td>
           <td>
             <strong>{spriteHeader.offsets.small1Offset}</strong>
           </td>
@@ -62,7 +70,11 @@ export const SpriteHeaderTable = ({ spriteHeader }: SpriteHeaderTableProps) => {
           <th>
             <h6 className="subtitle is-6">Group 2</h6>
           </th>
-          <td>{toHexString(spriteHeader.offsets.small2Offset)}</td>
+          <td>
+            {toHexString(spriteHeader.offsets.small2Offset, {
+              addPrefix: true,
+            })}
+          </td>
           <td>
             <strong>{spriteHeader.offsets.small2Offset}</strong>
           </td>
@@ -76,7 +88,9 @@ export const SpriteHeaderTable = ({ spriteHeader }: SpriteHeaderTableProps) => {
           <th>
             <h6 className="subtitle is-6">Group 1</h6>
           </th>
-          <td>{toHexString(spriteHeader.dma.group1TileQty)}</td>
+          <td>
+            {toHexString(spriteHeader.dma.group1TileQty, { addPrefix: true })}
+          </td>
           <td>
             <strong>{spriteHeader.dma.group1TileQty}</strong>
           </td>
@@ -85,7 +99,9 @@ export const SpriteHeaderTable = ({ spriteHeader }: SpriteHeaderTableProps) => {
           <th>
             <h6 className="subtitle is-6">Group 2</h6>
           </th>
-          <td>{toHexString(spriteHeader.dma.group2TileQty)}</td>
+          <td>
+            {toHexString(spriteHeader.dma.group2TileQty, { addPrefix: true })}
+          </td>
           <td>
             <strong>{spriteHeader.dma.group2TileQty}</strong>
           </td>
@@ -94,7 +110,9 @@ export const SpriteHeaderTable = ({ spriteHeader }: SpriteHeaderTableProps) => {
           <th>
             <h6 className="subtitle is-6">Group 2 Offset</h6>
           </th>
-          <td>{toHexString(spriteHeader.dma.group2Offset)}</td>
+          <td>
+            {toHexString(spriteHeader.dma.group2Offset, { addPrefix: true })}
+          </td>
           <td>
             <strong>{spriteHeader.dma.group2Offset}</strong>
           </td>

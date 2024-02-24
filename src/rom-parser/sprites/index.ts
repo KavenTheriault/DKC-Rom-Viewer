@@ -20,12 +20,12 @@ export type Sprite = {
   parts: SpritePart[];
 };
 
-export const getAddressFromSpriteIndex = (
+export const getAddressFromSpritePointerIndex = (
   romData: Buffer,
-  spriteIndex: number,
+  spritePointerIndex: number,
 ): RomAddress => {
   const address: RomAddress = RomAddress.fromSnesAddress(
-    SPRITE_POINTERS_ADDRESS.snesAddress + spriteIndex,
+    SPRITE_POINTERS_ADDRESS.snesAddress + spritePointerIndex,
   );
   return readSpritePointer(romData, address);
 };
