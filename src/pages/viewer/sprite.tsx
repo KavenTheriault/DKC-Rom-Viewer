@@ -10,41 +10,25 @@ import {
 } from '../../rom-parser/sprites';
 import { toHexString } from '../../utils/hex';
 import { ImageCanvas } from '../../components/image-canvas';
-import {
-  Array2D,
-  Color,
-  Image,
-  SpritePart,
-} from '../../rom-parser/sprites/types';
+import { Array2D, Color, Image } from '../../rom-parser/sprites/types';
 import {
   buildImageFromPixelsAndPalette,
   readPalette,
 } from '../../rom-parser/sprites/palette';
 import { assembleSprite } from '../../rom-parser/sprites/sprite-part';
+import { SpritePartsViewer } from './components/sprite-parts';
 
 interface SpriteViewerProps {
   selectedRom: SelectedRom;
 }
 
 const isHexadecimal = (str: string) => /^[0-9A-F]+$/.test(str);
-const spritePartString = (spritePart: SpritePart) => {
-  const address =
-    spritePart.type === '8x8'
-      ? spritePart.tile.address
-      : spritePart.tile.tiles[0].address;
-
-  return `${toHexString(address.snesAddress, { addPrefix: true })} - (${spritePart.type})`;
-};
-const spritePartTiles = (spritePart: SpritePart) => {
-  return spritePart.type === '8x8' ? [spritePart.tile] : spritePart.tile.tiles;
-};
 
 export const SpriteViewer = ({ selectedRom }: SpriteViewerProps) => {
   const [snesAddress, setSnesAddress] = useState<string>('');
   const [spritePointer, setSpritePointer] = useState<string>('');
   const [sprite, setSprite] = useState<Sprite>();
   const [spriteImage, setSpriteImage] = useState<Image>();
-  const [selectedSpritePart, setSelectedSpritePart] = useState<SpritePart>();
   const [error, setError] = useState('');
 
   const onSnesAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -103,16 +87,14 @@ export const SpriteViewer = ({ selectedRom }: SpriteViewerProps) => {
 
   const loadSprite = (spriteAddress: RomAddress) => {
     const loadedSprite = readSprite(selectedRom.data, spriteAddress);
-    setSprite(loadedSprite);
-
     if (loadedSprite && validateSpriteHeader(loadedSprite.header)) {
       setError('');
-      setSelectedSpritePart(loadedSprite.parts[0]);
+      setSprite(loadedSprite);
       buildSpriteImage(loadedSprite);
     } else {
       setError('Invalid Sprite Header');
+      setSprite(undefined);
       setSpriteImage(undefined);
-      setSelectedSpritePart(undefined);
     }
   };
 
@@ -127,165 +109,95 @@ export const SpriteViewer = ({ selectedRom }: SpriteViewerProps) => {
   };
 
   return (
-    <div>
-      <div className="columns">
-        <div className="column">
-          <div className="block">
-            <label className="label">SNES Address</label>
-            <div className="field has-addons">
-              <p className="control">
-                <a className="button is-static">0x</a>
-              </p>
-              <p className="control">
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Hexadecimal"
-                  value={snesAddress}
-                  onChange={onSnesAddressChange}
-                />
-              </p>
-              <p className="control">
-                <a
-                  className="button is-primary"
-                  onClick={onSnesAddressLoadClick}
-                >
-                  Load
-                </a>
-              </p>
-            </div>
+    <div className="columns is-flex-wrap-wrap">
+      <div className="column">
+        <div className="block">
+          <label className="label">SNES Address</label>
+          <div className="field has-addons">
+            <p className="control">
+              <a className="button is-static">0x</a>
+            </p>
+            <p className="control">
+              <input
+                className="input"
+                type="text"
+                placeholder="Hexadecimal"
+                value={snesAddress}
+                onChange={onSnesAddressChange}
+              />
+            </p>
+            <p className="control">
+              <a className="button is-primary" onClick={onSnesAddressLoadClick}>
+                Load
+              </a>
+            </p>
           </div>
-          <div className="block">
-            <label className="label">Sprite Pointer (from 0x3BCC9C)</label>
-            <div className="field has-addons">
-              <p className="control">
-                <a className="button is-static">0x</a>
-              </p>
-              <p className="control">
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="Hexadecimal"
-                  value={spritePointer}
-                  onChange={onSpritePointerChange}
-                />
-              </p>
-              <p className="control">
-                <a
-                  className="button is-primary"
-                  onClick={onSpritePointerLoadClick}
-                >
-                  Load
-                </a>
-              </p>
-              <p className="control">
-                <a
-                  className="button is-primary is-outlined"
-                  onClick={() => {
-                    offsetSpritePointer(-4);
-                  }}
-                >
-                  -4
-                </a>
-              </p>
-              <p className="control">
-                <a
-                  className="button is-primary is-outlined"
-                  onClick={() => {
-                    offsetSpritePointer(4);
-                  }}
-                >
-                  +4
-                </a>
-              </p>
-            </div>
+        </div>
+        <div className="block">
+          <label className="label">Sprite Pointer (from 0x3BCC9C)</label>
+          <div className="field has-addons">
+            <p className="control">
+              <a className="button is-static">0x</a>
+            </p>
+            <p className="control">
+              <input
+                className="input"
+                type="text"
+                placeholder="Hexadecimal"
+                value={spritePointer}
+                onChange={onSpritePointerChange}
+              />
+            </p>
+            <p className="control">
+              <a
+                className="button is-primary"
+                onClick={onSpritePointerLoadClick}
+              >
+                Load
+              </a>
+            </p>
+            <p className="control">
+              <a
+                className="button is-primary is-outlined"
+                onClick={() => {
+                  offsetSpritePointer(-4);
+                }}
+              >
+                -4
+              </a>
+            </p>
+            <p className="control">
+              <a
+                className="button is-primary is-outlined"
+                onClick={() => {
+                  offsetSpritePointer(4);
+                }}
+              >
+                +4
+              </a>
+            </p>
           </div>
+        </div>
 
-          {error && (
-            <div className="notification is-warning">
-              <button className="delete" onClick={() => setError('')}></button>
-              {error}
-            </div>
-          )}
+        {error && <div className="notification is-danger">{error}</div>}
 
-          {sprite && (
-            <nav className="panel is-info">
-              <p className="panel-heading">Sprite Header</p>
-              <div className="panel-block">
-                <SpriteHeaderTable spriteHeader={sprite.header} />
-              </div>
-            </nav>
-          )}
-        </div>
-        <div className="column">
-          {spriteImage && <ImageCanvas image={spriteImage} />}
-        </div>
-        <div className="column">
-          <label className="label">Sprite Parts</label>
-          <div className="columns">
-            <div className="column">
-              <div className="select is-multiple">
-                <select
-                  multiple
-                  size={10}
-                  onChange={(e) =>
-                    setSelectedSpritePart(
-                      sprite?.parts[parseInt(e.target.value)],
-                    )
-                  }
-                >
-                  {sprite &&
-                    sprite.parts.map((spritePart, index) => (
-                      <option value={index}>
-                        {spritePartString(spritePart)}
-                      </option>
-                    ))}
-                </select>
-              </div>
+        {sprite && (
+          <nav className="panel is-info">
+            <p className="panel-heading">Sprite Header</p>
+            <div className="panel-block">
+              <SpriteHeaderTable spriteHeader={sprite.header} />
             </div>
-            {selectedSpritePart && (
-              <div className="column">
-                <div className="field">
-                  <label className="label">X</label>
-                  <div className="control">
-                    <input
-                      className="input"
-                      type="number"
-                      value={selectedSpritePart.coordinate.x}
-                      readOnly
-                    />
-                  </div>
-                </div>
-                <div className="field">
-                  <label className="label">Y</label>
-                  <div className="control">
-                    <input
-                      className="input"
-                      type="number"
-                      value={selectedSpritePart.coordinate.y}
-                      readOnly
-                    />
-                  </div>
-                </div>
-                {spritePartTiles(selectedSpritePart).map((tile, index) => (
-                  <div className="field">
-                    <label className="label">Tile {index + 1}</label>
-                    <div className="control">
-                      <input
-                        className="input"
-                        type="text"
-                        value={toHexString(tile.address.snesAddress, {
-                          addPrefix: true,
-                        })}
-                        readOnly
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+          </nav>
+        )}
+      </div>
+      <div className="column">
+        <ImageCanvas
+          image={spriteImage}
+          defaultSize={{ width: 256, height: 256 }}
+        />
+      </div>
+      <div className="column">
+        <SpritePartsViewer spriteParts={sprite?.parts} />
       </div>
     </div>
   );

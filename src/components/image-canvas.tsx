@@ -4,7 +4,8 @@ import { rgbToHex } from '../utils/hex';
 import styled from 'styled-components';
 
 interface SpriteCanvasProps {
-  image: Image;
+  image?: Image;
+  defaultSize: { width: number; height: number };
 }
 
 const BorderedCanvas = styled.canvas<{ backgroundColor: string }>`
@@ -15,7 +16,7 @@ const BorderedCanvas = styled.canvas<{ backgroundColor: string }>`
   background-color: ${(props) => props.backgroundColor};
 `;
 
-export const ImageCanvas = ({ image }: SpriteCanvasProps) => {
+export const ImageCanvas = ({ image, defaultSize }: SpriteCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [zoom, setZoom] = useState<number>(2);
   const [backgroundColor, setBackgroundColor] = useState<string>('#1e1f22');
@@ -23,8 +24,8 @@ export const ImageCanvas = ({ image }: SpriteCanvasProps) => {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.width = image.length * zoom;
-      canvas.height = image[0].length * zoom;
+      canvas.width = (image ? image.length : defaultSize.width) * zoom;
+      canvas.height = (image ? image[0].length : defaultSize.height) * zoom;
 
       const context = canvas.getContext('2d');
       if (context) {
@@ -34,6 +35,7 @@ export const ImageCanvas = ({ image }: SpriteCanvasProps) => {
   }, [zoom, image]);
 
   const drawImage = (context: CanvasRenderingContext2D) => {
+    if (!image) return;
     context.scale(zoom, zoom);
 
     for (let x = 0; x < image.length; x++) {
