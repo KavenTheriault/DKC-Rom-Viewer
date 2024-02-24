@@ -29,9 +29,9 @@ export const SpritePartsViewer = ({ spriteParts }: SpritePartsViewerProps) => {
   const spritePart = spriteParts?.at(selectedPartIndex);
   return (
     <>
-      <label className="label">Sprite Parts</label>
       <div className="columns">
         <div className="column">
+          <label className="label">Sprite Parts</label>
           <div className="select is-multiple">
             <select
               multiple

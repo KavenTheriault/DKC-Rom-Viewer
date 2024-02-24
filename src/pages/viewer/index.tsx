@@ -13,14 +13,14 @@ export interface ViewerState {
 
 enum ViewerMode {
   Entity = 'Entity',
-  Spite = 'Spite',
+  Sprite = 'Sprite',
   Animation = 'Animation',
   Palette = 'Palette',
 }
 
 const ViewerModeIcons: Record<ViewerMode, string> = {
   [ViewerMode.Entity]: 'fa-object-group',
-  [ViewerMode.Spite]: 'fa-image',
+  [ViewerMode.Sprite]: 'fa-image',
   [ViewerMode.Animation]: 'fa-panorama',
   [ViewerMode.Palette]: 'fa-palette',
 };
@@ -29,7 +29,7 @@ export const Viewer = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [viewerMode, setViewerMode] = useState<ViewerMode>(ViewerMode.Spite);
+  const [viewerMode, setViewerMode] = useState<ViewerMode>(ViewerMode.Sprite);
 
   const viewerState = location.state
     ? (location.state as ViewerState)
@@ -43,7 +43,7 @@ export const Viewer = () => {
     switch (viewerMode) {
       case ViewerMode.Entity:
         return <EntityViewer />;
-      case ViewerMode.Spite:
+      case ViewerMode.Sprite:
         return <SpriteViewer selectedRom={viewerState.selectedRom} />;
       case ViewerMode.Animation:
         return <AnimationViewer />;
