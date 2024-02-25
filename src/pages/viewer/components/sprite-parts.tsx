@@ -89,7 +89,7 @@ export const SpritePartsViewer = ({
               </div>
             </div>
             {spritePartTiles(spritePartToShow).map((tile, index) => (
-              <div className="field">
+              <div className="field" key={`tile${index}`}>
                 <label className="label">Tile {index + 1}</label>
                 <div className="control">
                   <input

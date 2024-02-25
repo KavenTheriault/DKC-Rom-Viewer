@@ -53,7 +53,7 @@ export const Viewer = () => {
   };
 
   return (
-    <div className="container mt-6">
+    <div className="container mt-6 mb-6 pl-4 pr-4">
       <nav className="breadcrumb" aria-label="breadcrumbs">
         <ul>
           <li>
