@@ -68,9 +68,10 @@ export const validateSpriteHeader = (spriteHeader: SpriteHeader): boolean => {
   )
     return false;
 
-  // Small tiles must fit on one VRAM row
-  if (spriteHeader.tileQuantity.small1 > VRAM_ROW_LENGTH) return false;
-  if (spriteHeader.tileQuantity.small2 > VRAM_ROW_LENGTH) return false;
+  // There's no sprite that large
+  if (spriteHeader.tileQuantity.large > 64) return false;
+  if (spriteHeader.tileQuantity.small1 > 64) return false;
+  if (spriteHeader.tileQuantity.small2 > 64) return false;
 
   const computedHeader: SpriteHeader = buildHeaderFromTileQuantity(
     spriteHeader.tileQuantity,
