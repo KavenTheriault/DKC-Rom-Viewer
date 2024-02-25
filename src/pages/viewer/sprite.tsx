@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { SelectedRom } from '../../types/selected-rom';
 import { RomAddress } from '../../rom-parser/types/address';
 import { SpriteHeaderTable } from './components/sprite-header';
@@ -9,7 +9,7 @@ import {
   Sprite,
 } from '../../rom-parser/sprites';
 import { toHexString } from '../../utils/hex';
-import { ImageCanvas } from '../../components/image-canvas';
+import { ImageCanvas, Rectangle } from '../../components/image-canvas';
 import { Array2D, Color, Image } from '../../rom-parser/sprites/types';
 import {
   buildImageFromPixelsAndPalette,
@@ -27,9 +27,34 @@ const isHexadecimal = (str: string) => /^[0-9A-F]+$/.test(str);
 export const SpriteViewer = ({ selectedRom }: SpriteViewerProps) => {
   const [snesAddress, setSnesAddress] = useState<string>('');
   const [spritePointer, setSpritePointer] = useState<string>('');
+
   const [sprite, setSprite] = useState<Sprite>();
   const [spriteImage, setSpriteImage] = useState<Image>();
+
+  const [selectedPartIndexes, setSelectedPartIndexes] = useState<number[]>([]);
+  const [showSelectedPartsBorder, setShowSelectedPartsBorder] =
+    useState<boolean>(false);
+  const [partBorderToShow, setPartBorderToShow] = useState<Rectangle[]>([]);
+
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (sprite && showSelectedPartsBorder) {
+      const borders = selectedPartIndexes.map((i) => {
+        const part = sprite.parts[i];
+        const size = part.type === '8x8' ? 8 : 16;
+        return {
+          x: part.coordinate.x,
+          y: part.coordinate.y,
+          width: size,
+          height: size,
+        };
+      });
+      setPartBorderToShow(borders);
+    } else {
+      setPartBorderToShow([]);
+    }
+  }, [showSelectedPartsBorder, selectedPartIndexes]);
 
   const onSnesAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.toUpperCase();
@@ -96,6 +121,8 @@ export const SpriteViewer = ({ selectedRom }: SpriteViewerProps) => {
       setSprite(undefined);
       setSpriteImage(undefined);
     }
+    setShowSelectedPartsBorder(false);
+    setSelectedPartIndexes([0]);
   };
 
   const buildSpriteImage = (spriteToBuild: Sprite) => {
@@ -110,7 +137,7 @@ export const SpriteViewer = ({ selectedRom }: SpriteViewerProps) => {
 
   return (
     <div className="columns is-flex-wrap-wrap">
-      <div className="column">
+      <div className="column is-flex is-flex-direction-column is-align-items-start">
         <div className="block">
           <label className="label">SNES Address</label>
           <div className="field has-addons">
@@ -193,11 +220,29 @@ export const SpriteViewer = ({ selectedRom }: SpriteViewerProps) => {
       <div className="column">
         <ImageCanvas
           image={spriteImage}
+          rectangles={partBorderToShow}
           defaultSize={{ width: 256, height: 256 }}
         />
       </div>
-      <div className="column">
-        <SpritePartsViewer spriteParts={sprite?.parts} />
+
+      <div className="column is-flex is-flex-direction-column is-align-items-flex-start">
+        {sprite && (
+          <>
+            <label className="label">Options</label>
+            <label className="checkbox mb-4">
+              <input
+                type="checkbox"
+                checked={showSelectedPartsBorder}
+                onChange={(e) => setShowSelectedPartsBorder(e.target.checked)}
+              />
+              <span className="ml-1">Show selected parts borders</span>
+            </label>
+            <SpritePartsViewer
+              spriteParts={sprite.parts}
+              onSelectedIndexesChange={setSelectedPartIndexes}
+            />
+          </>
+        )}
       </div>
     </div>
   );

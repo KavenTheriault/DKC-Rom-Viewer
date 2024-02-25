@@ -3,8 +3,16 @@ import { Image } from '../rom-parser/sprites/types';
 import { rgbToHex } from '../utils/hex';
 import styled from 'styled-components';
 
+export interface Rectangle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface SpriteCanvasProps {
   image?: Image;
+  rectangles?: Rectangle[];
   defaultSize: { width: number; height: number };
 }
 
@@ -16,7 +24,11 @@ const BorderedCanvas = styled.canvas<{ backgroundColor: string }>`
   background-color: ${(props) => props.backgroundColor};
 `;
 
-export const ImageCanvas = ({ image, defaultSize }: SpriteCanvasProps) => {
+export const ImageCanvas = ({
+  image,
+  rectangles,
+  defaultSize,
+}: SpriteCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [zoom, setZoom] = useState<number>(2);
   const [backgroundColor, setBackgroundColor] = useState<string>('#1e1f22');
@@ -30,9 +42,23 @@ export const ImageCanvas = ({ image, defaultSize }: SpriteCanvasProps) => {
       const context = canvas.getContext('2d');
       if (context) {
         drawImage(context);
+        drawRectangles(context);
       }
     }
-  }, [zoom, image]);
+  }, [zoom, image, rectangles]);
+
+  const drawRectangles = (context: CanvasRenderingContext2D) => {
+    if (!rectangles) return;
+
+    context.lineWidth = 1;
+    context.strokeStyle = 'white';
+
+    for (const rectangle of rectangles) {
+      context.beginPath();
+      context.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+      context.stroke();
+    }
+  };
 
   const drawImage = (context: CanvasRenderingContext2D) => {
     if (!image) return;
@@ -53,7 +79,7 @@ export const ImageCanvas = ({ image, defaultSize }: SpriteCanvasProps) => {
   return (
     <div className="is-flex is-flex-direction-column is-align-items-center">
       <BorderedCanvas ref={canvasRef} backgroundColor={backgroundColor} />
-      <div className="columns mt-1">
+      <div className="columns mt-1 is-flex">
         <div className="column is-flex is-align-items-center">
           <span className="mr-3">
             <strong>Zoom</strong>

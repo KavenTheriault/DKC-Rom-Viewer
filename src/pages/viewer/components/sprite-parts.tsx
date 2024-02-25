@@ -1,9 +1,10 @@
 import { SpritePart } from '../../../rom-parser/sprites/types';
 import { toHexString } from '../../../utils/hex';
-import { useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 
 interface SpritePartsViewerProps {
   spriteParts?: SpritePart[];
+  onSelectedIndexesChange?: (selection: number[]) => void;
 }
 
 const spritePartString = (spritePart: SpritePart) => {
@@ -19,43 +20,59 @@ const spritePartTiles = (spritePart: SpritePart) => {
   return spritePart.type === '8x8' ? [spritePart.tile] : spritePart.tile.tiles;
 };
 
-export const SpritePartsViewer = ({ spriteParts }: SpritePartsViewerProps) => {
-  const [selectedPartIndex, setSelectedPartIndex] = useState<number>(0);
+export const SpritePartsViewer = ({
+  spriteParts,
+  onSelectedIndexesChange,
+}: SpritePartsViewerProps) => {
+  const [selectedIndexes, setSelectedIndexes] = useState<number[]>([]);
 
   useEffect(() => {
-    setSelectedPartIndex(0);
+    setSelectedIndexes([0]);
   }, [spriteParts]);
 
-  const spritePart = spriteParts?.at(selectedPartIndex);
+  const onSelectionChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const options = Array.from(e.target.options);
+    const selection = options
+      .filter((o) => o.selected)
+      .map((o) => parseInt(o.value));
+    setSelectedIndexes(selection);
+
+    if (onSelectedIndexesChange) onSelectedIndexesChange(selection);
+  };
+
+  const spritePartToShow =
+    selectedIndexes.length === 1
+      ? spriteParts?.at(selectedIndexes[0])
+      : undefined;
   return (
     <>
-      <div className="columns">
-        <div className="column">
+      <div className="columns is-flex">
+        <div className="column is-flex is-flex-direction-column">
           <label className="label">Sprite Parts</label>
           <div className="select is-multiple">
             <select
               multiple
               size={10}
-              onChange={(e) =>
-                spriteParts && setSelectedPartIndex(parseInt(e.target.value))
-              }
-              value={[selectedPartIndex.toString()]}
+              onChange={onSelectionChange}
+              value={selectedIndexes.map((p) => p.toString())}
             >
               {spriteParts?.map((spritePart, index) => (
-                <option value={index}>{spritePartString(spritePart)}</option>
+                <option key={`spritePart${index}`} value={index}>
+                  {spritePartString(spritePart)}
+                </option>
               ))}
             </select>
           </div>
         </div>
-        {spritePart && (
-          <div className="column">
+        {spritePartToShow && (
+          <div className="column" style={{ minWidth: '125px' }}>
             <div className="field">
               <label className="label">X</label>
               <div className="control">
                 <input
                   className="input"
                   type="number"
-                  value={spritePart.coordinate.x}
+                  value={spritePartToShow.coordinate.x}
                   readOnly
                 />
               </div>
@@ -66,12 +83,12 @@ export const SpritePartsViewer = ({ spriteParts }: SpritePartsViewerProps) => {
                 <input
                   className="input"
                   type="number"
-                  value={spritePart.coordinate.y}
+                  value={spritePartToShow.coordinate.y}
                   readOnly
                 />
               </div>
             </div>
-            {spritePartTiles(spritePart).map((tile, index) => (
+            {spritePartTiles(spritePartToShow).map((tile, index) => (
               <div className="field">
                 <label className="label">Tile {index + 1}</label>
                 <div className="control">
