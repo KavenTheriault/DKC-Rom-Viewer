@@ -46,7 +46,7 @@ export const Viewer = () => {
       case ViewerMode.Sprite:
         return <SpriteViewer selectedRom={viewerState.selectedRom} />;
       case ViewerMode.Animation:
-        return <AnimationViewer />;
+        return <AnimationViewer selectedRom={viewerState.selectedRom} />;
       case ViewerMode.Palette:
         return <PaletteViewer />;
     }

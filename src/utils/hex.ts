@@ -15,3 +15,5 @@ const toHexColor = (component: number) => {
 export const rgbToHex = (r: number, g: number, b: number) => {
   return '#' + toHexColor(r) + toHexColor(g) + toHexColor(b);
 };
+
+export const isHexadecimal = (str: string) => /^[0-9A-F]+$/.test(str);

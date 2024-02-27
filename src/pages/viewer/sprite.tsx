@@ -8,7 +8,7 @@ import {
   readSprite,
   Sprite,
 } from '../../rom-parser/sprites';
-import { toHexString } from '../../utils/hex';
+import { isHexadecimal, toHexString } from '../../utils/hex';
 import { ImageCanvas, Rectangle } from '../../components/image-canvas';
 import { Array2D, Color, Image } from '../../rom-parser/sprites/types';
 import {
@@ -22,8 +22,6 @@ import { ScanSprites } from './components/scan-sprites';
 interface SpriteViewerProps {
   selectedRom: SelectedRom;
 }
-
-const isHexadecimal = (str: string) => /^[0-9A-F]+$/.test(str);
 
 export const SpriteViewer = ({ selectedRom }: SpriteViewerProps) => {
   const [snesAddress, setSnesAddress] = useState<string>('');
