@@ -163,14 +163,12 @@ export const AnimationViewer = ({ selectedRom }: AnimationViewerProps) => {
         <div className="column">
           {rawAnimation && JSON.stringify(rawAnimation, undefined, 2)}
         </div>
-        {animation && (
-          <div className="column">
-            <ImageCanvas
-              image={animation[0].image}
-              defaultSize={{ width: 256, height: 256 }}
-            />
-          </div>
-        )}
+        <div className="column">
+          <ImageCanvas
+            animation={animation}
+            defaultSize={{ width: 256, height: 256 }}
+          />
+        </div>
       </div>
     </div>
   );

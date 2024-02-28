@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Image } from '../rom-parser/sprites/types';
 import { rgbToHex } from '../utils/hex';
+import { Animation, AnimationStep } from '../rom-parser/animations/types';
 import styled from 'styled-components';
 
 export interface Rectangle {
@@ -12,6 +13,7 @@ export interface Rectangle {
 
 interface SpriteCanvasProps {
   image?: Image;
+  animation?: Animation;
   rectangles?: Rectangle[];
   defaultSize: { width: number; height: number };
 }
@@ -20,18 +22,19 @@ const BorderedCanvas = styled.canvas<{ backgroundColor: string }>`
   border: 1px solid;
   border-radius: 8px;
   box-shadow: 5px 5px 5px darkgray;
-
   background-color: ${(props) => props.backgroundColor};
 `;
 
 export const ImageCanvas = ({
   image,
+  animation,
   rectangles,
   defaultSize,
 }: SpriteCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [zoom, setZoom] = useState<number>(2);
   const [backgroundColor, setBackgroundColor] = useState<string>('#1e1f22');
+  const animationInterval = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -41,32 +44,65 @@ export const ImageCanvas = ({
 
       const context = canvas.getContext('2d');
       if (context) {
-        drawImage(context);
-        drawRectangles(context);
+        context.scale(zoom, zoom);
+        if (animation) startAnimation(canvas, context, animation);
+        if (image) drawImage(context, image);
+        if (rectangles) drawRectangles(context, rectangles);
       }
     }
-  }, [zoom, image, rectangles]);
 
-  const drawRectangles = (context: CanvasRenderingContext2D) => {
-    if (!rectangles) return;
+    return () => {
+      if (animationInterval.current) {
+        clearInterval(animationInterval.current);
+        animationInterval.current = undefined;
+      }
+    };
+  }, [zoom, animation, image, rectangles]);
 
+  const startAnimation = (
+    canvas: HTMLCanvasElement,
+    context: CanvasRenderingContext2D,
+    animationToDraw: Animation,
+  ) => {
+    const frames: Image[] = animationToDraw.reduce(
+      (acc: Image[], step: AnimationStep) => {
+        for (let i = 0; i < step.time; i++) {
+          acc.push(step.image);
+        }
+        return acc;
+      },
+      [],
+    );
+
+    let currentFrame = 0;
+    const drawAnimation = () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      drawImage(context, frames[currentFrame]);
+      if (currentFrame >= frames.length - 1) currentFrame = 0;
+      else currentFrame++;
+    };
+
+    animationInterval.current = setInterval(drawAnimation, 33.33333);
+  };
+
+  const drawRectangles = (
+    context: CanvasRenderingContext2D,
+    rectanglesToDraw: Rectangle[],
+  ) => {
     context.lineWidth = 1;
     context.strokeStyle = 'white';
 
-    for (const rectangle of rectangles) {
+    for (const rectangle of rectanglesToDraw) {
       context.beginPath();
       context.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
       context.stroke();
     }
   };
 
-  const drawImage = (context: CanvasRenderingContext2D) => {
-    if (!image) return;
-    context.scale(zoom, zoom);
-
-    for (let x = 0; x < image.length; x++) {
-      for (let y = 0; y < image[0].length; y++) {
-        const color = image[y][x];
+  const drawImage = (context: CanvasRenderingContext2D, imageToDraw: Image) => {
+    for (let x = 0; x < imageToDraw.length; x++) {
+      for (let y = 0; y < imageToDraw[0].length; y++) {
+        const color = imageToDraw[y][x];
 
         if (color) {
           context.fillStyle = rgbToHex(color.r, color.g, color.b);
