@@ -212,12 +212,10 @@ export const SpriteViewer = ({ selectedRom }: SpriteViewerProps) => {
           {error && <div className="notification is-danger">{error}</div>}
 
           {sprite && (
-            <nav className="panel is-info">
-              <p className="panel-heading">Sprite Header</p>
-              <div className="panel-block">
-                <SpriteHeaderTable spriteHeader={sprite.header} />
-              </div>
-            </nav>
+            <>
+              <label className="label">Sprite Header</label>
+              <SpriteHeaderTable spriteHeader={sprite.header} />
+            </>
           )}
         </div>
         <div className="column">
