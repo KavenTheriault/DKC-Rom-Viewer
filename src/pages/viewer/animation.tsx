@@ -7,7 +7,12 @@ import {
   readRawAnimation,
 } from '../../rom-parser/animations';
 import { SelectedRom } from '../../types/selected-rom';
-import { Animation, RawAnimation } from '../../rom-parser/animations/types';
+import {
+  Animation,
+  EntryCommand,
+  EntrySprite,
+  RawAnimation,
+} from '../../rom-parser/animations/types';
 import { ImageCanvas } from '../../components/image-canvas';
 import { Color } from '../../rom-parser/sprites/types';
 import { readPalette } from '../../rom-parser/sprites/palette';
@@ -15,6 +20,17 @@ import { readPalette } from '../../rom-parser/sprites/palette';
 interface AnimationViewerProps {
   selectedRom: SelectedRom;
 }
+
+const displayAnimationEntry = (entry: EntryCommand | EntrySprite) => {
+  if ('time' in entry) {
+    return `Time: ${entry.time} Sprite: ${toHexString(entry.spriteIndex)}`;
+  }
+  const parameters = [];
+  for (const parameter of entry.parameters) {
+    parameters.push(toHexString(parameter));
+  }
+  return `Command: ${toHexString(entry.command)} Params: ${parameters.join(' ')}`;
+};
 
 export const AnimationViewer = ({ selectedRom }: AnimationViewerProps) => {
   const [animationAddress, setAnimationAddress] = useState<string>('');
@@ -44,7 +60,9 @@ export const AnimationViewer = ({ selectedRom }: AnimationViewerProps) => {
 
   const onAnimationIndexLoadClick = () => {
     if (animationIndex) {
-      const parsedAnimationIndex = parseInt(animationIndex, 16);
+      const parsedAnimationIndex: number = animationIndex
+        ? parseInt(animationIndex)
+        : 0;
       loadAnimationIndex(parsedAnimationIndex);
     } else {
       setAnimationAddress('');
@@ -53,12 +71,15 @@ export const AnimationViewer = ({ selectedRom }: AnimationViewerProps) => {
   };
 
   const offsetAnimationIndex = (offset: number) => {
-    let previousAnimationIndex: number = animationIndex
+    let newAnimationIndex: number = animationIndex
       ? parseInt(animationIndex)
       : 0;
-    previousAnimationIndex += offset;
-    setAnimationIndex(previousAnimationIndex.toString());
-    loadAnimationIndex(previousAnimationIndex);
+    newAnimationIndex += offset;
+
+    if (newAnimationIndex > 0) {
+      setAnimationIndex(newAnimationIndex.toString());
+      loadAnimationIndex(newAnimationIndex);
+    }
   };
 
   const loadAnimationIndex = (index: number) => {
@@ -68,22 +89,28 @@ export const AnimationViewer = ({ selectedRom }: AnimationViewerProps) => {
   };
 
   const loadAnimation = (animationAddress: RomAddress) => {
-    const animationSequence = readRawAnimation(
-      selectedRom.data,
-      animationAddress,
-    );
-    setRawAnimation(animationSequence);
+    try {
+      const animationSequence = readRawAnimation(
+        selectedRom.data,
+        animationAddress,
+      );
+      setRawAnimation(animationSequence);
 
-    const palette: Color[] = readPalette(
-      selectedRom.data,
-      RomAddress.fromSnesAddress(0xbc849a),
-    );
-    const newAnimation = buildAnimation(
-      selectedRom.data,
-      animationSequence,
-      palette,
-    );
-    setAnimation(newAnimation);
+      const palette: Color[] = readPalette(
+        selectedRom.data,
+        RomAddress.fromSnesAddress(0xbc849a),
+      );
+      const newAnimation = buildAnimation(
+        selectedRom.data,
+        animationSequence,
+        palette,
+      );
+      setAnimation(newAnimation);
+      setError('');
+    } catch (e) {
+      setAnimation(undefined);
+      setError("Can't build animation");
+    }
   };
 
   return (
@@ -122,6 +149,7 @@ export const AnimationViewer = ({ selectedRom }: AnimationViewerProps) => {
                 <input
                   className="input"
                   type="number"
+                  min={0}
                   placeholder="Decimal"
                   value={animationIndex}
                   onChange={(e) => setAnimationIndex(e.target.value)}
@@ -161,13 +189,22 @@ export const AnimationViewer = ({ selectedRom }: AnimationViewerProps) => {
           {error && <div className="notification is-danger">{error}</div>}
         </div>
         <div className="column">
-          {rawAnimation && JSON.stringify(rawAnimation, undefined, 2)}
-        </div>
-        <div className="column">
           <ImageCanvas
             animation={animation}
             defaultSize={{ width: 256, height: 256 }}
           />
+        </div>
+        <div className="column">
+          <label className="label">Animation Steps</label>
+          <div className="select is-multiple">
+            <select multiple size={10}>
+              {rawAnimation?.entries.map((entry, index) => (
+                <option key={`animationEntry${index}`} value={index}>
+                  {displayAnimationEntry(entry)}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
     </div>

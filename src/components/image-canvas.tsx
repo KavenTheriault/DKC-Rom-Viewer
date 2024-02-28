@@ -73,6 +73,7 @@ export const ImageCanvas = ({
       },
       [],
     );
+    if (!frames.length) return;
 
     let currentFrame = 0;
     const drawAnimation = () => {
@@ -82,7 +83,7 @@ export const ImageCanvas = ({
       else currentFrame++;
     };
 
-    animationInterval.current = setInterval(drawAnimation, 33.33333);
+    animationInterval.current = setInterval(drawAnimation, 15);
   };
 
   const drawRectangles = (
