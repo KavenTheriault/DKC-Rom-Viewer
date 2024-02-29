@@ -42,7 +42,7 @@ export const Viewer = () => {
   const renderViewMode = () => {
     switch (viewerMode) {
       case ViewerMode.Entity:
-        return <EntityViewer />;
+        return <EntityViewer selectedRom={viewerState.selectedRom} />;
       case ViewerMode.Sprite:
         return <SpriteViewer selectedRom={viewerState.selectedRom} />;
       case ViewerMode.Animation:

@@ -18,11 +18,11 @@ interface SpriteCanvasProps {
   defaultSize: { width: number; height: number };
 }
 
-const BorderedCanvas = styled.canvas<{ backgroundColor: string }>`
+const BorderedCanvas = styled.canvas<{ color: string }>`
   border: 1px solid;
   border-radius: 8px;
   box-shadow: 5px 5px 5px darkgray;
-  background-color: ${(props) => props.backgroundColor};
+  background-color: ${(props) => props.color};
 `;
 
 export const ImageCanvas = ({
@@ -115,7 +115,7 @@ export const ImageCanvas = ({
 
   return (
     <div className="is-flex is-flex-direction-column is-align-items-center">
-      <BorderedCanvas ref={canvasRef} backgroundColor={backgroundColor} />
+      <BorderedCanvas ref={canvasRef} color={backgroundColor} />
       <div className="columns mt-1 is-flex">
         <div className="column is-flex is-align-items-center">
           <span className="mr-3">

@@ -60,10 +60,7 @@ export const AnimationViewer = ({ selectedRom }: AnimationViewerProps) => {
 
   const onAnimationIndexLoadClick = () => {
     if (animationIndex) {
-      const parsedAnimationIndex: number = animationIndex
-        ? parseInt(animationIndex)
-        : 0;
-      loadAnimationIndex(parsedAnimationIndex);
+      loadAnimationIndex(parseInt(animationIndex));
     } else {
       setAnimationAddress('');
       setRawAnimation(undefined);

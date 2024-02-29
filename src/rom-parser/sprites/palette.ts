@@ -24,6 +24,16 @@ export const snesToColor = (rawSnes: number): Color => {
   return { r, g, b };
 };
 
+export const grayscalePalette = (): Color[] => {
+  const palette: Color[] = [];
+  const increment = 256 / PALETTE_LENGTH;
+  for (let i = 0; i < PALETTE_LENGTH; i++) {
+    const grayTone = Math.floor(i * increment);
+    palette.push({ r: grayTone, g: grayTone, b: grayTone });
+  }
+  return palette;
+};
+
 export const readPalette = (
   romData: Buffer,
   paletteAddress: RomAddress,

@@ -3,7 +3,6 @@ import {
   getSpriteHeader,
   getSpriteTilesQuantity,
   SpriteHeader,
-  VRAM_ROW_LENGTH,
 } from '../sprites/header';
 import { RomAddress } from '../types/address';
 import { getSpriteTotalLength, readSpritePointer } from '../sprites';
