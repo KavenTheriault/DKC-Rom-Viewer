@@ -85,69 +85,71 @@ export const ScanEntities = ({
           </span>
         )}
       </div>
-      <div className="block">
-        <label className="label">Load entity at:</label>
-        <div className="field has-addons">
-          <p className="control">
-            <a
-              className="button is-info is-outlined"
-              onClick={() => navigateIndex(-100)}
-            >
-              -100
-            </a>
-          </p>
-          <p className="control">
-            <a
-              className="button is-info is-outlined"
-              onClick={() => navigateIndex(-10)}
-            >
-              -10
-            </a>
-          </p>
-          <p className="control">
-            <a
-              className="button is-info is-outlined"
-              onClick={() => navigateIndex(-1)}
-            >
-              -1
-            </a>
-          </p>
-          <p className="control">
-            <input
-              style={{ width: '80px' }}
-              className="input is-info"
-              type="number"
-              placeholder="Hexadecimal"
-              value={currentIndex}
-              onChange={onIndexInputChange}
-            />
-          </p>
-          <p className="control">
-            <a
-              className="button is-info is-outlined"
-              onClick={() => navigateIndex(1)}
-            >
-              +1
-            </a>
-          </p>
-          <p className="control">
-            <a
-              className="button is-info is-outlined"
-              onClick={() => navigateIndex(10)}
-            >
-              +10
-            </a>
-          </p>
-          <p className="control">
-            <a
-              className="button is-info is-outlined"
-              onClick={() => navigateIndex(100)}
-            >
-              +100
-            </a>
-          </p>
+      {foundEntities && (
+        <div className="block">
+          <label className="label">Load entity at:</label>
+          <div className="field has-addons">
+            <p className="control">
+              <a
+                className="button is-info is-outlined"
+                onClick={() => navigateIndex(-100)}
+              >
+                -100
+              </a>
+            </p>
+            <p className="control">
+              <a
+                className="button is-info is-outlined"
+                onClick={() => navigateIndex(-10)}
+              >
+                -10
+              </a>
+            </p>
+            <p className="control">
+              <a
+                className="button is-info is-outlined"
+                onClick={() => navigateIndex(-1)}
+              >
+                -1
+              </a>
+            </p>
+            <p className="control">
+              <input
+                style={{ width: '80px' }}
+                className="input is-info"
+                type="number"
+                placeholder="Hexadecimal"
+                value={currentIndex}
+                onChange={onIndexInputChange}
+              />
+            </p>
+            <p className="control">
+              <a
+                className="button is-info is-outlined"
+                onClick={() => navigateIndex(1)}
+              >
+                +1
+              </a>
+            </p>
+            <p className="control">
+              <a
+                className="button is-info is-outlined"
+                onClick={() => navigateIndex(10)}
+              >
+                +10
+              </a>
+            </p>
+            <p className="control">
+              <a
+                className="button is-info is-outlined"
+                onClick={() => navigateIndex(100)}
+              >
+                +100
+              </a>
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

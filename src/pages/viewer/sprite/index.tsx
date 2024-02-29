@@ -1,5 +1,4 @@
 import { ChangeEvent, useEffect, useState } from 'react';
-import { SelectedRom } from '../../../types/selected-rom';
 import { RomAddress } from '../../../rom-parser/types/address';
 import { SpriteHeaderTable } from './sprite-header';
 import { validateSpriteHeader } from '../../../rom-parser/scan/sprites';
@@ -18,12 +17,12 @@ import {
 import { assembleSprite } from '../../../rom-parser/sprites/sprite-part';
 import { SpritePartsViewer } from './sprite-parts';
 import { ScanSprites } from './scan-sprites';
+import { ViewerModeBaseProps } from '../types';
 
-interface SpriteViewerProps {
-  selectedRom: SelectedRom;
-}
-
-export const SpriteViewer = ({ selectedRom }: SpriteViewerProps) => {
+export const SpriteViewer = ({
+  selectedRom,
+  initRomAddress,
+}: ViewerModeBaseProps) => {
   const [snesAddress, setSnesAddress] = useState<string>('');
   const [spritePointer, setSpritePointer] = useState<string>('');
 
@@ -36,6 +35,13 @@ export const SpriteViewer = ({ selectedRom }: SpriteViewerProps) => {
   const [partBorderToShow, setPartBorderToShow] = useState<Rectangle[]>([]);
 
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (initRomAddress) {
+      setSnesAddress(toHexString(initRomAddress.snesAddress));
+      loadSprite(initRomAddress);
+    }
+  }, [initRomAddress]);
 
   useEffect(() => {
     if (sprite && showSelectedPartsBorder) {

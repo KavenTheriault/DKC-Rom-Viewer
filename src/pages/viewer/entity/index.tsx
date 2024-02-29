@@ -14,15 +14,14 @@ import {
   readEntityRawAnimation,
   snesAddressToEntityReference,
 } from '../../../rom-parser/entities';
-import { SelectedRom } from '../../../types/selected-rom';
 import { Animation } from '../../../rom-parser/animations/types';
-import { buildAnimation } from '../../../rom-parser/animations';
+import {
+  buildAnimation,
+  readAnimationPointer,
+} from '../../../rom-parser/animations';
 import { grayscalePalette } from '../../../rom-parser/sprites/palette';
 import { ScanEntities } from './scan-entity';
-
-interface EntityViewerProps {
-  selectedRom: SelectedRom;
-}
+import { ViewerMode, ViewerModeBaseProps } from '../types';
 
 const displayEntityInstruction = (instruction: EntityInstruction) => {
   const parameters = [];
@@ -32,7 +31,10 @@ const displayEntityInstruction = (instruction: EntityInstruction) => {
   return `Command: ${toHexString(instruction.command)} Params: ${parameters.join(' ')}`;
 };
 
-export const EntityViewer = ({ selectedRom }: EntityViewerProps) => {
+export const EntityViewer = ({
+  selectedRom,
+  loadViewerMode,
+}: ViewerModeBaseProps) => {
   const [entityAddress, setEntityAddress] = useState<string>('');
   const [entityReference, setEntityReference] = useState<string>('');
 
@@ -116,7 +118,21 @@ export const EntityViewer = ({ selectedRom }: EntityViewerProps) => {
   const renderInstruction = (instruction?: EntityInstruction) => {
     if (!instruction) return null;
     if (instruction.command === EntityCommand.ANIMATION)
-      return <span>Animation</span>;
+      return (
+        <button
+          className="button is-info"
+          onClick={() => {
+            const animationIndex = instruction.parameters[0];
+            const animationAddress = readAnimationPointer(
+              selectedRom.data,
+              animationIndex,
+            );
+            loadViewerMode(ViewerMode.Animation, animationAddress);
+          }}
+        >
+          Go to animation
+        </button>
+      );
     if (instruction.command === EntityCommand.PALETTE)
       return <span>Palette</span>;
     if (instruction.command === EntityCommand.INHERIT)
@@ -136,6 +152,16 @@ export const EntityViewer = ({ selectedRom }: EntityViewerProps) => {
         </button>
       );
     return null;
+  };
+
+  const getInstructionClassName = (instruction: EntityInstruction) => {
+    if (instruction.command === EntityCommand.PALETTE)
+      return 'has-background-primary';
+    if (instruction.command === EntityCommand.ANIMATION)
+      return 'has-background-success';
+    if (instruction.command === EntityCommand.INHERIT)
+      return 'has-background-warning';
+    return '';
   };
 
   return (
@@ -236,14 +262,4 @@ export const EntityViewer = ({ selectedRom }: EntityViewerProps) => {
       />
     </div>
   );
-};
-
-const getInstructionClassName = (instruction: EntityInstruction) => {
-  if (instruction.command === EntityCommand.PALETTE)
-    return 'has-background-primary';
-  if (instruction.command === EntityCommand.ANIMATION)
-    return 'has-background-success';
-  if (instruction.command === EntityCommand.INHERIT)
-    return 'has-background-warning';
-  return '';
 };

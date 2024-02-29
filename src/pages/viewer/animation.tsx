@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { isHexadecimal, toHexString } from '../../utils/hex';
 import { RomAddress } from '../../rom-parser/types/address';
 import {
@@ -6,7 +6,6 @@ import {
   readAnimationPointer,
   readRawAnimation,
 } from '../../rom-parser/animations';
-import { SelectedRom } from '../../types/selected-rom';
 import {
   Animation,
   EntryCommand,
@@ -16,10 +15,8 @@ import {
 import { ImageCanvas } from '../../components/image-canvas';
 import { Color } from '../../rom-parser/sprites/types';
 import { readPalette } from '../../rom-parser/sprites/palette';
-
-interface AnimationViewerProps {
-  selectedRom: SelectedRom;
-}
+import { ViewerMode, ViewerModeBaseProps } from './types';
+import { getAddressFromSpritePointerIndex } from '../../rom-parser/sprites';
 
 const displayAnimationEntry = (entry: EntryCommand | EntrySprite) => {
   if ('time' in entry) {
@@ -32,14 +29,27 @@ const displayAnimationEntry = (entry: EntryCommand | EntrySprite) => {
   return `Command: ${toHexString(entry.command)} Params: ${parameters.join(' ')}`;
 };
 
-export const AnimationViewer = ({ selectedRom }: AnimationViewerProps) => {
+export const AnimationViewer = ({
+  selectedRom,
+  loadViewerMode,
+  initRomAddress,
+}: ViewerModeBaseProps) => {
   const [animationAddress, setAnimationAddress] = useState<string>('');
   const [animationIndex, setAnimationIndex] = useState<string>('');
 
   const [rawAnimation, setRawAnimation] = useState<RawAnimation>();
   const [animation, setAnimation] = useState<Animation>();
 
+  const [selectedAnimationEntryIndex, setSelectedAnimationEntryIndex] =
+    useState<number>(0);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (initRomAddress) {
+      setAnimationAddress(toHexString(initRomAddress.snesAddress));
+      loadAnimation(initRomAddress);
+    }
+  }, [initRomAddress]);
 
   const onAnimationAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.toUpperCase();
@@ -108,6 +118,27 @@ export const AnimationViewer = ({ selectedRom }: AnimationViewerProps) => {
       setAnimation(undefined);
       setError("Can't build animation");
     }
+  };
+
+  const renderEntry = (entry?: EntryCommand | EntrySprite) => {
+    if (!entry) return null;
+    if ('spriteIndex' in entry) {
+      return (
+        <button
+          className="button is-info"
+          onClick={() => {
+            const spriteAddress = getAddressFromSpritePointerIndex(
+              selectedRom.data,
+              entry.spriteIndex,
+            );
+            loadViewerMode(ViewerMode.Sprite, spriteAddress);
+          }}
+        >
+          Go to sprite
+        </button>
+      );
+    }
+    return null;
   };
 
   return (
@@ -193,14 +224,23 @@ export const AnimationViewer = ({ selectedRom }: AnimationViewerProps) => {
         </div>
         <div className="column">
           <label className="label">Animation Steps</label>
-          <div className="select is-multiple">
-            <select multiple size={10}>
+          <div className="block select is-multiple">
+            <select
+              multiple
+              size={10}
+              onChange={(e) =>
+                setSelectedAnimationEntryIndex(parseInt(e.target.value))
+              }
+            >
               {rawAnimation?.entries.map((entry, index) => (
                 <option key={`animationEntry${index}`} value={index}>
                   {displayAnimationEntry(entry)}
                 </option>
               ))}
             </select>
+          </div>
+          <div className="block">
+            {renderEntry(rawAnimation?.entries[selectedAnimationEntryIndex])}
           </div>
         </div>
       </div>
