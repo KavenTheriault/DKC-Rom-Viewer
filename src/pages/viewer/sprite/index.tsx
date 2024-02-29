@@ -1,23 +1,23 @@
 import { ChangeEvent, useEffect, useState } from 'react';
-import { SelectedRom } from '../../types/selected-rom';
-import { RomAddress } from '../../rom-parser/types/address';
-import { SpriteHeaderTable } from './components/sprite-header';
-import { validateSpriteHeader } from '../../rom-parser/scan/sprites';
+import { SelectedRom } from '../../../types/selected-rom';
+import { RomAddress } from '../../../rom-parser/types/address';
+import { SpriteHeaderTable } from './sprite-header';
+import { validateSpriteHeader } from '../../../rom-parser/scan/sprites';
 import {
   getAddressFromSpritePointerIndex,
   readSprite,
   Sprite,
-} from '../../rom-parser/sprites';
-import { isHexadecimal, toHexString } from '../../utils/hex';
-import { ImageCanvas, Rectangle } from '../../components/image-canvas';
-import { Array2D, Color, Image } from '../../rom-parser/sprites/types';
+} from '../../../rom-parser/sprites';
+import { isHexadecimal, toHexString } from '../../../utils/hex';
+import { ImageCanvas, Rectangle } from '../../../components/image-canvas';
+import { Array2D, Color, Image } from '../../../rom-parser/sprites/types';
 import {
   buildImageFromPixelsAndPalette,
   readPalette,
-} from '../../rom-parser/sprites/palette';
-import { assembleSprite } from '../../rom-parser/sprites/sprite-part';
-import { SpritePartsViewer } from './components/sprite-parts';
-import { ScanSprites } from './components/scan-sprites';
+} from '../../../rom-parser/sprites/palette';
+import { assembleSprite } from '../../../rom-parser/sprites/sprite-part';
+import { SpritePartsViewer } from './sprite-parts';
+import { ScanSprites } from './scan-sprites';
 
 interface SpriteViewerProps {
   selectedRom: SelectedRom;

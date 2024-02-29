@@ -1,23 +1,24 @@
-import { ImageCanvas } from '../../components/image-canvas';
+import { ImageCanvas } from '../../../components/image-canvas';
 import { ChangeEvent, useState } from 'react';
-import { isHexadecimal, toHexString } from '../../utils/hex';
-import { RomAddress } from '../../rom-parser/types/address';
+import { isHexadecimal, toHexString } from '../../../utils/hex';
+import { RomAddress } from '../../../rom-parser/types/address';
 import {
   Entity,
   EntityCommand,
   EntityInstruction,
-} from '../../rom-parser/entities/types';
+} from '../../../rom-parser/entities/types';
 import {
   entityReferenceToSnesAddress,
   readEntity,
   readEntityPalette,
   readEntityRawAnimation,
   snesAddressToEntityReference,
-} from '../../rom-parser/entities';
-import { SelectedRom } from '../../types/selected-rom';
-import { Animation } from '../../rom-parser/animations/types';
-import { buildAnimation } from '../../rom-parser/animations';
-import { grayscalePalette } from '../../rom-parser/sprites/palette';
+} from '../../../rom-parser/entities';
+import { SelectedRom } from '../../../types/selected-rom';
+import { Animation } from '../../../rom-parser/animations/types';
+import { buildAnimation } from '../../../rom-parser/animations';
+import { grayscalePalette } from '../../../rom-parser/sprites/palette';
+import { ScanEntities } from './scan-entity';
 
 interface EntityViewerProps {
   selectedRom: SelectedRom;
@@ -226,6 +227,13 @@ export const EntityViewer = ({ selectedRom }: EntityViewerProps) => {
           </div>
         </div>
       </div>
+      <ScanEntities
+        selectedRom={selectedRom}
+        onEntityAddressToShow={(entityAddress) => {
+          setEntityAddress(toHexString(entityAddress.snesAddress));
+          onSnesAddressLoad(entityAddress);
+        }}
+      />
     </div>
   );
 };
