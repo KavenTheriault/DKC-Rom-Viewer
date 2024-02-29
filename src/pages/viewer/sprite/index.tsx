@@ -10,14 +10,14 @@ import {
 import { isHexadecimal, toHexString } from '../../../utils/hex';
 import { ImageCanvas, Rectangle } from '../../../components/image-canvas';
 import { Array2D, Color, Image } from '../../../rom-parser/sprites/types';
-import {
-  buildImageFromPixelsAndPalette,
-  readPalette,
-} from '../../../rom-parser/sprites/palette';
 import { assembleSprite } from '../../../rom-parser/sprites/sprite-part';
 import { SpritePartsViewer } from './sprite-parts';
 import { ScanSprites } from './scan-sprites';
 import { ViewerModeBaseProps } from '../types';
+import {
+  buildImageFromPixelsAndPalette,
+  readPalette,
+} from '../../../rom-parser/palette';
 
 export const SpriteViewer = ({
   selectedRom,

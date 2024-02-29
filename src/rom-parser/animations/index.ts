@@ -12,8 +12,8 @@ import {
 import { getAddressFromSpritePointerIndex, readSprite } from '../sprites';
 import { toHexString } from '../../utils/hex';
 import { Array2D, Color, Image } from '../sprites/types';
-import { buildImageFromPixelsAndPalette } from '../sprites/palette';
 import { assembleSprite } from '../sprites/sprite-part';
+import { buildImageFromPixelsAndPalette } from '../palette';
 
 const ANIMATION_POINTERS_ADDRESS: RomAddress =
   RomAddress.fromSnesAddress(0x3e8572);

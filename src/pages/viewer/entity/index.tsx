@@ -19,9 +19,12 @@ import {
   buildAnimation,
   readAnimationPointer,
 } from '../../../rom-parser/animations';
-import { grayscalePalette } from '../../../rom-parser/sprites/palette';
 import { ScanEntities } from './scan-entity';
 import { ViewerMode, ViewerModeBaseProps } from '../types';
+import {
+  grayscalePalette,
+  palettePointerToSnesAddress,
+} from '../../../rom-parser/palette';
 
 const displayEntityInstruction = (instruction: EntityInstruction) => {
   const parameters = [];
@@ -134,7 +137,18 @@ export const EntityViewer = ({
         </button>
       );
     if (instruction.command === EntityCommand.PALETTE)
-      return <span>Palette</span>;
+      return (
+        <button
+          className="button is-info"
+          onClick={() => {
+            const palettePointer = instruction.parameters[0];
+            const paletteAddress = palettePointerToSnesAddress(palettePointer);
+            loadViewerMode(ViewerMode.Palette, paletteAddress);
+          }}
+        >
+          Go to palette
+        </button>
+      );
     if (instruction.command === EntityCommand.INHERIT)
       return (
         <button
@@ -228,29 +242,35 @@ export const EntityViewer = ({
           />
         </div>
         <div className="column">
-          <label className="label">Entity Instructions</label>
-          <div className="block select is-multiple">
-            <select
-              multiple
-              size={10}
-              onChange={(e) =>
-                setSelectedInstructionIndex(parseInt(e.target.value))
-              }
-            >
-              {entity?.instructions.map((instruction, index) => (
-                <option
-                  className={getInstructionClassName(instruction)}
-                  key={`entityInstruction${index}`}
-                  value={index}
+          {entity && (
+            <>
+              <label className="label">Entity Instructions</label>
+              <div className="block select is-multiple">
+                <select
+                  multiple
+                  size={10}
+                  onChange={(e) =>
+                    setSelectedInstructionIndex(parseInt(e.target.value))
+                  }
                 >
-                  {displayEntityInstruction(instruction)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="block">
-            {renderInstruction(entity?.instructions[selectedInstructionIndex])}
-          </div>
+                  {entity?.instructions.map((instruction, index) => (
+                    <option
+                      className={getInstructionClassName(instruction)}
+                      key={`entityInstruction${index}`}
+                      value={index}
+                    >
+                      {displayEntityInstruction(instruction)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="block">
+                {renderInstruction(
+                  entity?.instructions[selectedInstructionIndex],
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
       <ScanEntities

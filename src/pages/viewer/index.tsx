@@ -72,7 +72,13 @@ export const Viewer = () => {
           />
         );
       case ViewerMode.Palette:
-        return <PaletteViewer />;
+        return (
+          <PaletteViewer
+            selectedRom={viewerState.selectedRom}
+            loadViewerMode={loadViewerMode}
+            initRomAddress={modeAddresses.current[ViewerMode.Palette]}
+          />
+        );
     }
   };
 

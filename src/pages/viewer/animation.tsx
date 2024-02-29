@@ -14,9 +14,9 @@ import {
 } from '../../rom-parser/animations/types';
 import { ImageCanvas } from '../../components/image-canvas';
 import { Color } from '../../rom-parser/sprites/types';
-import { readPalette } from '../../rom-parser/sprites/palette';
 import { ViewerMode, ViewerModeBaseProps } from './types';
 import { getAddressFromSpritePointerIndex } from '../../rom-parser/sprites';
+import { readPalette } from '../../rom-parser/palette';
 
 const displayAnimationEntry = (entry: EntryCommand | EntrySprite) => {
   if ('time' in entry) {
@@ -223,25 +223,31 @@ export const AnimationViewer = ({
           />
         </div>
         <div className="column">
-          <label className="label">Animation Steps</label>
-          <div className="block select is-multiple">
-            <select
-              multiple
-              size={10}
-              onChange={(e) =>
-                setSelectedAnimationEntryIndex(parseInt(e.target.value))
-              }
-            >
-              {rawAnimation?.entries.map((entry, index) => (
-                <option key={`animationEntry${index}`} value={index}>
-                  {displayAnimationEntry(entry)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="block">
-            {renderEntry(rawAnimation?.entries[selectedAnimationEntryIndex])}
-          </div>
+          {rawAnimation && (
+            <>
+              <label className="label">Animation Steps</label>
+              <div className="block select is-multiple">
+                <select
+                  multiple
+                  size={10}
+                  onChange={(e) =>
+                    setSelectedAnimationEntryIndex(parseInt(e.target.value))
+                  }
+                >
+                  {rawAnimation?.entries.map((entry, index) => (
+                    <option key={`animationEntry${index}`} value={index}>
+                      {displayAnimationEntry(entry)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="block">
+                {renderEntry(
+                  rawAnimation?.entries[selectedAnimationEntryIndex],
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

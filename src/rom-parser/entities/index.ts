@@ -9,7 +9,7 @@ import {
 import { readAnimationPointer, readRawAnimation } from '../animations';
 import { RawAnimation } from '../animations/types';
 import { Color } from '../sprites/types';
-import { palettePointerToSnesAddress, readPalette } from '../sprites/palette';
+import { palettePointerToSnesAddress, readPalette } from '../palette';
 
 export const ENTITY_STARTING_ADDRESS = 0xb50000;
 

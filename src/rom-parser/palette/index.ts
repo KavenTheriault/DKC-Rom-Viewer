@@ -1,6 +1,6 @@
-import { read16 } from '../utils/buffer';
-import { Color, Image } from './types';
 import { RomAddress } from '../types/address';
+import { Color, Image } from '../sprites/types';
+import { read16 } from '../utils/buffer';
 
 const PALETTE_LENGTH = 15;
 
