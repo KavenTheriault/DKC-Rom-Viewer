@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { SelectedRom } from '../../types/selected-rom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { EntityViewer } from './entity';
 import { SpriteViewer } from './sprite';
@@ -28,14 +28,18 @@ export const Viewer = () => {
   const viewerState = location.state
     ? (location.state as ViewerState)
     : undefined;
-  if (!viewerState?.selectedRom) {
-    navigate('/');
-    return null;
-  }
+
+  useEffect(() => {
+    if (!viewerState?.selectedRom) {
+      navigate('/');
+    }
+  }, []);
 
   const navigateToMode: NavigateToMode = (mode) => {
     setViewerMode(mode);
   };
+
+  if (!viewerState?.selectedRom) return null;
 
   const renderViewMode = () => {
     switch (viewerMode) {

@@ -19,6 +19,7 @@ import { getAddressFromSpritePointerIndex } from '../../rom-parser/sprites';
 import { readPalette } from '../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from './memory';
 import { DEFAULT_PALETTE } from '../../utils/defaults';
+import { HexadecimalInput } from '../../components/hexadecimal-input';
 
 const displayAnimationEntry = (entry: EntryCommand | EntrySprite) => {
   if ('time' in entry) {
@@ -35,8 +36,8 @@ export const AnimationViewer = ({
   selectedRom,
   navigateToMode,
 }: ViewerModeBaseProps) => {
-  const [animationAddress, setAnimationAddress] = useState<string>('');
-  const [paletteAddress, setPaletteAddress] = useState<string>('');
+  const [animationAddress, setAnimationAddress] = useState<number>();
+  const [paletteAddress, setPaletteAddress] = useState<number>();
   const [animationIndex, setAnimationIndex] = useState<string>('');
 
   const [rawAnimation, setRawAnimation] = useState<RawAnimation>();
@@ -51,37 +52,21 @@ export const AnimationViewer = ({
       getViewerModeAddress(ViewerMode.Palette) ||
       RomAddress.fromSnesAddress(DEFAULT_PALETTE);
     if (savedPaletteAddress) {
-      setPaletteAddress(toHexString(savedPaletteAddress.snesAddress));
+      setPaletteAddress(savedPaletteAddress.snesAddress);
     }
 
     const savedAnimationAddress = getViewerModeAddress(ViewerMode.Animation);
     if (savedAnimationAddress) {
-      setAnimationAddress(toHexString(savedAnimationAddress.snesAddress));
+      setAnimationAddress(savedAnimationAddress.snesAddress);
       loadAnimation(savedAnimationAddress, savedPaletteAddress);
     }
   }, []);
 
-  const onAnimationAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value.toUpperCase();
-    if (input === '' || isHexadecimal(input)) {
-      setAnimationAddress(input);
-    }
-  };
-
-  const onPaletteAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value.toUpperCase();
-    if (input === '' || isHexadecimal(input)) {
-      setPaletteAddress(input);
-    }
-  };
-
   const onAnimationAddressLoadClick = () => {
     if (animationAddress) {
-      const parsedSnesAddress = parseInt(animationAddress, 16);
-      const parsedPaletteAddress = parseInt(paletteAddress, 16);
       loadAnimation(
-        RomAddress.fromSnesAddress(parsedSnesAddress),
-        RomAddress.fromSnesAddress(parsedPaletteAddress),
+        RomAddress.fromSnesAddress(animationAddress),
+        RomAddress.fromSnesAddress(paletteAddress || DEFAULT_PALETTE),
       );
       setAnimationIndex('');
     } else {
@@ -93,7 +78,7 @@ export const AnimationViewer = ({
     if (animationIndex) {
       loadAnimationIndex(parseInt(animationIndex));
     } else {
-      setAnimationAddress('');
+      setAnimationAddress(0);
       setRawAnimation(undefined);
     }
   };
@@ -112,9 +97,11 @@ export const AnimationViewer = ({
 
   const loadAnimationIndex = (index: number) => {
     const address = readAnimationPointer(selectedRom.data, index);
-    const palette = RomAddress.fromSnesAddress(parseInt(paletteAddress, 16));
+    const palette = RomAddress.fromSnesAddress(
+      paletteAddress || DEFAULT_PALETTE,
+    );
     loadAnimation(address, palette);
-    setAnimationAddress(toHexString(address.snesAddress));
+    setAnimationAddress(address.snesAddress);
   };
 
   const loadAnimation = (
@@ -176,12 +163,11 @@ export const AnimationViewer = ({
                 <a className="button is-static">0x</a>
               </p>
               <p className="control">
-                <input
+                <HexadecimalInput
                   className="input"
-                  type="text"
                   placeholder="Hexadecimal"
                   value={animationAddress}
-                  onChange={onAnimationAddressChange}
+                  onChange={setAnimationAddress}
                 />
               </p>
               <p className="control">
@@ -244,12 +230,11 @@ export const AnimationViewer = ({
                 <a className="button is-static">0x</a>
               </p>
               <p className="control">
-                <input
+                <HexadecimalInput
                   className="input"
-                  type="text"
                   placeholder="Hexadecimal"
                   value={paletteAddress}
-                  onChange={onPaletteAddressChange}
+                  onChange={setPaletteAddress}
                 />
               </p>
               <p className="control">

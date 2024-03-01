@@ -1,34 +1,27 @@
 import { ViewerMode, ViewerModeBaseProps } from './types';
-import { ChangeEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Color } from '../../rom-parser/sprites/types';
-import { isHexadecimal, rgbToHex, toHexString } from '../../utils/hex';
+import { rgbToHex } from '../../utils/hex';
 import { RomAddress } from '../../rom-parser/types/address';
 import { readPalette } from '../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from './memory';
+import { HexadecimalInput } from '../../components/hexadecimal-input';
 
 export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
-  const [paletteAddress, setPaletteAddress] = useState<string>('');
+  const [paletteAddress, setPaletteAddress] = useState<number>();
   const [palette, setPalette] = useState<Color[]>();
 
   useEffect(() => {
     const initRomAddress = getViewerModeAddress(ViewerMode.Palette);
     if (initRomAddress) {
-      setPaletteAddress(toHexString(initRomAddress.snesAddress));
+      setPaletteAddress(initRomAddress.snesAddress);
       loadPalette(initRomAddress);
     }
   }, []);
 
-  const onPlatteAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value.toUpperCase();
-    if (input === '' || isHexadecimal(input)) {
-      setPaletteAddress(input);
-    }
-  };
-
   const onPaletteAddressLoadClick = () => {
     if (paletteAddress) {
-      const parsedSnesAddress = parseInt(paletteAddress, 16);
-      loadPalette(RomAddress.fromSnesAddress(parsedSnesAddress));
+      loadPalette(RomAddress.fromSnesAddress(paletteAddress));
     } else {
       setPalette(undefined);
     }
@@ -51,12 +44,11 @@ export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
                 <a className="button is-static">0x</a>
               </p>
               <p className="control">
-                <input
+                <HexadecimalInput
                   className="input"
-                  type="text"
                   placeholder="Hexadecimal"
                   value={paletteAddress}
-                  onChange={onPlatteAddressChange}
+                  onChange={setPaletteAddress}
                 />
               </p>
               <p className="control">

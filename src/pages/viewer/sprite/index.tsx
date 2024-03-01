@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RomAddress } from '../../../rom-parser/types/address';
 import { SpriteHeaderTable } from './sprite-header';
 import { validateSpriteHeader } from '../../../rom-parser/scan/sprites';
@@ -7,7 +7,6 @@ import {
   readSprite,
   Sprite,
 } from '../../../rom-parser/sprites';
-import { isHexadecimal, toHexString } from '../../../utils/hex';
 import { ImageCanvas, Rectangle } from '../../../components/image-canvas';
 import { Array2D, Color, Image } from '../../../rom-parser/sprites/types';
 import { assembleSprite } from '../../../rom-parser/sprites/sprite-part';
@@ -20,11 +19,12 @@ import {
 } from '../../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from '../memory';
 import { DEFAULT_PALETTE } from '../../../utils/defaults';
+import { HexadecimalInput } from '../../../components/hexadecimal-input';
 
 export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
-  const [snesAddress, setSnesAddress] = useState<string>('');
-  const [paletteAddress, setPaletteAddress] = useState<string>('');
-  const [spritePointer, setSpritePointer] = useState<string>('');
+  const [snesAddress, setSnesAddress] = useState<number>();
+  const [paletteAddress, setPaletteAddress] = useState<number>();
+  const [spritePointer, setSpritePointer] = useState<number>();
 
   const [sprite, setSprite] = useState<Sprite>();
   const [spriteImage, setSpriteImage] = useState<Image>();
@@ -41,12 +41,12 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
       getViewerModeAddress(ViewerMode.Palette) ||
       RomAddress.fromSnesAddress(DEFAULT_PALETTE);
     if (savedPaletteAddress) {
-      setPaletteAddress(toHexString(savedPaletteAddress.snesAddress));
+      setPaletteAddress(savedPaletteAddress.snesAddress);
     }
 
     const savedSpriteAddress = getViewerModeAddress(ViewerMode.Sprite);
     if (savedSpriteAddress) {
-      setSnesAddress(toHexString(savedSpriteAddress.snesAddress));
+      setSnesAddress(savedSpriteAddress.snesAddress);
       loadSpriteAndPalette(savedSpriteAddress, savedPaletteAddress);
     }
   }, []);
@@ -69,36 +69,13 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
     }
   }, [showSelectedPartsBorder, selectedPartIndexes]);
 
-  const onSnesAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value.toUpperCase();
-    if (input === '' || isHexadecimal(input)) {
-      setSnesAddress(input);
-    }
-  };
-
-  const onSpritePointerChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value.toUpperCase();
-    if (input === '' || isHexadecimal(input)) {
-      setSpritePointer(input);
-    }
-  };
-
-  const onPaletteAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value.toUpperCase();
-    if (input === '' || isHexadecimal(input)) {
-      setPaletteAddress(input);
-    }
-  };
-
   const onSnesAddressLoadClick = () => {
     if (snesAddress) {
-      const parsedSnesAddress = parseInt(snesAddress, 16);
-      const parsedPaletteAddress = parseInt(paletteAddress, 16);
       loadSpriteAndPalette(
-        RomAddress.fromSnesAddress(parsedSnesAddress),
-        RomAddress.fromSnesAddress(parsedPaletteAddress),
+        RomAddress.fromSnesAddress(snesAddress),
+        RomAddress.fromSnesAddress(paletteAddress || DEFAULT_PALETTE),
       );
-      setSpritePointer('');
+      setSpritePointer(undefined);
     } else {
       setSprite(undefined);
     }
@@ -106,20 +83,17 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
 
   const onSpritePointerLoadClick = () => {
     if (spritePointer) {
-      const parsedSpritePointer = parseInt(spritePointer, 16);
-      loadSpritePointer(parsedSpritePointer);
+      loadSpritePointer(spritePointer);
     } else {
-      setSnesAddress('');
+      setSnesAddress(undefined);
       setSprite(undefined);
     }
   };
 
   const offsetSpritePointer = (offset: number) => {
-    let previousSpritePointer: number = spritePointer
-      ? parseInt(spritePointer, 16)
-      : 0;
+    let previousSpritePointer: number = spritePointer ?? 0;
     previousSpritePointer += offset;
-    setSpritePointer(toHexString(previousSpritePointer));
+    setSpritePointer(previousSpritePointer);
     loadSpritePointer(previousSpritePointer);
   };
 
@@ -128,14 +102,14 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
       selectedRom.data,
       spritePointer,
     );
-    setSnesAddress(
-      spriteAddress.snesAddress.toString(16).toString().toUpperCase(),
-    );
+    setSnesAddress(spriteAddress.snesAddress);
     loadSprite(spriteAddress);
   };
 
   const loadSprite = (spriteAddress: RomAddress) => {
-    const palette = RomAddress.fromSnesAddress(parseInt(paletteAddress, 16));
+    const palette = RomAddress.fromSnesAddress(
+      paletteAddress || DEFAULT_PALETTE,
+    );
     loadSpriteAndPalette(spriteAddress, palette);
   };
 
@@ -179,12 +153,11 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
                 <a className="button is-static">0x</a>
               </p>
               <p className="control">
-                <input
+                <HexadecimalInput
                   className="input"
-                  type="text"
                   placeholder="Hexadecimal"
                   value={snesAddress}
-                  onChange={onSnesAddressChange}
+                  onChange={setSnesAddress}
                 />
               </p>
               <p className="control">
@@ -204,12 +177,11 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
                 <a className="button is-static">0x</a>
               </p>
               <p className="control">
-                <input
+                <HexadecimalInput
                   className="input"
-                  type="text"
                   placeholder="Hexadecimal"
                   value={spritePointer}
-                  onChange={onSpritePointerChange}
+                  onChange={setSpritePointer}
                 />
               </p>
               <p className="control">
@@ -249,12 +221,11 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
                 <a className="button is-static">0x</a>
               </p>
               <p className="control">
-                <input
+                <HexadecimalInput
                   className="input"
-                  type="text"
                   placeholder="Hexadecimal"
                   value={paletteAddress}
-                  onChange={onPaletteAddressChange}
+                  onChange={setPaletteAddress}
                 />
               </p>
               <p className="control">
@@ -308,8 +279,8 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
       <ScanSprites
         selectedRom={selectedRom}
         onSpriteAddressToShow={(spriteAddress) => {
-          setSpritePointer('');
-          setSnesAddress(toHexString(spriteAddress.snesAddress));
+          setSpritePointer(undefined);
+          setSnesAddress(spriteAddress.snesAddress);
           loadSprite(spriteAddress);
         }}
       />

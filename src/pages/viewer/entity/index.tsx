@@ -1,6 +1,6 @@
 import { ImageCanvas } from '../../../components/image-canvas';
-import { ChangeEvent, useEffect, useState } from 'react';
-import { isHexadecimal, toHexString } from '../../../utils/hex';
+import { useEffect, useState } from 'react';
+import { toHexString } from '../../../utils/hex';
 import { RomAddress } from '../../../rom-parser/types/address';
 import {
   Entity,
@@ -26,7 +26,7 @@ import {
   palettePointerToSnesAddress,
 } from '../../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from '../memory';
-import { add } from 'lodash';
+import { HexadecimalInput } from '../../../components/hexadecimal-input';
 
 const displayEntityInstruction = (instruction: EntityInstruction) => {
   const parameters = [];
@@ -40,8 +40,8 @@ export const EntityViewer = ({
   selectedRom,
   navigateToMode,
 }: ViewerModeBaseProps) => {
-  const [entityAddress, setEntityAddress] = useState<string>('');
-  const [entityReference, setEntityReference] = useState<string>('');
+  const [entityAddress, setEntityAddress] = useState<number>();
+  const [entityReference, setEntityReference] = useState<number>();
 
   const [entity, setEntity] = useState<Entity>();
   const [animation, setAnimation] = useState<Animation>();
@@ -53,45 +53,28 @@ export const EntityViewer = ({
   useEffect(() => {
     const initRomAddress = getViewerModeAddress(ViewerMode.Entity);
     if (initRomAddress) {
-      setEntityAddress(toHexString(initRomAddress.snesAddress));
+      setEntityAddress(initRomAddress.snesAddress);
       onSnesAddressLoad(initRomAddress);
     }
   }, []);
 
-  const onEntityAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value.toUpperCase();
-    if (input === '' || isHexadecimal(input)) {
-      setEntityAddress(input);
-    }
-  };
-
-  const onEntityReferenceChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value.toUpperCase();
-    if (input === '' || isHexadecimal(input)) {
-      setEntityReference(input);
-    }
-  };
-
   const onEntityAddressLoadClick = () => {
     if (entityAddress) {
-      const parsedSnesAddress = parseInt(entityAddress, 16);
-      const romAddress = RomAddress.fromSnesAddress(parsedSnesAddress);
+      const romAddress = RomAddress.fromSnesAddress(entityAddress);
       onSnesAddressLoad(romAddress);
     } else {
-      setEntityReference('');
+      setEntityReference(undefined);
       setEntity(undefined);
     }
   };
 
   const onAnimationIndexLoadClick = () => {
     if (entityReference) {
-      const parsedEntityReference: number = parseInt(entityReference, 16);
-      const romAddress = entityReferenceToSnesAddress(parsedEntityReference);
-
+      const romAddress = entityReferenceToSnesAddress(entityReference);
       loadEntity(romAddress);
-      setEntityAddress(toHexString(romAddress.snesAddress));
+      setEntityAddress(romAddress.snesAddress);
     } else {
-      setEntityAddress('');
+      setEntityAddress(undefined);
       setEntity(undefined);
     }
     setSelectedInstructionIndex(0);
@@ -99,7 +82,7 @@ export const EntityViewer = ({
 
   const onSnesAddressLoad = (romAddress: RomAddress) => {
     loadEntity(romAddress);
-    setEntityReference(toHexString(snesAddressToEntityReference(romAddress)));
+    setEntityReference(snesAddressToEntityReference(romAddress));
   };
 
   const loadEntity = (address: RomAddress) => {
@@ -170,7 +153,7 @@ export const EntityViewer = ({
             const romAddress = entityReferenceToSnesAddress(
               instruction.parameters[0],
             );
-            setEntityAddress(toHexString(romAddress.snesAddress));
+            setEntityAddress(romAddress.snesAddress);
             onSnesAddressLoad(romAddress);
           }}
         >
@@ -202,12 +185,11 @@ export const EntityViewer = ({
                 <a className="button is-static">0x</a>
               </p>
               <p className="control">
-                <input
+                <HexadecimalInput
                   className="input"
-                  type="text"
                   placeholder="Hexadecimal"
                   value={entityAddress}
-                  onChange={onEntityAddressChange}
+                  onChange={setEntityAddress}
                 />
               </p>
               <p className="control">
@@ -227,12 +209,11 @@ export const EntityViewer = ({
                 <a className="button is-static">0x</a>
               </p>
               <p className="control">
-                <input
+                <HexadecimalInput
                   className="input"
-                  type="text"
                   placeholder="Hexadecimal"
                   value={entityReference}
-                  onChange={onEntityReferenceChange}
+                  onChange={setEntityReference}
                 />
               </p>
               <p className="control">
@@ -289,7 +270,7 @@ export const EntityViewer = ({
       <ScanEntities
         selectedRom={selectedRom}
         onEntityAddressToShow={(entityAddress) => {
-          setEntityAddress(toHexString(entityAddress.snesAddress));
+          setEntityAddress(entityAddress.snesAddress);
           onSnesAddressLoad(entityAddress);
         }}
       />
