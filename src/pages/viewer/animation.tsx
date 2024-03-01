@@ -17,6 +17,7 @@ import { Color } from '../../rom-parser/sprites/types';
 import { ViewerMode, ViewerModeBaseProps } from './types';
 import { getAddressFromSpritePointerIndex } from '../../rom-parser/sprites';
 import { readPalette } from '../../rom-parser/palette';
+import { getViewerModeAddress, saveViewerModeAddress } from './memory';
 
 const displayAnimationEntry = (entry: EntryCommand | EntrySprite) => {
   if ('time' in entry) {
@@ -31,8 +32,7 @@ const displayAnimationEntry = (entry: EntryCommand | EntrySprite) => {
 
 export const AnimationViewer = ({
   selectedRom,
-  loadViewerMode,
-  initRomAddress,
+  navigateToMode,
 }: ViewerModeBaseProps) => {
   const [animationAddress, setAnimationAddress] = useState<string>('');
   const [animationIndex, setAnimationIndex] = useState<string>('');
@@ -45,11 +45,12 @@ export const AnimationViewer = ({
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const initRomAddress = getViewerModeAddress(ViewerMode.Animation);
     if (initRomAddress) {
       setAnimationAddress(toHexString(initRomAddress.snesAddress));
       loadAnimation(initRomAddress);
     }
-  }, [initRomAddress]);
+  }, []);
 
   const onAnimationAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.toUpperCase();
@@ -102,6 +103,7 @@ export const AnimationViewer = ({
         animationAddress,
       );
       setRawAnimation(animationSequence);
+      saveViewerModeAddress(ViewerMode.Animation, animationAddress);
 
       const palette: Color[] = readPalette(
         selectedRom.data,
@@ -131,7 +133,8 @@ export const AnimationViewer = ({
               selectedRom.data,
               entry.spriteIndex,
             );
-            loadViewerMode(ViewerMode.Sprite, spriteAddress);
+            saveViewerModeAddress(ViewerMode.Sprite, spriteAddress);
+            navigateToMode(ViewerMode.Sprite);
           }}
         >
           Go to sprite

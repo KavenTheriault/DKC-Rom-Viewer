@@ -1,5 +1,5 @@
 import { ImageCanvas } from '../../../components/image-canvas';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { isHexadecimal, toHexString } from '../../../utils/hex';
 import { RomAddress } from '../../../rom-parser/types/address';
 import {
@@ -25,6 +25,8 @@ import {
   grayscalePalette,
   palettePointerToSnesAddress,
 } from '../../../rom-parser/palette';
+import { getViewerModeAddress, saveViewerModeAddress } from '../memory';
+import { add } from 'lodash';
 
 const displayEntityInstruction = (instruction: EntityInstruction) => {
   const parameters = [];
@@ -36,7 +38,7 @@ const displayEntityInstruction = (instruction: EntityInstruction) => {
 
 export const EntityViewer = ({
   selectedRom,
-  loadViewerMode,
+  navigateToMode,
 }: ViewerModeBaseProps) => {
   const [entityAddress, setEntityAddress] = useState<string>('');
   const [entityReference, setEntityReference] = useState<string>('');
@@ -47,6 +49,14 @@ export const EntityViewer = ({
   const [selectedInstructionIndex, setSelectedInstructionIndex] =
     useState<number>(0);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const initRomAddress = getViewerModeAddress(ViewerMode.Entity);
+    if (initRomAddress) {
+      setEntityAddress(toHexString(initRomAddress.snesAddress));
+      onSnesAddressLoad(initRomAddress);
+    }
+  }, []);
 
   const onEntityAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.toUpperCase();
@@ -96,6 +106,7 @@ export const EntityViewer = ({
     try {
       const newEntity = readEntity(selectedRom.data, address);
       setEntity(newEntity);
+      saveViewerModeAddress(ViewerMode.Entity, address);
       setError('');
 
       const rawAnimation = readEntityRawAnimation(selectedRom.data, newEntity);
@@ -130,7 +141,8 @@ export const EntityViewer = ({
               selectedRom.data,
               animationIndex,
             );
-            loadViewerMode(ViewerMode.Animation, animationAddress);
+            saveViewerModeAddress(ViewerMode.Animation, animationAddress);
+            navigateToMode(ViewerMode.Animation);
           }}
         >
           Go to animation
@@ -143,7 +155,8 @@ export const EntityViewer = ({
           onClick={() => {
             const palettePointer = instruction.parameters[0];
             const paletteAddress = palettePointerToSnesAddress(palettePointer);
-            loadViewerMode(ViewerMode.Palette, paletteAddress);
+            saveViewerModeAddress(ViewerMode.Palette, paletteAddress);
+            navigateToMode(ViewerMode.Palette);
           }}
         >
           Go to palette

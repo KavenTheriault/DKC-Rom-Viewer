@@ -13,16 +13,14 @@ import { Array2D, Color, Image } from '../../../rom-parser/sprites/types';
 import { assembleSprite } from '../../../rom-parser/sprites/sprite-part';
 import { SpritePartsViewer } from './sprite-parts';
 import { ScanSprites } from './scan-sprites';
-import { ViewerModeBaseProps } from '../types';
+import { ViewerMode, ViewerModeBaseProps } from '../types';
 import {
   buildImageFromPixelsAndPalette,
   readPalette,
 } from '../../../rom-parser/palette';
+import { getViewerModeAddress, saveViewerModeAddress } from '../memory';
 
-export const SpriteViewer = ({
-  selectedRom,
-  initRomAddress,
-}: ViewerModeBaseProps) => {
+export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [snesAddress, setSnesAddress] = useState<string>('');
   const [spritePointer, setSpritePointer] = useState<string>('');
 
@@ -37,11 +35,12 @@ export const SpriteViewer = ({
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const initRomAddress = getViewerModeAddress(ViewerMode.Sprite);
     if (initRomAddress) {
       setSnesAddress(toHexString(initRomAddress.snesAddress));
       loadSprite(initRomAddress);
     }
-  }, [initRomAddress]);
+  }, []);
 
   useEffect(() => {
     if (sprite && showSelectedPartsBorder) {
@@ -119,6 +118,7 @@ export const SpriteViewer = ({
     const loadedSprite = readSprite(selectedRom.data, spriteAddress);
     if (loadedSprite && validateSpriteHeader(loadedSprite.header)) {
       setError('');
+      saveViewerModeAddress(ViewerMode.Sprite, spriteAddress);
       setSprite(loadedSprite);
       buildSpriteImage(loadedSprite);
     } else {

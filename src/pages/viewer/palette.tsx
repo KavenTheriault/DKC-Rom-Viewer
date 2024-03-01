@@ -1,23 +1,22 @@
-import { ViewerModeBaseProps } from './types';
+import { ViewerMode, ViewerModeBaseProps } from './types';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { Color } from '../../rom-parser/sprites/types';
 import { isHexadecimal, rgbToHex, toHexString } from '../../utils/hex';
 import { RomAddress } from '../../rom-parser/types/address';
 import { readPalette } from '../../rom-parser/palette';
+import { getViewerModeAddress, saveViewerModeAddress } from './memory';
 
-export const PaletteViewer = ({
-  selectedRom,
-  initRomAddress,
-}: ViewerModeBaseProps) => {
+export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [paletteAddress, setPaletteAddress] = useState<string>('');
   const [palette, setPalette] = useState<Color[]>();
 
   useEffect(() => {
+    const initRomAddress = getViewerModeAddress(ViewerMode.Palette);
     if (initRomAddress) {
       setPaletteAddress(toHexString(initRomAddress.snesAddress));
       loadPalette(initRomAddress);
     }
-  }, [initRomAddress]);
+  }, []);
 
   const onPlatteAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.toUpperCase();
@@ -38,6 +37,7 @@ export const PaletteViewer = ({
   const loadPalette = (romAddress: RomAddress) => {
     const palette = readPalette(selectedRom.data, romAddress);
     setPalette(palette);
+    saveViewerModeAddress(ViewerMode.Palette, romAddress);
   };
 
   return (

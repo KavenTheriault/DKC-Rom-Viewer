@@ -1,4 +1,3 @@
-import { RomAddress } from '../../rom-parser/types/address';
 import { SelectedRom } from '../../types/selected-rom';
 
 export enum ViewerMode {
@@ -8,10 +7,9 @@ export enum ViewerMode {
   Palette = 'Palette',
 }
 
-export type LoadViewerMode = (mode: ViewerMode, address: RomAddress) => void;
+export type NavigateToMode = (mode: ViewerMode) => void;
 
 export type ViewerModeBaseProps = {
   selectedRom: SelectedRom;
-  loadViewerMode: LoadViewerMode;
-  initRomAddress?: RomAddress;
+  navigateToMode: NavigateToMode;
 };

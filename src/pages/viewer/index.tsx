@@ -1,13 +1,12 @@
 import { useLocation } from 'react-router-dom';
 import { SelectedRom } from '../../types/selected-rom';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { EntityViewer } from './entity';
 import { SpriteViewer } from './sprite';
 import { AnimationViewer } from './animation';
 import { PaletteViewer } from './palette';
-import { LoadViewerMode, ViewerMode } from './types';
-import { RomAddress } from '../../rom-parser/types/address';
+import { NavigateToMode, ViewerMode } from './types';
 
 export interface ViewerState {
   selectedRom: SelectedRom;
@@ -25,12 +24,6 @@ export const Viewer = () => {
   const location = useLocation();
 
   const [viewerMode, setViewerMode] = useState<ViewerMode>(ViewerMode.Entity);
-  const modeAddresses = useRef<Record<ViewerMode, RomAddress | undefined>>({
-    [ViewerMode.Entity]: undefined,
-    [ViewerMode.Animation]: undefined,
-    [ViewerMode.Sprite]: undefined,
-    [ViewerMode.Palette]: undefined,
-  });
 
   const viewerState = location.state
     ? (location.state as ViewerState)
@@ -40,8 +33,7 @@ export const Viewer = () => {
     return null;
   }
 
-  const loadViewerMode: LoadViewerMode = (mode, address) => {
-    modeAddresses.current[mode] = address;
+  const navigateToMode: NavigateToMode = (mode) => {
     setViewerMode(mode);
   };
 
@@ -51,32 +43,28 @@ export const Viewer = () => {
         return (
           <EntityViewer
             selectedRom={viewerState.selectedRom}
-            loadViewerMode={loadViewerMode}
-            initRomAddress={modeAddresses.current[ViewerMode.Entity]}
+            navigateToMode={navigateToMode}
           />
         );
       case ViewerMode.Animation:
         return (
           <AnimationViewer
             selectedRom={viewerState.selectedRom}
-            loadViewerMode={loadViewerMode}
-            initRomAddress={modeAddresses.current[ViewerMode.Animation]}
+            navigateToMode={navigateToMode}
           />
         );
       case ViewerMode.Sprite:
         return (
           <SpriteViewer
             selectedRom={viewerState.selectedRom}
-            loadViewerMode={loadViewerMode}
-            initRomAddress={modeAddresses.current[ViewerMode.Sprite]}
+            navigateToMode={navigateToMode}
           />
         );
       case ViewerMode.Palette:
         return (
           <PaletteViewer
             selectedRom={viewerState.selectedRom}
-            loadViewerMode={loadViewerMode}
-            initRomAddress={modeAddresses.current[ViewerMode.Palette]}
+            navigateToMode={navigateToMode}
           />
         );
     }
