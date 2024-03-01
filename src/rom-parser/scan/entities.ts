@@ -26,3 +26,8 @@ export const scanEntities = (romData: Buffer): Entity[] => {
 
   return entities;
 };
+
+export const scanEntityAddresses = (romData: Buffer) => {
+  const entities = scanEntities(romData);
+  return entities.map((e) => e.address);
+};

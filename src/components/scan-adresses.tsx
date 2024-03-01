@@ -1,21 +1,23 @@
-import { Buffer } from 'buffer';
+import { SelectedRom } from '../types/selected-rom';
+import { RomAddress } from '../rom-parser/types/address';
 import { ChangeEvent, useState } from 'react';
-import { scanSprites } from '../../../rom-parser/scan/sprites';
-import { RomAddress } from '../../../rom-parser/types/address';
-import { SelectedRom } from '../../../types/selected-rom';
+import { Buffer } from 'buffer';
 
-interface ScanSpritesProps {
+interface ScanAddressesProps {
+  onSelectedAddressChange: (address: RomAddress) => void;
+  scan: (romData: Buffer) => RomAddress[];
   selectedRom: SelectedRom;
-  onSpriteAddressToShow: (spriteAddress: RomAddress) => void;
+  title: string;
 }
 
-const scanSpitesAsync = (
+const scanAsync = (
   romData: Buffer,
-): Promise<ReturnType<typeof scanSprites>> => {
+  scan: (romData: Buffer) => RomAddress[],
+): Promise<RomAddress[]> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       try {
-        const result = scanSprites(romData);
+        const result = scan(romData);
         resolve(result);
       } catch (e) {
         reject(e);
@@ -24,17 +26,19 @@ const scanSpitesAsync = (
   });
 };
 
-export const ScanSprites = ({
+export const ScanAddresses = ({
+  onSelectedAddressChange,
+  scan,
   selectedRom,
-  onSpriteAddressToShow,
-}: ScanSpritesProps) => {
+  title,
+}: ScanAddressesProps) => {
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [foundAddresses, setFoundAddresses] = useState<RomAddress[]>();
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
   const onStartScanClick = async () => {
     setIsScanning(true);
-    const found = await scanSpitesAsync(selectedRom.data);
+    const found = await scanAsync(selectedRom.data, scan);
     setFoundAddresses(found);
     setIsScanning(false);
   };
@@ -60,12 +64,12 @@ export const ScanSprites = ({
       newIndex = foundAddresses.length - 1;
     setCurrentIndex(newIndex);
 
-    onSpriteAddressToShow(foundAddresses[newIndex]);
+    onSelectedAddressChange(foundAddresses[newIndex]);
   };
 
   return (
     <div>
-      <h3 className="title is-3">Scan Sprites</h3>
+      <h3 className="title is-3">Scan {title}</h3>
       <div className="block is-flex is-align-items-center">
         <button
           className={[
@@ -80,13 +84,13 @@ export const ScanSprites = ({
         </button>
         {foundAddresses && (
           <span className="ml-2">
-            Found <strong>{foundAddresses.length}</strong> sprites
+            Found <strong>{foundAddresses.length}</strong> {title}
           </span>
         )}
       </div>
       {foundAddresses && (
         <div className="block">
-          <label className="label">Load sprite at:</label>
+          <label className="label">Load at:</label>
           <div className="field has-addons">
             <p className="control">
               <a

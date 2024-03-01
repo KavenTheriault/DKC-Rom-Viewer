@@ -1,32 +1,33 @@
-import { ImageCanvas } from '../../../components/image-canvas';
+import { ImageCanvas } from '../../components/image-canvas';
 import { useEffect, useState } from 'react';
-import { toHexString } from '../../../utils/hex';
-import { RomAddress } from '../../../rom-parser/types/address';
+import { toHexString } from '../../utils/hex';
+import { RomAddress } from '../../rom-parser/types/address';
 import {
   Entity,
   EntityCommand,
   EntityInstruction,
-} from '../../../rom-parser/entities/types';
+} from '../../rom-parser/entities/types';
 import {
   entityReferenceToSnesAddress,
   readEntity,
   readEntityPalette,
   readEntityRawAnimation,
   snesAddressToEntityReference,
-} from '../../../rom-parser/entities';
-import { Animation } from '../../../rom-parser/animations/types';
+} from '../../rom-parser/entities';
+import { Animation } from '../../rom-parser/animations/types';
 import {
   buildAnimation,
   readAnimationPointer,
-} from '../../../rom-parser/animations';
-import { ScanEntities } from './scan-entity';
-import { ViewerMode, ViewerModeBaseProps } from '../types';
+} from '../../rom-parser/animations';
+import { ViewerMode, ViewerModeBaseProps } from './types';
 import {
   grayscalePalette,
   palettePointerToSnesAddress,
-} from '../../../rom-parser/palette';
-import { getViewerModeAddress, saveViewerModeAddress } from '../memory';
-import { HexadecimalInput } from '../../../components/hexadecimal-input';
+} from '../../rom-parser/palette';
+import { getViewerModeAddress, saveViewerModeAddress } from './memory';
+import { HexadecimalInput } from '../../components/hexadecimal-input';
+import { ScanAddresses } from '../../components/scan-adresses';
+import { scanEntityAddresses } from '../../rom-parser/scan/entities';
 
 const displayEntityInstruction = (instruction: EntityInstruction) => {
   const parameters = [];
@@ -267,12 +268,14 @@ export const EntityViewer = ({
           )}
         </div>
       </div>
-      <ScanEntities
+      <ScanAddresses
+        scan={scanEntityAddresses}
         selectedRom={selectedRom}
-        onEntityAddressToShow={(entityAddress) => {
+        onSelectedAddressChange={(entityAddress) => {
           setEntityAddress(entityAddress.snesAddress);
           onSnesAddressLoad(entityAddress);
         }}
+        title="Entities"
       />
     </div>
   );

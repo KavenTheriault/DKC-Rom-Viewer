@@ -6,6 +6,8 @@ import { RomAddress } from '../../rom-parser/types/address';
 import { readPalette } from '../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from './memory';
 import { HexadecimalInput } from '../../components/hexadecimal-input';
+import { ScanAddresses } from '../../components/scan-adresses';
+import { scanPalettes } from '../../rom-parser/scan/palettes';
 
 export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [paletteAddress, setPaletteAddress] = useState<number>();
@@ -102,6 +104,15 @@ export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
         </div>
         <div className="column" />
       </div>
+      <ScanAddresses
+        scan={scanPalettes}
+        selectedRom={selectedRom}
+        onSelectedAddressChange={(paletteAddress) => {
+          setPaletteAddress(paletteAddress.snesAddress);
+          onPaletteAddressLoadClick();
+        }}
+        title="Palettes"
+      />
     </div>
   );
 };

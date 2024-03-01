@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { RomAddress } from '../../../rom-parser/types/address';
 import { SpriteHeaderTable } from './sprite-header';
-import { validateSpriteHeader } from '../../../rom-parser/scan/sprites';
+import {
+  scanSprites,
+  validateSpriteHeader,
+} from '../../../rom-parser/scan/sprites';
 import {
   getAddressFromSpritePointerIndex,
   readSprite,
@@ -11,7 +14,6 @@ import { ImageCanvas, Rectangle } from '../../../components/image-canvas';
 import { Array2D, Color, Image } from '../../../rom-parser/sprites/types';
 import { assembleSprite } from '../../../rom-parser/sprites/sprite-part';
 import { SpritePartsViewer } from './sprite-parts';
-import { ScanSprites } from './scan-sprites';
 import { ViewerMode, ViewerModeBaseProps } from '../types';
 import {
   buildImageFromPixelsAndPalette,
@@ -20,6 +22,7 @@ import {
 import { getViewerModeAddress, saveViewerModeAddress } from '../memory';
 import { DEFAULT_PALETTE } from '../../../utils/defaults';
 import { HexadecimalInput } from '../../../components/hexadecimal-input';
+import { ScanAddresses } from '../../../components/scan-adresses';
 
 export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [snesAddress, setSnesAddress] = useState<number>();
@@ -231,7 +234,7 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
               <p className="control">
                 <a
                   className="button is-primary"
-                  onClick={onSpritePointerLoadClick}
+                  onClick={onSnesAddressLoadClick}
                 >
                   Load
                 </a>
@@ -276,13 +279,15 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
           )}
         </div>
       </div>
-      <ScanSprites
+      <ScanAddresses
+        scan={scanSprites}
         selectedRom={selectedRom}
-        onSpriteAddressToShow={(spriteAddress) => {
+        onSelectedAddressChange={(spriteAddress) => {
           setSpritePointer(undefined);
           setSnesAddress(spriteAddress.snesAddress);
           loadSprite(spriteAddress);
         }}
+        title="Sprites"
       />
     </div>
   );
