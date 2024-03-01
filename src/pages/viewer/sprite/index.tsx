@@ -19,9 +19,11 @@ import {
   readPalette,
 } from '../../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from '../memory';
+import { DEFAULT_PALETTE } from '../../../utils/defaults';
 
 export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [snesAddress, setSnesAddress] = useState<string>('');
+  const [paletteAddress, setPaletteAddress] = useState<string>('');
   const [spritePointer, setSpritePointer] = useState<string>('');
 
   const [sprite, setSprite] = useState<Sprite>();
@@ -35,10 +37,17 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const initRomAddress = getViewerModeAddress(ViewerMode.Sprite);
-    if (initRomAddress) {
-      setSnesAddress(toHexString(initRomAddress.snesAddress));
-      loadSprite(initRomAddress);
+    const savedPaletteAddress =
+      getViewerModeAddress(ViewerMode.Palette) ||
+      RomAddress.fromSnesAddress(DEFAULT_PALETTE);
+    if (savedPaletteAddress) {
+      setPaletteAddress(toHexString(savedPaletteAddress.snesAddress));
+    }
+
+    const savedSpriteAddress = getViewerModeAddress(ViewerMode.Sprite);
+    if (savedSpriteAddress) {
+      setSnesAddress(toHexString(savedSpriteAddress.snesAddress));
+      loadSpriteAndPalette(savedSpriteAddress, savedPaletteAddress);
     }
   }, []);
 
@@ -74,10 +83,21 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
     }
   };
 
+  const onPaletteAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value.toUpperCase();
+    if (input === '' || isHexadecimal(input)) {
+      setPaletteAddress(input);
+    }
+  };
+
   const onSnesAddressLoadClick = () => {
     if (snesAddress) {
       const parsedSnesAddress = parseInt(snesAddress, 16);
-      loadSprite(RomAddress.fromSnesAddress(parsedSnesAddress));
+      const parsedPaletteAddress = parseInt(paletteAddress, 16);
+      loadSpriteAndPalette(
+        RomAddress.fromSnesAddress(parsedSnesAddress),
+        RomAddress.fromSnesAddress(parsedPaletteAddress),
+      );
       setSpritePointer('');
     } else {
       setSprite(undefined);
@@ -104,23 +124,31 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   };
 
   const loadSpritePointer = (spritePointer: number) => {
-    const spiteAddress = getAddressFromSpritePointerIndex(
+    const spriteAddress = getAddressFromSpritePointerIndex(
       selectedRom.data,
       spritePointer,
     );
     setSnesAddress(
-      spiteAddress.snesAddress.toString(16).toString().toUpperCase(),
+      spriteAddress.snesAddress.toString(16).toString().toUpperCase(),
     );
-    loadSprite(spiteAddress);
+    loadSprite(spriteAddress);
   };
 
   const loadSprite = (spriteAddress: RomAddress) => {
+    const palette = RomAddress.fromSnesAddress(parseInt(paletteAddress, 16));
+    loadSpriteAndPalette(spriteAddress, palette);
+  };
+
+  const loadSpriteAndPalette = (
+    spriteAddress: RomAddress,
+    paletteAddress: RomAddress,
+  ) => {
     const loadedSprite = readSprite(selectedRom.data, spriteAddress);
     if (loadedSprite && validateSpriteHeader(loadedSprite.header)) {
       setError('');
       saveViewerModeAddress(ViewerMode.Sprite, spriteAddress);
       setSprite(loadedSprite);
-      buildSpriteImage(loadedSprite);
+      buildSpriteImage(loadedSprite, paletteAddress);
     } else {
       setError('Invalid Sprite Header');
       setSprite(undefined);
@@ -130,11 +158,11 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
     setSelectedPartIndexes([0]);
   };
 
-  const buildSpriteImage = (spriteToBuild: Sprite) => {
-    const palette: Color[] = readPalette(
-      selectedRom.data,
-      RomAddress.fromSnesAddress(0xbc849a),
-    );
+  const buildSpriteImage = (
+    spriteToBuild: Sprite,
+    paletteAddress: RomAddress,
+  ) => {
+    const palette: Color[] = readPalette(selectedRom.data, paletteAddress);
     const spritePixels: Array2D = assembleSprite(spriteToBuild.parts);
     const image: Image = buildImageFromPixelsAndPalette(spritePixels, palette);
     setSpriteImage(image);
@@ -210,6 +238,31 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
                   }}
                 >
                   +4
+                </a>
+              </p>
+            </div>
+          </div>
+          <div className="block">
+            <label className="label">Palette Address</label>
+            <div className="field has-addons">
+              <p className="control">
+                <a className="button is-static">0x</a>
+              </p>
+              <p className="control">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Hexadecimal"
+                  value={paletteAddress}
+                  onChange={onPaletteAddressChange}
+                />
+              </p>
+              <p className="control">
+                <a
+                  className="button is-primary"
+                  onClick={onSpritePointerLoadClick}
+                >
+                  Load
                 </a>
               </p>
             </div>

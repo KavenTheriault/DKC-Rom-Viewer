@@ -18,6 +18,7 @@ import { ViewerMode, ViewerModeBaseProps } from './types';
 import { getAddressFromSpritePointerIndex } from '../../rom-parser/sprites';
 import { readPalette } from '../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from './memory';
+import { DEFAULT_PALETTE } from '../../utils/defaults';
 
 const displayAnimationEntry = (entry: EntryCommand | EntrySprite) => {
   if ('time' in entry) {
@@ -35,6 +36,7 @@ export const AnimationViewer = ({
   navigateToMode,
 }: ViewerModeBaseProps) => {
   const [animationAddress, setAnimationAddress] = useState<string>('');
+  const [paletteAddress, setPaletteAddress] = useState<string>('');
   const [animationIndex, setAnimationIndex] = useState<string>('');
 
   const [rawAnimation, setRawAnimation] = useState<RawAnimation>();
@@ -45,10 +47,17 @@ export const AnimationViewer = ({
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const initRomAddress = getViewerModeAddress(ViewerMode.Animation);
-    if (initRomAddress) {
-      setAnimationAddress(toHexString(initRomAddress.snesAddress));
-      loadAnimation(initRomAddress);
+    const savedPaletteAddress =
+      getViewerModeAddress(ViewerMode.Palette) ||
+      RomAddress.fromSnesAddress(DEFAULT_PALETTE);
+    if (savedPaletteAddress) {
+      setPaletteAddress(toHexString(savedPaletteAddress.snesAddress));
+    }
+
+    const savedAnimationAddress = getViewerModeAddress(ViewerMode.Animation);
+    if (savedAnimationAddress) {
+      setAnimationAddress(toHexString(savedAnimationAddress.snesAddress));
+      loadAnimation(savedAnimationAddress, savedPaletteAddress);
     }
   }, []);
 
@@ -59,10 +68,21 @@ export const AnimationViewer = ({
     }
   };
 
+  const onPaletteAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value.toUpperCase();
+    if (input === '' || isHexadecimal(input)) {
+      setPaletteAddress(input);
+    }
+  };
+
   const onAnimationAddressLoadClick = () => {
     if (animationAddress) {
       const parsedSnesAddress = parseInt(animationAddress, 16);
-      loadAnimation(RomAddress.fromSnesAddress(parsedSnesAddress));
+      const parsedPaletteAddress = parseInt(paletteAddress, 16);
+      loadAnimation(
+        RomAddress.fromSnesAddress(parsedSnesAddress),
+        RomAddress.fromSnesAddress(parsedPaletteAddress),
+      );
       setAnimationIndex('');
     } else {
       setRawAnimation(undefined);
@@ -92,11 +112,15 @@ export const AnimationViewer = ({
 
   const loadAnimationIndex = (index: number) => {
     const address = readAnimationPointer(selectedRom.data, index);
-    loadAnimation(address);
+    const palette = RomAddress.fromSnesAddress(parseInt(paletteAddress, 16));
+    loadAnimation(address, palette);
     setAnimationAddress(toHexString(address.snesAddress));
   };
 
-  const loadAnimation = (animationAddress: RomAddress) => {
+  const loadAnimation = (
+    animationAddress: RomAddress,
+    paletteAddress: RomAddress,
+  ) => {
     try {
       const animationSequence = readRawAnimation(
         selectedRom.data,
@@ -105,10 +129,7 @@ export const AnimationViewer = ({
       setRawAnimation(animationSequence);
       saveViewerModeAddress(ViewerMode.Animation, animationAddress);
 
-      const palette: Color[] = readPalette(
-        selectedRom.data,
-        RomAddress.fromSnesAddress(0xbc849a),
-      );
+      const palette: Color[] = readPalette(selectedRom.data, paletteAddress);
       const newAnimation = buildAnimation(
         selectedRom.data,
         animationSequence,
@@ -212,6 +233,31 @@ export const AnimationViewer = ({
                   }}
                 >
                   +1
+                </a>
+              </p>
+            </div>
+          </div>
+          <div className="block">
+            <label className="label">Palette Address</label>
+            <div className="field has-addons">
+              <p className="control">
+                <a className="button is-static">0x</a>
+              </p>
+              <p className="control">
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="Hexadecimal"
+                  value={paletteAddress}
+                  onChange={onPaletteAddressChange}
+                />
+              </p>
+              <p className="control">
+                <a
+                  className="button is-primary"
+                  onClick={onAnimationAddressLoadClick}
+                >
+                  Load
                 </a>
               </p>
             </div>
