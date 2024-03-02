@@ -1,9 +1,9 @@
 import { RomAddress } from '../types/address';
 import { Color, Image } from '../sprites/types';
 import { read16 } from '../utils/buffer';
+import { EntityPaletteBank } from '../constants/dkc1';
 
 const PALETTE_LENGTH = 15;
-export const PALETTE_STARTING_ADDRESS = 0x3c0000;
 
 export const colorToSnes = (color: Color): number => {
   let r: number = color.r;
@@ -70,9 +70,7 @@ export const buildImageFromPixelsAndPalette = (
 export const paletteReferenceToSnesAddress = (
   paletteReference: number,
 ): RomAddress => {
-  return RomAddress.fromSnesAddress(
-    PALETTE_STARTING_ADDRESS | paletteReference,
-  );
+  return RomAddress.fromSnesAddress(EntityPaletteBank | paletteReference);
 };
 
 export const snesAddressToPaletteReference = (romAddress: RomAddress) => {

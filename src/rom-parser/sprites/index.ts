@@ -10,9 +10,7 @@ import { buildSpriteParts } from './sprite-part';
 import { Coordinate, SmallTile, SpritePart } from './types';
 import { RomAddress } from '../types/address';
 import { read32 } from '../utils/buffer';
-
-export const SPRITE_POINTERS_ADDRESS: RomAddress =
-  RomAddress.fromSnesAddress(0x3bcc9c);
+import { SpritePointerTable } from '../constants/dkc1';
 
 export type Sprite = {
   address: RomAddress;
@@ -25,7 +23,7 @@ export const getAddressFromSpritePointerIndex = (
   spritePointerIndex: number,
 ): RomAddress => {
   const address: RomAddress = RomAddress.fromSnesAddress(
-    SPRITE_POINTERS_ADDRESS.snesAddress + spritePointerIndex,
+    SpritePointerTable + spritePointerIndex,
   );
   return readSpritePointer(romData, address);
 };

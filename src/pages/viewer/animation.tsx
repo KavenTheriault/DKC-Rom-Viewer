@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { bufferToString, toHexString } from '../../utils/hex';
 import { RomAddress } from '../../rom-parser/types/address';
 import {
-  ANIMATION_POINTERS_ADDRESS,
   buildAnimation,
   readAnimationPointer,
   readRawAnimation,
@@ -23,6 +22,10 @@ import { DEFAULT_PALETTE } from '../../utils/defaults';
 import { ScanAddresses } from '../../components/scan-adresses';
 import { scanAnimations } from '../../rom-parser/scan/animations';
 import { LoadHexadecimalInput } from '../../components/load-hexadecimal-input';
+import {
+  AnimationScriptBank,
+  AnimationScriptTable,
+} from '../../rom-parser/constants/dkc1';
 
 const displayAnimationEntry = (entry: EntryCommand | EntrySprite) => {
   if ('time' in entry) {
@@ -170,7 +173,7 @@ export const AnimationViewer = ({
             onValueLoad={onAnimationAddressLoadClick}
           />
           <div className="block">
-            <label className="label">{`Animation Index (from ${toHexString(ANIMATION_POINTERS_ADDRESS.snesAddress, { addPrefix: true })})`}</label>
+            <label className="label">{`Animation Index (from ${toHexString(AnimationScriptBank | AnimationScriptTable, { addPrefix: true })})`}</label>
             <div className="field has-addons">
               <p className="control">
                 <input

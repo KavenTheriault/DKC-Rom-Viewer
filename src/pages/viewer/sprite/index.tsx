@@ -9,7 +9,6 @@ import {
   getAddressFromSpritePointerIndex,
   readSprite,
   Sprite,
-  SPRITE_POINTERS_ADDRESS,
 } from '../../../rom-parser/sprites';
 import { ImageCanvas, Rectangle } from '../../../components/image-canvas';
 import { Array2D, Color, Image } from '../../../rom-parser/sprites/types';
@@ -26,6 +25,7 @@ import { HexadecimalInput } from '../../../components/hexadecimal-input';
 import { ScanAddresses } from '../../../components/scan-adresses';
 import { LoadHexadecimalInput } from '../../../components/load-hexadecimal-input';
 import { toHexString } from '../../../utils/hex';
+import { SpritePointerTable } from '../../../rom-parser/constants/dkc1';
 
 export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [snesAddress, setSnesAddress] = useState<number>();
@@ -159,7 +159,7 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
             onValueLoad={onSnesAddressLoadClick}
           />
           <div className="block">
-            <label className="label">{`Sprite Pointer (from ${toHexString(SPRITE_POINTERS_ADDRESS.snesAddress, { addPrefix: true })})`}</label>
+            <label className="label">{`Sprite Pointer (from ${toHexString(SpritePointerTable, { addPrefix: true })})`}</label>
             <div className="field has-addons">
               <p className="control">
                 <a className="button is-static">0x</a>

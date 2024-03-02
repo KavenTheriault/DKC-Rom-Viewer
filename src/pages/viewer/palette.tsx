@@ -4,7 +4,6 @@ import { Color } from '../../rom-parser/sprites/types';
 import { rgbToHex, toHexString } from '../../utils/hex';
 import { RomAddress } from '../../rom-parser/types/address';
 import {
-  PALETTE_STARTING_ADDRESS,
   paletteReferenceToSnesAddress,
   readPalette,
   snesAddressToPaletteReference,
@@ -13,6 +12,7 @@ import { getViewerModeAddress, saveViewerModeAddress } from './memory';
 import { ScanAddresses } from '../../components/scan-adresses';
 import { scanPalettes } from '../../rom-parser/scan/palettes';
 import { LoadHexadecimalInput } from '../../components/load-hexadecimal-input';
+import { EntityPaletteBank } from '../../rom-parser/constants/dkc1';
 
 export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [paletteAddress, setPaletteAddress] = useState<number>();
@@ -70,7 +70,7 @@ export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
             onValueLoad={onPaletteAddressLoadClick}
           />
           <LoadHexadecimalInput
-            label={`Palette Reference (from ${toHexString(PALETTE_STARTING_ADDRESS, { addPrefix: true })})`}
+            label={`Palette Reference (from ${toHexString(EntityPaletteBank, { addPrefix: true })})`}
             hexadecimalValue={paletteReference}
             onValueChange={setPaletteReference}
             onValueLoad={onPaletteReferenceLoadClick}

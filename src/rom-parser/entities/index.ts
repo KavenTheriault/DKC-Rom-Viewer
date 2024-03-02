@@ -10,6 +10,7 @@ import { readAnimationPointer, readRawAnimation } from '../animations';
 import { RawAnimation } from '../animations/types';
 import { Color } from '../sprites/types';
 import { paletteReferenceToSnesAddress, readPalette } from '../palette';
+import { EntityBank } from '../constants/dkc1';
 
 export const ENTITY_STARTING_ADDRESS = 0xb50000;
 
@@ -24,7 +25,7 @@ export const readEntityFromReference = (
 export const entityReferenceToSnesAddress = (
   entityReference: number,
 ): RomAddress => {
-  return RomAddress.fromSnesAddress(ENTITY_STARTING_ADDRESS | entityReference);
+  return RomAddress.fromSnesAddress(EntityBank | entityReference);
 };
 
 export const snesAddressToEntityReference = (romAddress: RomAddress) => {

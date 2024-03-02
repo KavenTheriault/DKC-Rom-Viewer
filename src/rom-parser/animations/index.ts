@@ -14,10 +14,8 @@ import { toHexString } from '../../utils/hex';
 import { Array2D, Color, Image } from '../sprites/types';
 import { assembleSprite } from '../sprites/sprite-part';
 import { buildImageFromPixelsAndPalette } from '../palette';
+import { AnimationScriptBank, AnimationScriptTable } from '../constants/dkc1';
 
-export const ANIMATION_STARTING_ADDRESS = 0xbe0000;
-export const ANIMATION_POINTERS_ADDRESS: RomAddress =
-  RomAddress.fromSnesAddress(0x3e8572);
 const ANIMATION_POINTER_LENGTH = 2;
 
 export const readAnimationPointer = (
@@ -25,7 +23,7 @@ export const readAnimationPointer = (
   animationIndex: number,
 ): RomAddress => {
   const address: RomAddress = RomAddress.fromSnesAddress(
-    ANIMATION_POINTERS_ADDRESS.snesAddress +
+    (AnimationScriptBank | AnimationScriptTable) +
       animationIndex * ANIMATION_POINTER_LENGTH,
   );
   const pointer: number = read16(romData, address.pcAddress);
@@ -35,9 +33,7 @@ export const readAnimationPointer = (
 const animationPointerToSnesAddress = (
   animationAddress: number,
 ): RomAddress => {
-  return RomAddress.fromSnesAddress(
-    ANIMATION_STARTING_ADDRESS | animationAddress,
-  );
+  return RomAddress.fromSnesAddress(AnimationScriptBank | animationAddress);
 };
 
 export const readRawAnimation = (

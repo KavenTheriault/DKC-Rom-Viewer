@@ -8,7 +8,6 @@ import {
   EntityInstruction,
 } from '../../rom-parser/entities/types';
 import {
-  ENTITY_STARTING_ADDRESS,
   entityReferenceToSnesAddress,
   readEntity,
   readEntityPalette,
@@ -29,6 +28,7 @@ import { getViewerModeAddress, saveViewerModeAddress } from './memory';
 import { ScanAddresses } from '../../components/scan-adresses';
 import { scanEntityAddresses } from '../../rom-parser/scan/entities';
 import { LoadHexadecimalInput } from '../../components/load-hexadecimal-input';
+import { EntityBank } from '../../rom-parser/constants/dkc1';
 
 const displayEntityInstruction = (instruction: EntityInstruction) => {
   const parameters = [];
@@ -188,7 +188,7 @@ export const EntityViewer = ({
             onValueLoad={onEntityAddressLoadClick}
           />
           <LoadHexadecimalInput
-            label={`Entity Reference (from ${toHexString(ENTITY_STARTING_ADDRESS, { addPrefix: true })})`}
+            label={`Entity Reference (from ${toHexString(EntityBank, { addPrefix: true })})`}
             hexadecimalValue={entityReference}
             onValueChange={setEntityReference}
             onValueLoad={onAnimationIndexLoadClick}
