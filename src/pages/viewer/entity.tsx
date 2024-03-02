@@ -1,6 +1,6 @@
 import { ImageCanvas } from '../../components/image-canvas';
 import { useEffect, useState } from 'react';
-import { toHexString } from '../../utils/hex';
+import { bufferToString, toHexString } from '../../utils/hex';
 import { RomAddress } from '../../rom-parser/types/address';
 import {
   Entity,
@@ -23,7 +23,6 @@ import {
 import { ViewerMode, ViewerModeBaseProps } from './types';
 import {
   grayscalePalette,
-  PALETTE_STARTING_ADDRESS,
   paletteReferenceToSnesAddress,
 } from '../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from './memory';
@@ -234,15 +233,28 @@ export const EntityViewer = ({
           )}
         </div>
       </div>
-      <ScanAddresses
-        scan={scanEntityAddresses}
-        selectedRom={selectedRom}
-        onSelectedAddressChange={(entityAddress) => {
-          setEntityAddress(entityAddress.snesAddress);
-          onSnesAddressLoad(entityAddress);
-        }}
-        title="Entities"
-      />
+
+      <div className="columns">
+        <div className="column">
+          <ScanAddresses
+            scan={scanEntityAddresses}
+            selectedRom={selectedRom}
+            onSelectedAddressChange={(entityAddress) => {
+              setEntityAddress(entityAddress.snesAddress);
+              onSnesAddressLoad(entityAddress);
+            }}
+            title="Entities"
+          />
+        </div>
+        <div className="column">
+          {entity && (
+            <>
+              <label className="label">Raw Data</label>
+              <pre>{bufferToString(entity.bytes)}</pre>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

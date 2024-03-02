@@ -1,4 +1,4 @@
-import { read16 } from '../utils/buffer';
+import { extract, read16 } from '../utils/buffer';
 import { RomAddress } from '../types/address';
 import {
   Entity,
@@ -72,8 +72,10 @@ export const readEntity = (romData: Buffer, romAddress: RomAddress): Entity => {
     }
   }
 
+  const bytes = extract(romData, romAddress.pcAddress, offset);
   return {
     address: romAddress,
+    bytes: bytes,
     length: offset,
     instructions,
     inheritEntities,

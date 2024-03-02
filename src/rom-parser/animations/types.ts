@@ -45,6 +45,7 @@ export const AnimationCommandParametersCount: Record<AnimationCommand, number> =
 
 export type RawAnimation = {
   address: RomAddress;
+  bytes: Buffer;
   entries: (EntryCommand | EntrySprite)[];
 };
 

@@ -59,6 +59,7 @@ export const EntityCommandParametersCount: Record<EntityCommand, number> = {
 
 export type Entity = {
   address: RomAddress;
+  bytes: Buffer;
   length: number;
   instructions: EntityInstruction[];
   inheritEntities: Entity[];

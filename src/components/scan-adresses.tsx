@@ -68,7 +68,7 @@ export const ScanAddresses = ({
   };
 
   return (
-    <div>
+    <div className="block">
       <h3 className="title is-3">Scan {title}</h3>
       <div className="block is-flex is-align-items-center">
         <button

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { toHexString } from '../../utils/hex';
+import { bufferToString, toHexString } from '../../utils/hex';
 import { RomAddress } from '../../rom-parser/types/address';
 import {
   ANIMATION_POINTERS_ADDRESS,
@@ -254,15 +254,27 @@ export const AnimationViewer = ({
           )}
         </div>
       </div>
-      <ScanAddresses
-        scan={scanAnimations}
-        selectedRom={selectedRom}
-        onSelectedAddressChange={(animationAddress) => {
-          setAnimationAddress(animationAddress.snesAddress);
-          loadAnimation(animationAddress);
-        }}
-        title="Animations"
-      />
+      <div className="columns">
+        <div className="column">
+          <ScanAddresses
+            scan={scanAnimations}
+            selectedRom={selectedRom}
+            onSelectedAddressChange={(animationAddress) => {
+              setAnimationAddress(animationAddress.snesAddress);
+              loadAnimation(animationAddress);
+            }}
+            title="Animations"
+          />
+        </div>
+        <div className="column">
+          {rawAnimation && (
+            <>
+              <label className="label">Raw Data</label>
+              <pre>{bufferToString(rawAnimation.bytes)}</pre>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

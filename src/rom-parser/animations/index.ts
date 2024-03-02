@@ -15,6 +15,7 @@ import { Array2D, Color, Image } from '../sprites/types';
 import { assembleSprite } from '../sprites/sprite-part';
 import { buildImageFromPixelsAndPalette } from '../palette';
 
+export const ANIMATION_STARTING_ADDRESS = 0xbe0000;
 export const ANIMATION_POINTERS_ADDRESS: RomAddress =
   RomAddress.fromSnesAddress(0x3e8572);
 const ANIMATION_POINTER_LENGTH = 2;
@@ -34,7 +35,9 @@ export const readAnimationPointer = (
 const animationPointerToSnesAddress = (
   animationAddress: number,
 ): RomAddress => {
-  return RomAddress.fromSnesAddress(0xbe0000 | animationAddress);
+  return RomAddress.fromSnesAddress(
+    ANIMATION_STARTING_ADDRESS | animationAddress,
+  );
 };
 
 export const readRawAnimation = (
@@ -78,7 +81,8 @@ export const readRawAnimation = (
     }
   }
 
-  return { address: animationAddress, entries };
+  const bytes = extract(romData, animationAddress.pcAddress, offset);
+  return { address: animationAddress, bytes, entries };
 };
 
 export const buildAnimation = (
