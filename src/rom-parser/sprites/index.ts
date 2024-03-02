@@ -11,7 +11,7 @@ import { Coordinate, SmallTile, SpritePart } from './types';
 import { RomAddress } from '../types/address';
 import { read32 } from '../utils/buffer';
 
-const SPRITE_POINTERS_ADDRESS: RomAddress =
+export const SPRITE_POINTERS_ADDRESS: RomAddress =
   RomAddress.fromSnesAddress(0x3bcc9c);
 
 export type Sprite = {

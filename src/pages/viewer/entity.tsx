@@ -8,6 +8,7 @@ import {
   EntityInstruction,
 } from '../../rom-parser/entities/types';
 import {
+  ENTITY_STARTING_ADDRESS,
   entityReferenceToSnesAddress,
   readEntity,
   readEntityPalette,
@@ -22,12 +23,13 @@ import {
 import { ViewerMode, ViewerModeBaseProps } from './types';
 import {
   grayscalePalette,
-  palettePointerToSnesAddress,
+  PALETTE_STARTING_ADDRESS,
+  paletteReferenceToSnesAddress,
 } from '../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from './memory';
-import { HexadecimalInput } from '../../components/hexadecimal-input';
 import { ScanAddresses } from '../../components/scan-adresses';
 import { scanEntityAddresses } from '../../rom-parser/scan/entities';
+import { LoadHexadecimalInput } from '../../components/load-hexadecimal-input';
 
 const displayEntityInstruction = (instruction: EntityInstruction) => {
   const parameters = [];
@@ -138,7 +140,8 @@ export const EntityViewer = ({
           className="button is-info"
           onClick={() => {
             const palettePointer = instruction.parameters[0];
-            const paletteAddress = palettePointerToSnesAddress(palettePointer);
+            const paletteAddress =
+              paletteReferenceToSnesAddress(palettePointer);
             saveViewerModeAddress(ViewerMode.Palette, paletteAddress);
             navigateToMode(ViewerMode.Palette);
           }}
@@ -179,55 +182,18 @@ export const EntityViewer = ({
     <div className="is-flex is-flex-direction-column">
       <div className="columns is-flex-wrap-wrap">
         <div className="column is-flex is-flex-direction-column is-align-items-start">
-          <div className="block">
-            <label className="label">SNES Address</label>
-            <div className="field has-addons">
-              <p className="control">
-                <a className="button is-static">0x</a>
-              </p>
-              <p className="control">
-                <HexadecimalInput
-                  className="input"
-                  placeholder="Hexadecimal"
-                  value={entityAddress}
-                  onChange={setEntityAddress}
-                />
-              </p>
-              <p className="control">
-                <a
-                  className="button is-primary"
-                  onClick={onEntityAddressLoadClick}
-                >
-                  Load
-                </a>
-              </p>
-            </div>
-          </div>
-          <div className="block">
-            <label className="label">Entity Reference (from 0xB50000)</label>
-            <div className="field has-addons">
-              <p className="control">
-                <a className="button is-static">0x</a>
-              </p>
-              <p className="control">
-                <HexadecimalInput
-                  className="input"
-                  placeholder="Hexadecimal"
-                  value={entityReference}
-                  onChange={setEntityReference}
-                />
-              </p>
-              <p className="control">
-                <a
-                  className="button is-primary"
-                  onClick={onAnimationIndexLoadClick}
-                >
-                  Load
-                </a>
-              </p>
-            </div>
-          </div>
-
+          <LoadHexadecimalInput
+            label="SNES Address"
+            hexadecimalValue={entityAddress}
+            onValueChange={setEntityAddress}
+            onValueLoad={onEntityAddressLoadClick}
+          />
+          <LoadHexadecimalInput
+            label={`Entity Reference (from ${toHexString(ENTITY_STARTING_ADDRESS, { addPrefix: true })})`}
+            hexadecimalValue={entityReference}
+            onValueChange={setEntityReference}
+            onValueLoad={onAnimationIndexLoadClick}
+          />
           {error && <div className="notification is-danger">{error}</div>}
         </div>
         <div className="column">

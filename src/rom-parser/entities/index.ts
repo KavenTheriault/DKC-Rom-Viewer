@@ -9,7 +9,7 @@ import {
 import { readAnimationPointer, readRawAnimation } from '../animations';
 import { RawAnimation } from '../animations/types';
 import { Color } from '../sprites/types';
-import { palettePointerToSnesAddress, readPalette } from '../palette';
+import { paletteReferenceToSnesAddress, readPalette } from '../palette';
 
 export const ENTITY_STARTING_ADDRESS = 0xb50000;
 
@@ -119,6 +119,6 @@ export const readEntityPalette = (
   if (!paletteCommand) return;
 
   const palettePointer = paletteCommand.parameters[0];
-  const paletteAddress = palettePointerToSnesAddress(palettePointer);
+  const paletteAddress = paletteReferenceToSnesAddress(palettePointer);
   return readPalette(romData, paletteAddress);
 };

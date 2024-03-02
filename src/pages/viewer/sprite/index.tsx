@@ -9,6 +9,7 @@ import {
   getAddressFromSpritePointerIndex,
   readSprite,
   Sprite,
+  SPRITE_POINTERS_ADDRESS,
 } from '../../../rom-parser/sprites';
 import { ImageCanvas, Rectangle } from '../../../components/image-canvas';
 import { Array2D, Color, Image } from '../../../rom-parser/sprites/types';
@@ -23,6 +24,8 @@ import { getViewerModeAddress, saveViewerModeAddress } from '../memory';
 import { DEFAULT_PALETTE } from '../../../utils/defaults';
 import { HexadecimalInput } from '../../../components/hexadecimal-input';
 import { ScanAddresses } from '../../../components/scan-adresses';
+import { LoadHexadecimalInput } from '../../../components/load-hexadecimal-input';
+import { toHexString } from '../../../utils/hex';
 
 export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [snesAddress, setSnesAddress] = useState<number>();
@@ -149,32 +152,14 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
     <div className="is-flex is-flex-direction-column">
       <div className="columns is-flex-wrap-wrap">
         <div className="column is-flex is-flex-direction-column is-align-items-start">
+          <LoadHexadecimalInput
+            label="SNES Address"
+            hexadecimalValue={snesAddress}
+            onValueChange={setSnesAddress}
+            onValueLoad={onSnesAddressLoadClick}
+          />
           <div className="block">
-            <label className="label">SNES Address</label>
-            <div className="field has-addons">
-              <p className="control">
-                <a className="button is-static">0x</a>
-              </p>
-              <p className="control">
-                <HexadecimalInput
-                  className="input"
-                  placeholder="Hexadecimal"
-                  value={snesAddress}
-                  onChange={setSnesAddress}
-                />
-              </p>
-              <p className="control">
-                <a
-                  className="button is-primary"
-                  onClick={onSnesAddressLoadClick}
-                >
-                  Load
-                </a>
-              </p>
-            </div>
-          </div>
-          <div className="block">
-            <label className="label">Sprite Pointer (from 0x3BCC9C)</label>
+            <label className="label">{`Sprite Pointer (from ${toHexString(SPRITE_POINTERS_ADDRESS.snesAddress, { addPrefix: true })})`}</label>
             <div className="field has-addons">
               <p className="control">
                 <a className="button is-static">0x</a>
@@ -217,30 +202,12 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
               </p>
             </div>
           </div>
-          <div className="block">
-            <label className="label">Palette Address</label>
-            <div className="field has-addons">
-              <p className="control">
-                <a className="button is-static">0x</a>
-              </p>
-              <p className="control">
-                <HexadecimalInput
-                  className="input"
-                  placeholder="Hexadecimal"
-                  value={paletteAddress}
-                  onChange={setPaletteAddress}
-                />
-              </p>
-              <p className="control">
-                <a
-                  className="button is-primary"
-                  onClick={onSnesAddressLoadClick}
-                >
-                  Load
-                </a>
-              </p>
-            </div>
-          </div>
+          <LoadHexadecimalInput
+            label="Palette Address"
+            hexadecimalValue={paletteAddress}
+            onValueChange={setPaletteAddress}
+            onValueLoad={onSnesAddressLoadClick}
+          />
 
           {error && <div className="notification is-danger">{error}</div>}
 

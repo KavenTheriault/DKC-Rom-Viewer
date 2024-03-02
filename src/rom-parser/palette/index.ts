@@ -3,6 +3,7 @@ import { Color, Image } from '../sprites/types';
 import { read16 } from '../utils/buffer';
 
 const PALETTE_LENGTH = 15;
+export const PALETTE_STARTING_ADDRESS = 0x3c0000;
 
 export const colorToSnes = (color: Color): number => {
   let r: number = color.r;
@@ -66,8 +67,14 @@ export const buildImageFromPixelsAndPalette = (
   return coloredPixels;
 };
 
-export const palettePointerToSnesAddress = (
-  palettePointer: number,
+export const paletteReferenceToSnesAddress = (
+  paletteReference: number,
 ): RomAddress => {
-  return RomAddress.fromSnesAddress(0x3c0000 | palettePointer);
+  return RomAddress.fromSnesAddress(
+    PALETTE_STARTING_ADDRESS | paletteReference,
+  );
+};
+
+export const snesAddressToPaletteReference = (romAddress: RomAddress) => {
+  return romAddress.snesAddress & 0x00ffff;
 };

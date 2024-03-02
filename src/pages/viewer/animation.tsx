@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { toHexString } from '../../utils/hex';
 import { RomAddress } from '../../rom-parser/types/address';
 import {
+  ANIMATION_POINTERS_ADDRESS,
   buildAnimation,
   readAnimationPointer,
   readRawAnimation,
@@ -19,9 +20,9 @@ import { getAddressFromSpritePointerIndex } from '../../rom-parser/sprites';
 import { readPalette } from '../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from './memory';
 import { DEFAULT_PALETTE } from '../../utils/defaults';
-import { HexadecimalInput } from '../../components/hexadecimal-input';
 import { ScanAddresses } from '../../components/scan-adresses';
 import { scanAnimations } from '../../rom-parser/scan/animations';
+import { LoadHexadecimalInput } from '../../components/load-hexadecimal-input';
 
 const displayAnimationEntry = (entry: EntryCommand | EntrySprite) => {
   if ('time' in entry) {
@@ -162,32 +163,14 @@ export const AnimationViewer = ({
     <div className="is-flex is-flex-direction-column">
       <div className="columns is-flex-wrap-wrap">
         <div className="column is-flex is-flex-direction-column is-align-items-start">
+          <LoadHexadecimalInput
+            label="SNES Address"
+            hexadecimalValue={animationAddress}
+            onValueChange={setAnimationAddress}
+            onValueLoad={onAnimationAddressLoadClick}
+          />
           <div className="block">
-            <label className="label">SNES Address</label>
-            <div className="field has-addons">
-              <p className="control">
-                <a className="button is-static">0x</a>
-              </p>
-              <p className="control">
-                <HexadecimalInput
-                  className="input"
-                  placeholder="Hexadecimal"
-                  value={animationAddress}
-                  onChange={setAnimationAddress}
-                />
-              </p>
-              <p className="control">
-                <a
-                  className="button is-primary"
-                  onClick={onAnimationAddressLoadClick}
-                >
-                  Load
-                </a>
-              </p>
-            </div>
-          </div>
-          <div className="block">
-            <label className="label">Animation Index (from 0X3E8572)</label>
+            <label className="label">{`Animation Index (from ${toHexString(ANIMATION_POINTERS_ADDRESS.snesAddress, { addPrefix: true })})`}</label>
             <div className="field has-addons">
               <p className="control">
                 <input
@@ -229,31 +212,12 @@ export const AnimationViewer = ({
               </p>
             </div>
           </div>
-          <div className="block">
-            <label className="label">Palette Address</label>
-            <div className="field has-addons">
-              <p className="control">
-                <a className="button is-static">0x</a>
-              </p>
-              <p className="control">
-                <HexadecimalInput
-                  className="input"
-                  placeholder="Hexadecimal"
-                  value={paletteAddress}
-                  onChange={setPaletteAddress}
-                />
-              </p>
-              <p className="control">
-                <a
-                  className="button is-primary"
-                  onClick={onAnimationAddressLoadClick}
-                >
-                  Load
-                </a>
-              </p>
-            </div>
-          </div>
-
+          <LoadHexadecimalInput
+            label="Palette Address"
+            hexadecimalValue={paletteAddress}
+            onValueChange={setPaletteAddress}
+            onValueLoad={onAnimationAddressLoadClick}
+          />
           {error && <div className="notification is-danger">{error}</div>}
         </div>
         <div className="column">

@@ -1,32 +1,56 @@
 import { ViewerMode, ViewerModeBaseProps } from './types';
 import { useEffect, useState } from 'react';
 import { Color } from '../../rom-parser/sprites/types';
-import { rgbToHex } from '../../utils/hex';
+import { rgbToHex, toHexString } from '../../utils/hex';
 import { RomAddress } from '../../rom-parser/types/address';
-import { readPalette } from '../../rom-parser/palette';
+import {
+  PALETTE_STARTING_ADDRESS,
+  paletteReferenceToSnesAddress,
+  readPalette,
+  snesAddressToPaletteReference,
+} from '../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from './memory';
-import { HexadecimalInput } from '../../components/hexadecimal-input';
 import { ScanAddresses } from '../../components/scan-adresses';
 import { scanPalettes } from '../../rom-parser/scan/palettes';
+import { LoadHexadecimalInput } from '../../components/load-hexadecimal-input';
 
 export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [paletteAddress, setPaletteAddress] = useState<number>();
+  const [paletteReference, setPaletteReference] = useState<number>();
   const [palette, setPalette] = useState<Color[]>();
 
   useEffect(() => {
     const initRomAddress = getViewerModeAddress(ViewerMode.Palette);
     if (initRomAddress) {
       setPaletteAddress(initRomAddress.snesAddress);
-      loadPalette(initRomAddress);
+      onSnesAddressLoad(initRomAddress);
     }
   }, []);
 
   const onPaletteAddressLoadClick = () => {
     if (paletteAddress) {
-      loadPalette(RomAddress.fromSnesAddress(paletteAddress));
+      const romAddress = RomAddress.fromSnesAddress(paletteAddress);
+      onSnesAddressLoad(romAddress);
     } else {
+      setPaletteAddress(undefined);
       setPalette(undefined);
     }
+  };
+
+  const onPaletteReferenceLoadClick = () => {
+    if (paletteReference) {
+      const romAddress = paletteReferenceToSnesAddress(paletteReference);
+      loadPalette(romAddress);
+      setPaletteAddress(romAddress.snesAddress);
+    } else {
+      setPaletteAddress(undefined);
+      setPalette(undefined);
+    }
+  };
+
+  const onSnesAddressLoad = (romAddress: RomAddress) => {
+    loadPalette(romAddress);
+    setPaletteReference(snesAddressToPaletteReference(romAddress));
   };
 
   const loadPalette = (romAddress: RomAddress) => {
@@ -39,30 +63,18 @@ export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
     <div className="is-flex is-flex-direction-column">
       <div className="columns is-flex-wrap-wrap">
         <div className="column is-flex is-flex-direction-column is-align-items-start">
-          <div className="block">
-            <label className="label">SNES Address</label>
-            <div className="field has-addons">
-              <p className="control">
-                <a className="button is-static">0x</a>
-              </p>
-              <p className="control">
-                <HexadecimalInput
-                  className="input"
-                  placeholder="Hexadecimal"
-                  value={paletteAddress}
-                  onChange={setPaletteAddress}
-                />
-              </p>
-              <p className="control">
-                <a
-                  className="button is-primary"
-                  onClick={onPaletteAddressLoadClick}
-                >
-                  Load
-                </a>
-              </p>
-            </div>
-          </div>
+          <LoadHexadecimalInput
+            label="SNES Address"
+            hexadecimalValue={paletteAddress}
+            onValueChange={setPaletteAddress}
+            onValueLoad={onPaletteAddressLoadClick}
+          />
+          <LoadHexadecimalInput
+            label={`Palette Reference (from ${toHexString(PALETTE_STARTING_ADDRESS, { addPrefix: true })})`}
+            hexadecimalValue={paletteReference}
+            onValueChange={setPaletteReference}
+            onValueLoad={onPaletteReferenceLoadClick}
+          />
         </div>
         <div className="column">
           {palette && (
@@ -109,7 +121,7 @@ export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
         selectedRom={selectedRom}
         onSelectedAddressChange={(paletteAddress) => {
           setPaletteAddress(paletteAddress.snesAddress);
-          loadPalette(paletteAddress);
+          onSnesAddressLoad(paletteAddress);
         }}
         title="Palettes"
       />

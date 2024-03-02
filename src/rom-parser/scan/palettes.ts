@@ -1,7 +1,7 @@
 import { scanEntities } from './entities';
 import { EntityCommand } from '../entities/types';
 import { RomAddress } from '../types/address';
-import { palettePointerToSnesAddress } from '../palette';
+import { paletteReferenceToSnesAddress } from '../palette';
 
 export const scanPalettes = (romData: Buffer) => {
   const entities = scanEntities(romData);
@@ -13,7 +13,7 @@ export const scanPalettes = (romData: Buffer) => {
     for (const instruction of entity.instructions) {
       if (instruction.command === EntityCommand.PALETTE) {
         const palettePointer = instruction.parameters[0];
-        const paletteAddress = palettePointerToSnesAddress(palettePointer);
+        const paletteAddress = paletteReferenceToSnesAddress(palettePointer);
 
         if (!foundPaletteSet.has(paletteAddress.snesAddress)) {
           paletteAddresses.push(paletteAddress);

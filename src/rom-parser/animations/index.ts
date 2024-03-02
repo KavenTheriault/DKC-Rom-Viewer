@@ -15,7 +15,7 @@ import { Array2D, Color, Image } from '../sprites/types';
 import { assembleSprite } from '../sprites/sprite-part';
 import { buildImageFromPixelsAndPalette } from '../palette';
 
-const ANIMATION_POINTERS_ADDRESS: RomAddress =
+export const ANIMATION_POINTERS_ADDRESS: RomAddress =
   RomAddress.fromSnesAddress(0x3e8572);
 const ANIMATION_POINTER_LENGTH = 2;
 
