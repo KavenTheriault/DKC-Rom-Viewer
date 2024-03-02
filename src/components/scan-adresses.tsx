@@ -44,7 +44,7 @@ export const ScanAddresses = ({
   };
 
   const onIndexInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newIndex = parseInt(e.target.value);
+    const newIndex = parseInt(e.target.value) || 0;
     updateIndex(newIndex);
   };
 
@@ -121,7 +121,6 @@ export const ScanAddresses = ({
                 style={{ width: '80px' }}
                 className="input is-info"
                 type="number"
-                placeholder="Hexadecimal"
                 value={currentIndex}
                 onChange={onIndexInputChange}
               />

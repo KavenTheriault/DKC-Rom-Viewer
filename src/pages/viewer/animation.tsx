@@ -1,5 +1,5 @@
-import { ChangeEvent, useEffect, useState } from 'react';
-import { isHexadecimal, toHexString } from '../../utils/hex';
+import { useEffect, useState } from 'react';
+import { toHexString } from '../../utils/hex';
 import { RomAddress } from '../../rom-parser/types/address';
 import {
   buildAnimation,
@@ -20,6 +20,8 @@ import { readPalette } from '../../rom-parser/palette';
 import { getViewerModeAddress, saveViewerModeAddress } from './memory';
 import { DEFAULT_PALETTE } from '../../utils/defaults';
 import { HexadecimalInput } from '../../components/hexadecimal-input';
+import { ScanAddresses } from '../../components/scan-adresses';
+import { scanAnimations } from '../../rom-parser/scan/animations';
 
 const displayAnimationEntry = (entry: EntryCommand | EntrySprite) => {
   if ('time' in entry) {
@@ -58,13 +60,13 @@ export const AnimationViewer = ({
     const savedAnimationAddress = getViewerModeAddress(ViewerMode.Animation);
     if (savedAnimationAddress) {
       setAnimationAddress(savedAnimationAddress.snesAddress);
-      loadAnimation(savedAnimationAddress, savedPaletteAddress);
+      loadAnimationAndPalette(savedAnimationAddress, savedPaletteAddress);
     }
   }, []);
 
   const onAnimationAddressLoadClick = () => {
     if (animationAddress) {
-      loadAnimation(
+      loadAnimationAndPalette(
         RomAddress.fromSnesAddress(animationAddress),
         RomAddress.fromSnesAddress(paletteAddress || DEFAULT_PALETTE),
       );
@@ -97,14 +99,18 @@ export const AnimationViewer = ({
 
   const loadAnimationIndex = (index: number) => {
     const address = readAnimationPointer(selectedRom.data, index);
-    const palette = RomAddress.fromSnesAddress(
-      paletteAddress || DEFAULT_PALETTE,
-    );
-    loadAnimation(address, palette);
+    loadAnimation(address);
     setAnimationAddress(address.snesAddress);
   };
 
-  const loadAnimation = (
+  const loadAnimation = (animationAddress: RomAddress) => {
+    const palette = RomAddress.fromSnesAddress(
+      paletteAddress || DEFAULT_PALETTE,
+    );
+    loadAnimationAndPalette(animationAddress, palette);
+  };
+
+  const loadAnimationAndPalette = (
     animationAddress: RomAddress,
     paletteAddress: RomAddress,
   ) => {
@@ -284,6 +290,15 @@ export const AnimationViewer = ({
           )}
         </div>
       </div>
+      <ScanAddresses
+        scan={scanAnimations}
+        selectedRom={selectedRom}
+        onSelectedAddressChange={(animationAddress) => {
+          setAnimationAddress(animationAddress.snesAddress);
+          loadAnimation(animationAddress);
+        }}
+        title="Animations"
+      />
     </div>
   );
 };

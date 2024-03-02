@@ -83,7 +83,7 @@ export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
                   </td>
                 </tr>
                 {palette.map((color, index) => (
-                  <tr>
+                  <tr key={`color-${index}`}>
                     <th>{index + 1}</th>
                     <td>
                       <code>
@@ -109,7 +109,7 @@ export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
         selectedRom={selectedRom}
         onSelectedAddressChange={(paletteAddress) => {
           setPaletteAddress(paletteAddress.snesAddress);
-          onPaletteAddressLoadClick();
+          loadPalette(paletteAddress);
         }}
         title="Palettes"
       />
