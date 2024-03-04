@@ -2,25 +2,15 @@ import { Buffer } from 'buffer';
 import { extract } from '../../../rom-parser/utils/buffer';
 import { ViewerModeBaseProps } from '../types';
 import { RomAddress } from '../../../rom-parser/types/address';
-import { chunk } from 'lodash';
-import {
-  parsePixels,
-  TILE_DATA_LENGTH,
-} from '../../../rom-parser/sprites/tile';
-import { Array2D, Image } from '../../../rom-parser/sprites/types';
-import {
-  buildImageFromPixelsAndPalette,
-  readPalette,
-} from '../../../rom-parser/palette';
 import { ImageCanvas } from '../../../components/image-canvas';
-import { create2DArray } from '../../../rom-parser/utils/array';
 
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
-  const test = RomAddress.fromSnesAddress(0xd58fc0);
+  const test = RomAddress.fromSnesAddress(0x231180);
   const data = extract(selectedRom.data, test.pcAddress, 0x10000);
-  const test2 = decompressDKC1(data);
+  const decompressedBitplane = decompressDKC1(data);
+  const bitplaneImage = dumpBitplane(decompressedBitplane);
 
-  const tilesData = chunk(test2, TILE_DATA_LENGTH);
+  /* const tilesData = chunk(test2, TILE_DATA_LENGTH);
   const tiles = tilesData.map((td) => parsePixels(Buffer.from(td)));
 
   // Test code
@@ -49,17 +39,13 @@ export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
     selectedRom.data,
     RomAddress.fromSnesAddress(0x39a1dc),
   );
-  const image: Image = buildImageFromPixelsAndPalette(allPixels, palette);
+  const image: Image = buildImageFromPixelsAndPalette(allPixels, palette);*/
 
   return (
     <div className="columns">
-      <pre>
-        {tiles.length}
-        {'|'}
-        {totalTilesToShow / 32}
-      </pre>
+      <pre>{bitplaneImage.length}</pre>
       <div className="column">
-        <ImageCanvas image={image} defaultSize={{ width: 256, height: 256 }} />
+        <ImageCanvas defaultSize={{ width: 256, height: 256 }} />
       </div>
     </div>
   );
@@ -105,4 +91,65 @@ const decompressDKC1 = (compressed: Buffer) => {
   }
 
   return decompressed;
+};
+
+const dumpBitplane = (bitplane: number[]) => {
+  const width = 16;
+  const tileCount = bitplane.length / 32;
+  const bitsPerPixel = 4;
+
+  let pxHeight = ((tileCount - (tileCount % width)) / width) * 8;
+  if (tileCount % width) pxHeight += 8;
+  const pxWidth = width * 8;
+
+  const imgSize = pxWidth * pxHeight * 4;
+  const image: number[] = new Array(imgSize).fill(0);
+
+  let offset = 0;
+
+  const bits: number[] = [128, 64, 32, 16, 8, 4, 2, 1];
+  const byte = new Array(4).fill(0);
+
+  for (let i = 0; i < tileCount; i++) {
+    // Each Tile
+    const tile_n = i % width;
+    if (i > width - 1) {
+      offset = ((i - (i % width)) / width) * (pxWidth * 8 * 4);
+    }
+
+    for (let j = 0; j < 8; j++) {
+      // Each line
+      byte[0] = bitplane[i * (bitsPerPixel * 8) + j * 2];
+      byte[1] = bitplane[i * (bitsPerPixel * 8) + j * 2 + 1];
+      byte[2] = bitplane[i * (bitsPerPixel * 8) + j * 2 + 16];
+      byte[3] = bitplane[i * (bitsPerPixel * 8) + j * 2 + 17];
+
+      for (let k = 0; k < 8; k++) {
+        // Each plane
+        let value = 0;
+
+        if ((byte[0] & bits[k]) == bits[k]) value += 1;
+        if ((byte[1] & bits[k]) == bits[k]) value += 2;
+        if ((byte[2] & bits[k]) == bits[k]) value += 4;
+        if ((byte[3] & bits[k]) == bits[k]) value += 8;
+
+        // Bits Per Pixel of 4
+        value *= 16;
+
+        const pixelIndex = offset + j * pxWidth * 4 + tile_n * 32 + k * 4;
+
+        image[pixelIndex] = value;
+        image[pixelIndex + 1] = value;
+        image[pixelIndex + 2] = value;
+
+        if (value == 0) {
+          image[pixelIndex + 3] = 0;
+        } else {
+          image[pixelIndex + 3] = 255;
+        }
+      }
+    }
+  }
+
+  return image;
 };
