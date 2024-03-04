@@ -7,6 +7,7 @@ import { SpriteViewer } from './sprite';
 import { AnimationViewer } from './animation';
 import { PaletteViewer } from './palette';
 import { NavigateToMode, ViewerMode } from './types';
+import { LevelViewer } from './level';
 
 export interface ViewerState {
   selectedRom: SelectedRom;
@@ -17,6 +18,7 @@ const ViewerModeIcons: Record<ViewerMode, string> = {
   [ViewerMode.Animation]: 'fa-panorama',
   [ViewerMode.Sprite]: 'fa-image',
   [ViewerMode.Palette]: 'fa-palette',
+  [ViewerMode.Level]: 'fa-scroll',
 };
 
 export const Viewer = () => {
@@ -67,6 +69,13 @@ export const Viewer = () => {
       case ViewerMode.Palette:
         return (
           <PaletteViewer
+            selectedRom={viewerState.selectedRom}
+            navigateToMode={navigateToMode}
+          />
+        );
+      case ViewerMode.Level:
+        return (
+          <LevelViewer
             selectedRom={viewerState.selectedRom}
             navigateToMode={navigateToMode}
           />

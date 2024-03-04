@@ -5,6 +5,7 @@ export enum ViewerMode {
   Animation = 'Animation',
   Sprite = 'Sprite',
   Palette = 'Palette',
+  Level = 'Level',
 }
 
 export type NavigateToMode = (mode: ViewerMode) => void;

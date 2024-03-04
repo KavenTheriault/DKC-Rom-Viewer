@@ -103,7 +103,7 @@ export const ImageCanvas = ({
   const drawImage = (context: CanvasRenderingContext2D, imageToDraw: Image) => {
     for (let x = 0; x < imageToDraw.length; x++) {
       for (let y = 0; y < imageToDraw[0].length; y++) {
-        const color = imageToDraw[y][x];
+        const color = imageToDraw[x][y];
 
         if (color) {
           context.fillStyle = rgbToHex(color.r, color.g, color.b);

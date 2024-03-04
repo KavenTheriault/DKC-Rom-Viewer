@@ -7,6 +7,7 @@ const _viewerModeAddress: Record<ViewerMode, RomAddress | undefined> = {
   [ViewerMode.Animation]: undefined,
   [ViewerMode.Sprite]: undefined,
   [ViewerMode.Palette]: RomAddress.fromSnesAddress(DEFAULT_PALETTE),
+  [ViewerMode.Level]: undefined,
 };
 
 export const getViewerModeAddress = (

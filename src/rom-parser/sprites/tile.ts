@@ -37,7 +37,7 @@ export const getSmallTiles = (
   return tiles;
 };
 
-const parsePixels = (pixelData: Buffer): Array2D => {
+export const parsePixels = (pixelData: Buffer): Array2D => {
   const pixels: Array2D = create2DArray(8, 8);
 
   for (let row = 0; row < 8; row++) {
