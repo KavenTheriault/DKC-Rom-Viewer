@@ -67,3 +67,34 @@ export const parsePixels = (pixelData: Buffer): Array2D => {
 
   return pixels;
 };
+
+export const parsePixelsV2 = (pixelData: Buffer): Array2D => {
+  const pixels: Array2D = create2DArray(8, 8);
+
+  for (let row = 0; row < 8; row++) {
+    const offset: number = row * 2;
+    const rowBitplanes: number[] = [
+      pixelData[offset],
+      pixelData[0x01 + offset],
+      pixelData[0x10 + offset],
+      pixelData[0x11 + offset],
+    ];
+
+    for (let column = 0; column < 8; column++) {
+      const bitShift: number = 7 - column;
+      const pixelBits: number[] = [
+        (rowBitplanes[3] >> bitShift) & 0b1,
+        (rowBitplanes[2] >> bitShift) & 0b1,
+        (rowBitplanes[1] >> bitShift) & 0b1,
+        (rowBitplanes[0] >> bitShift) & 0b1,
+      ];
+      pixels[column][row] =
+        (pixelBits[0] << 3) |
+        (pixelBits[1] << 2) |
+        (pixelBits[2] << 1) |
+        pixelBits[3];
+    }
+  }
+
+  return pixels;
+};
