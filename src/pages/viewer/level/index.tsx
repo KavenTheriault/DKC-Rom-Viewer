@@ -4,21 +4,26 @@ import { ViewerModeBaseProps } from '../types';
 import { RomAddress } from '../../../rom-parser/types/address';
 import { ImageCanvas } from '../../../components/image-canvas';
 import { Image } from '../../../rom-parser/sprites/types';
+import { create2DArray } from '../../../rom-parser/utils/array';
+import {
+  buildImageFromPixelsAndPalette,
+  grayscalePalette,
+} from '../../../rom-parser/palette';
 
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const test = RomAddress.fromSnesAddress(0x231180);
   const data = extract(selectedRom.data, test.pcAddress, 0x10000);
   const decompressedBitplane = decompressDKC1(data);
-  const bitplaneImage = dumpBitplane(decompressedBitplane);
+  const bitplane = dumpBitplane(decompressedBitplane);
+
+  const palette = grayscalePalette();
+  const image: Image = buildImageFromPixelsAndPalette(bitplane, palette);
 
   return (
     <div className="columns">
-      <pre>{bitplaneImage.length}</pre>
+      <pre>{image.length}</pre>
       <div className="column">
-        <ImageCanvas
-          image={bitplaneImage}
-          defaultSize={{ width: 256, height: 256 }}
-        />
+        <ImageCanvas image={image} defaultSize={{ width: 256, height: 256 }} />
       </div>
     </div>
   );
@@ -71,9 +76,6 @@ const TILE_PIXEL_WIDTH = 8;
 const TILE_PIXEL_HEIGHT = 8;
 const BYTES_PER_TILE = 32;
 
-const createEmptyImage = (width: number, height: number): Image =>
-  new Array(width).fill(0).map(() => new Array(height).fill(null));
-
 const dumpBitplane = (bitplaneData: number[]) => {
   const bitsPerPixel = 4;
 
@@ -82,10 +84,7 @@ const dumpBitplane = (bitplaneData: number[]) => {
 
   const pxHeight = totalTileRows * TILE_PIXEL_HEIGHT;
   const pxWidth = TILES_PER_ROW * TILE_PIXEL_WIDTH;
-  const image: Image = createEmptyImage(pxWidth, pxHeight);
-
-  const bits: number[] = [128, 64, 32, 16, 8, 4, 2, 1];
-  const byte = new Array(4).fill(0);
+  const bitplane = create2DArray(pxWidth, pxHeight);
 
   for (let tileIndex = 0; tileIndex < tileCount; tileIndex++) {
     const currentTileRow =
@@ -96,32 +95,37 @@ const dumpBitplane = (bitplaneData: number[]) => {
 
     for (let j = 0; j < TILE_PIXEL_HEIGHT; j++) {
       // Each line
-      byte[0] = bitplaneData[tileIndex * (bitsPerPixel * 8) + j * 2];
-      byte[1] = bitplaneData[tileIndex * (bitsPerPixel * 8) + j * 2 + 1];
-      byte[2] = bitplaneData[tileIndex * (bitsPerPixel * 8) + j * 2 + 16];
-      byte[3] = bitplaneData[tileIndex * (bitsPerPixel * 8) + j * 2 + 17];
+      const offset: number =
+        tileIndex * (bitsPerPixel * TILE_PIXEL_WIDTH) + j * 2;
+      const rowBitplanes: number[] = [
+        bitplaneData[offset],
+        bitplaneData[0x01 + offset],
+        bitplaneData[0x10 + offset],
+        bitplaneData[0x11 + offset],
+      ];
 
       for (let k = 0; k < TILE_PIXEL_WIDTH; k++) {
         // Each plane
-        let value = 0;
-
-        if ((byte[0] & bits[k]) === bits[k]) value += 1;
-        if ((byte[1] & bits[k]) === bits[k]) value += 2;
-        if ((byte[2] & bits[k]) === bits[k]) value += 4;
-        if ((byte[3] & bits[k]) === bits[k]) value += 8;
-
-        // Bits Per Pixel of 4
-        value *= 16;
-
-        const pixelX = widthPixelOffset + k;
-        const pixelY = heightPixelOffset + j;
-
+        const bitShift: number = 7 - k;
+        const pixelBits: number[] = [
+          (rowBitplanes[3] >> bitShift) & 0b1,
+          (rowBitplanes[2] >> bitShift) & 0b1,
+          (rowBitplanes[1] >> bitShift) & 0b1,
+          (rowBitplanes[0] >> bitShift) & 0b1,
+        ];
+        const value =
+          (pixelBits[0] << 3) |
+          (pixelBits[1] << 2) |
+          (pixelBits[2] << 1) |
+          pixelBits[3];
         if (value !== 0) {
-          image[pixelX][pixelY] = { r: value, g: value, b: value };
+          const pixelX = widthPixelOffset + k;
+          const pixelY = heightPixelOffset + j;
+          bitplane[pixelX][pixelY] = value;
         }
       }
     }
   }
 
-  return image;
+  return bitplane;
 };
