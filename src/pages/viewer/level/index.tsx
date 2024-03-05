@@ -10,22 +10,38 @@ import {
   grayscalePalette,
 } from '../../../rom-parser/palette';
 import { parsePixelsV2 } from '../../../rom-parser/sprites/tile';
+import { bufferToString } from '../../../utils/hex';
 
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
-  const test = RomAddress.fromSnesAddress(0x231180);
-  const data = extract(selectedRom.data, test.pcAddress, 0x10000);
-  const decompressedBitplane = decompressDKC1(data);
+  const forestBitplaneAddress = RomAddress.fromSnesAddress(0x231180);
+  const forestDataAddress = RomAddress.fromSnesAddress(0x03bd00);
 
+  const bitplaneData = extract(
+    selectedRom.data,
+    forestBitplaneAddress.pcAddress,
+    0x10000, // TODO: Improve this length
+  );
+  const decompressedBitplane = decompressDKC1(bitplaneData);
+
+  const forestData = extract(
+    selectedRom.data,
+    forestDataAddress.pcAddress,
+    0x30a0,
+  );
+
+  // Display Bitplane in Grayscale
   const bitplaneTitles = extractBitplaneTiles(
     Buffer.from(decompressedBitplane),
   );
   const combinedTiles = combineBitplaneTiles(bitplaneTitles);
-
   const palette = grayscalePalette();
   const image: Image = buildImageFromPixelsAndPalette(combinedTiles, palette);
 
   return (
     <div className="columns">
+      <div className="column">
+        <pre>{bufferToString(forestData)}</pre>
+      </div>
       <div className="column">
         <ImageCanvas image={image} defaultSize={{ width: 256, height: 256 }} />
       </div>
@@ -114,4 +130,50 @@ const combineBitplaneTiles = (tiles: Array2D[]) => {
   }
 
   return combinedBitplane;
+};
+
+const decodeBitplane = (decompressedBitplane: Buffer, forestData: Buffer) => {
+  const raw_len = forestData.length / 32;
+  for (let i = 0; i < raw_len; i++) {
+    for (let j = 0; j < 4; j++) {
+      for (let k = 0; k < 4; k++) {
+        // j * 32 => Because 8 pixels multiply by 4 times (k)
+        // k * 1024 => Because 8 pixels multiply by 4 then multiply by 32
+        // i * 4096 => 8 * 4 * 32 * 4
+        decodeTile(
+          decompressedBitplane,
+          forestData,
+          i * 32 + j * 2 + k * 8,
+          i * 4096 + j * 32 + k * 1024,
+        );
+      }
+    }
+  }
+};
+
+const decodeTile = (
+  decompressedBitplane: Buffer,
+  forestData: Buffer,
+  dataAddress: number,
+  bitplaneOffset: number,
+) => {
+  const low = forestData[dataAddress + 1];
+  let high = forestData[dataAddress];
+
+  let pal_ofs = 0,
+    vflip = 0,
+    hflip = 0,
+    priority = 0;
+
+  if (low & 1) high += 256;
+  if (low & 2) high += 512;
+  if (low & 4) pal_ofs += 1;
+  if (low & 8) pal_ofs += 2;
+  if (low & 16) pal_ofs += 4;
+  if (low & 32) priority = 1;
+  if (low & 64) hflip = 1;
+  if (low & 128) vflip = 1;
+
+  const img_ofs = high * 32;
+  pal_ofs *= 16;
 };
