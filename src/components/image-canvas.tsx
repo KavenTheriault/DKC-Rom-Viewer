@@ -16,6 +16,7 @@ interface SpriteCanvasProps {
   animation?: Animation;
   rectangles?: Rectangle[];
   defaultSize: { width: number; height: number };
+  defaultZoom?: number;
 }
 
 const BorderedCanvas = styled.canvas<{ color: string }>`
@@ -30,9 +31,10 @@ export const ImageCanvas = ({
   animation,
   rectangles,
   defaultSize,
+  defaultZoom,
 }: SpriteCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [zoom, setZoom] = useState<number>(2);
+  const [zoom, setZoom] = useState<number>(defaultZoom || 2);
   const [backgroundColor, setBackgroundColor] = useState<string>('#1e1f22');
   const animationInterval = useRef<NodeJS.Timeout>();
 

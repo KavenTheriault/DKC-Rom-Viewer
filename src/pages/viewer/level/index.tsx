@@ -3,47 +3,19 @@ import { extract, read16 } from '../../../rom-parser/utils/buffer';
 import { ViewerModeBaseProps } from '../types';
 import { RomAddress } from '../../../rom-parser/types/address';
 import { ImageCanvas } from '../../../components/image-canvas';
-import { Array2D, Color, Image } from '../../../rom-parser/sprites/types';
-import { create2DArray } from '../../../rom-parser/utils/array';
-import {
-  buildImageFromPixelsAndPalette,
-  grayscalePalette,
-} from '../../../rom-parser/palette';
-import { parsePixelsV2 } from '../../../rom-parser/sprites/tile';
+import { Color, Image } from '../../../rom-parser/sprites/types';
 
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
-  const tileImages = test(selectedRom.data);
-
-  const forestBitplaneAddress = RomAddress.fromSnesAddress(0x231180);
-  const forestDataAddress = RomAddress.fromSnesAddress(0x03bd00);
-
-  const bitplaneData = extract(
-    selectedRom.data,
-    forestBitplaneAddress.pcAddress,
-    0x10000, // TODO: Improve this length
-  );
-  const decompressedBitplane = decompressDKC1(bitplaneData);
-
-  const forestData = extract(
-    selectedRom.data,
-    forestDataAddress.pcAddress,
-    0x30a0,
-  );
-
-  // Display Bitplane in Grayscale
-  const bitplaneTitles = extractBitplaneTiles(
-    Buffer.from(decompressedBitplane),
-  );
-  const combinedTiles = combineBitplaneTiles(bitplaneTitles);
-  const palette = grayscalePalette();
-  const image: Image = buildImageFromPixelsAndPalette(combinedTiles, palette);
+  const tileImages = extractLevelTiles(selectedRom.data);
+  const combinedImage = combineImages(tileImages);
 
   return (
     <div className="columns">
       <div className="column">
         <ImageCanvas
-          image={tileImages[4]}
+          image={combinedImage}
           defaultSize={{ width: 256, height: 256 }}
+          defaultZoom={1}
         />
       </div>
     </div>
@@ -92,48 +64,7 @@ const decompressDKC1 = (compressed: Buffer) => {
   return decompressed;
 };
 
-const TILES_PER_ROW = 16;
-const TILE_PIXEL_WIDTH = 8;
-const TILE_PIXEL_HEIGHT = 8;
-const BYTES_PER_TILE = 32;
-
-const extractBitplaneTiles = (bitplaneData: Buffer) => {
-  const tiles = [];
-  for (let offset = 0; offset < bitplaneData.length; offset += BYTES_PER_TILE) {
-    const tileData = extract(bitplaneData, offset, BYTES_PER_TILE);
-    tiles.push(parsePixelsV2(tileData));
-  }
-  return tiles;
-};
-
-const combineBitplaneTiles = (tiles: Array2D[]) => {
-  const totalTileRows = Math.ceil(tiles.length / TILES_PER_ROW);
-
-  const pxHeight = totalTileRows * TILE_PIXEL_HEIGHT;
-  const pxWidth = TILES_PER_ROW * TILE_PIXEL_WIDTH;
-  const combinedBitplane = create2DArray(pxWidth, pxHeight);
-
-  for (let tileIndex = 0; tileIndex < tiles.length; tileIndex++) {
-    const tile = tiles[tileIndex];
-    const currentTileRow =
-      (tileIndex - (tileIndex % TILES_PER_ROW)) / TILES_PER_ROW;
-
-    const widthPixelOffset = (tileIndex % TILES_PER_ROW) * TILE_PIXEL_WIDTH;
-    const heightPixelOffset = currentTileRow * TILE_PIXEL_HEIGHT;
-
-    for (let x = 0; x < TILE_PIXEL_HEIGHT; x++) {
-      for (let y = 0; y < TILE_PIXEL_WIDTH; y++) {
-        const pixelX = widthPixelOffset + x;
-        const pixelY = heightPixelOffset + y;
-        combinedBitplane[pixelX][pixelY] = tile[x][y];
-      }
-    }
-  }
-
-  return combinedBitplane;
-};
-
-const test = (romData: Buffer) => {
+const extractLevelTiles = (romData: Buffer) => {
   const palettes = readPalettesFromROM(
     romData,
     RomAddress.fromSnesAddress(0xb9a1dc).pcAddress,
@@ -147,8 +78,6 @@ const test = (romData: Buffer) => {
     0x10000,
   );
   const decompressedChars = decompressDKC1(bitplaneData);
-  const lvlXBoundStart = 0xd91500;
-  const lvlXBoundEnd = 0xd91700;
   const chars = readEveryChar(palettes, Buffer.from(decompressedChars));
   const meta = extract(
     romData,
@@ -239,7 +168,7 @@ const drawChar = (char: Buffer, palette: Color[]) => {
         colorIndex |= x | y;
       }
 
-      bmp[i][j] = palette[colorIndex];
+      if (colorIndex > 0) bmp[i][j] = palette[colorIndex];
     }
     index += 2;
   }
@@ -272,4 +201,35 @@ const readPalettesFromROM = (
   }
 
   return result;
+};
+
+const combineImages = (images: Image[], imagesPerRow = 16) => {
+  const imageWidth = images[0].length;
+  const imageHeight = images[0][0].length;
+  const totalImageRows = Math.ceil(images.length / imagesPerRow);
+
+  const pxHeight = totalImageRows * imageHeight;
+  const pxWidth = imagesPerRow * imageWidth;
+  const combinedImage: Image = new Array(pxHeight)
+    .fill(null)
+    .map(() => new Array(pxWidth).fill(null));
+
+  for (let imageIndex = 0; imageIndex < images.length; imageIndex++) {
+    const image = images[imageIndex];
+    const currentTileRow =
+      (imageIndex - (imageIndex % imagesPerRow)) / imagesPerRow;
+
+    const widthPixelOffset = (imageIndex % imagesPerRow) * imageWidth;
+    const heightPixelOffset = currentTileRow * imageHeight;
+
+    for (let x = 0; x < imageHeight; x++) {
+      for (let y = 0; y < imageWidth; y++) {
+        const pixelX = widthPixelOffset + x;
+        const pixelY = heightPixelOffset + y;
+        combinedImage[pixelX][pixelY] = image[x][y];
+      }
+    }
+  }
+
+  return combinedImage;
 };
