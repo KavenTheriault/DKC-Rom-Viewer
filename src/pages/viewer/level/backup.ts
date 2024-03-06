@@ -1,8 +1,4 @@
 import { Buffer } from 'buffer';
-import { extract } from '../../../rom-parser/utils/buffer';
-import { Array2D } from '../../../rom-parser/sprites/types';
-import { parsePixelsV2 } from '../../../rom-parser/sprites/tile';
-import { create2DArray } from '../../../rom-parser/utils/array';
 
 const decodeBitplane = (decompressedBitplane: Buffer, forestData: Buffer) => {
   const raw_len = forestData.length / 32;
@@ -81,11 +77,12 @@ const TILE_PIXEL_WIDTH = 8;
 const TILE_PIXEL_HEIGHT = 8;
 const BYTES_PER_TILE = 32;
 
+/*
 const extractBitplaneTiles = (bitplaneData: Buffer) => {
   const tiles = [];
   for (let offset = 0; offset < bitplaneData.length; offset += BYTES_PER_TILE) {
     const tileData = extract(bitplaneData, offset, BYTES_PER_TILE);
-    tiles.push(parsePixelsV2(tileData));
+    tiles.push(parsePixels(tileData));
   }
   return tiles;
 };
@@ -116,3 +113,4 @@ const combineBitplaneTiles = (tiles: Array2D[]) => {
 
   return combinedBitplane;
 };
+*/

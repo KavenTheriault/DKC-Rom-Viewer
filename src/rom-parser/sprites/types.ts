@@ -14,16 +14,14 @@ export type Coordinate = {
   y: number;
 };
 
-export type Array2D = number[][];
-
 export type SmallTile = {
   address: RomAddress;
-  pixels: Array2D;
+  pixels: Matrix<number>;
 };
 
 export type LargeTile = {
   tiles: SmallTile[];
-  pixels: Array2D;
+  pixels: Matrix<number>;
 };
 
 export type SpritePart =

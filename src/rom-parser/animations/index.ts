@@ -11,7 +11,7 @@ import {
 } from './types';
 import { getAddressFromSpritePointerIndex, readSprite } from '../sprites';
 import { toHexString } from '../../utils/hex';
-import { Array2D, Color, Image } from '../sprites/types';
+import { Color, Image } from '../sprites/types';
 import { assembleSprite } from '../sprites/sprite-part';
 import { buildImageFromPixelsAndPalette } from '../palette';
 import { AnimationScriptBank, AnimationScriptTable } from '../constants/dkc1';
@@ -100,7 +100,7 @@ export const buildAnimation = (
           `Can't find sprite at ${toHexString(entry.spriteIndex)}`,
         );
 
-      const spritePixels: Array2D = assembleSprite(sprite.parts);
+      const spritePixels = assembleSprite(sprite.parts);
       const image: Image = buildImageFromPixelsAndPalette(
         spritePixels,
         palette,

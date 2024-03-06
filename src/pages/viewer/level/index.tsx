@@ -79,17 +79,17 @@ const extractLevelTiles = (romData: Buffer) => {
     0x10000,
   );
   const decompressedChars = decompressDKC1(bitplaneData);
-  const chars = readEveryChar(palettes, Buffer.from(decompressedChars));
+  const tilesData = getTilesData(palettes, Buffer.from(decompressedChars));
   const meta = extract(
     romData,
     RomAddress.fromSnesAddress(0xd9a3c0).pcAddress,
     0x24a * 0x20,
   );
-  return readTileFromMeta(meta, chars, palettes);
+  return readTileFromMeta(meta, tilesData, palettes);
 };
 
 // This is only reading the first 0x20 bytes?????
-const readEveryChar = (
+const getTilesData = (
   palette: Color[][],
   decompressedChars: Buffer,
 ): Buffer[] => {
@@ -110,7 +110,7 @@ const readEveryChar = (
 
 const readTileFromMeta = (
   meta: Buffer,
-  chars: Buffer[],
+  tilesData: Buffer[],
   palette: Color[][],
 ) => {
   const result = [];
@@ -132,7 +132,7 @@ const readTileFromMeta = (
         pointer &= 0x3ff;
 
         const smallLevelTile = getSmallLevelTile(
-          chars[pointer],
+          tilesData[pointer],
           palette[paletteIndex],
         );
 
@@ -157,7 +157,7 @@ const readTileFromMeta = (
   return result;
 };
 
-const getSmallLevelTile = (char: Buffer, palette: Color[]) => {
+const getSmallLevelTile = (tileData: Buffer, palette: Color[]) => {
   const smallLevelTile = new Matrix<Color | null>(8, 8, null);
 
   for (let i = 0, index = 0; i < 8; i++) {
@@ -165,8 +165,9 @@ const getSmallLevelTile = (char: Buffer, palette: Color[]) => {
       let colorIndex = 0;
 
       for (let k = 0; k < 4 /* bpp */ / 2; k++) {
-        const x = ((char[index + k * 16] >> (7 - j)) & 1) << (k * 2);
-        const y = ((char[index + 1 + k * 16] >> (7 - j)) & 1) << (k * 2 + 1);
+        const x = ((tileData[index + k * 16] >> (7 - j)) & 1) << (k * 2);
+        const y =
+          ((tileData[index + 1 + k * 16] >> (7 - j)) & 1) << (k * 2 + 1);
         colorIndex |= x | y;
       }
 

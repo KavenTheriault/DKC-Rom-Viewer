@@ -49,16 +49,16 @@ export const readPalette = (
 };
 
 export const buildImageFromPixelsAndPalette = (
-  pixels: number[][],
+  pixels: Matrix<number>,
   palette: Color[],
 ): Image => {
-  const width: number = pixels.length;
-  const height: number = pixels[0].length;
+  const width: number = pixels.width;
+  const height: number = pixels.height;
   const coloredPixels = new Matrix<Color | null>(width, height, null);
 
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
-      const paletteIdx: number = pixels[x][y];
+      const paletteIdx: number = pixels.get(x, y);
       if (paletteIdx !== 0) coloredPixels.set(x, y, palette[paletteIdx - 1]);
     }
   }

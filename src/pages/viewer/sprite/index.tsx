@@ -11,7 +11,7 @@ import {
   Sprite,
 } from '../../../rom-parser/sprites';
 import { ImageCanvas, Rectangle } from '../../../components/image-canvas';
-import { Array2D, Color, Image } from '../../../rom-parser/sprites/types';
+import { Color, Image } from '../../../rom-parser/sprites/types';
 import { assembleSprite } from '../../../rom-parser/sprites/sprite-part';
 import { SpritePartsViewer } from './sprite-parts';
 import { ViewerMode, ViewerModeBaseProps } from '../types';
@@ -143,7 +143,7 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
     paletteAddress: RomAddress,
   ) => {
     const palette: Color[] = readPalette(selectedRom.data, paletteAddress);
-    const spritePixels: Array2D = assembleSprite(spriteToBuild.parts);
+    const spritePixels = assembleSprite(spriteToBuild.parts);
     const image: Image = buildImageFromPixelsAndPalette(spritePixels, palette);
     setSpriteImage(image);
   };
