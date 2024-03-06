@@ -41,8 +41,8 @@ export const ImageCanvas = ({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.width = (image ? image.length : defaultSize.width) * zoom;
-      canvas.height = (image ? image[0].length : defaultSize.height) * zoom;
+      canvas.width = (image ? image.width : defaultSize.width) * zoom;
+      canvas.height = (image ? image.height : defaultSize.height) * zoom;
 
       const context = canvas.getContext('2d');
       if (context) {
@@ -103,9 +103,9 @@ export const ImageCanvas = ({
   };
 
   const drawImage = (context: CanvasRenderingContext2D, imageToDraw: Image) => {
-    for (let x = 0; x < imageToDraw.length; x++) {
-      for (let y = 0; y < imageToDraw[0].length; y++) {
-        const color = imageToDraw[y][x];
+    for (let x = 0; x < imageToDraw.width; x++) {
+      for (let y = 0; y < imageToDraw.height; y++) {
+        const color = imageToDraw.get(x, y);
 
         if (color) {
           context.fillStyle = rgbToHex(color.r, color.g, color.b);

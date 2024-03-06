@@ -1,3 +1,4 @@
+import { Matrix } from '../../types/matrix';
 import { RomAddress } from '../types/address';
 
 export type Color = {
@@ -6,7 +7,7 @@ export type Color = {
   b: number;
 };
 
-export type Image = (Color | null)[][];
+export type Image = Matrix<Color | null>;
 
 export type Coordinate = {
   x: number;

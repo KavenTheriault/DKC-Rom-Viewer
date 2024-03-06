@@ -2,6 +2,7 @@ import { RomAddress } from '../types/address';
 import { Color, Image } from '../sprites/types';
 import { read16 } from '../utils/buffer';
 import { EntityPaletteBank } from '../constants/dkc1';
+import { Matrix } from '../../types/matrix';
 
 const PALETTE_LENGTH = 15;
 
@@ -53,14 +54,12 @@ export const buildImageFromPixelsAndPalette = (
 ): Image => {
   const width: number = pixels.length;
   const height: number = pixels[0].length;
-  const coloredPixels: Image = new Array(width)
-    .fill(0)
-    .map(() => new Array(height).fill(0));
+  const coloredPixels = new Matrix<Color | null>(width, height, null);
 
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       const paletteIdx: number = pixels[x][y];
-      coloredPixels[x][y] = paletteIdx !== 0 ? palette[paletteIdx - 1] : null;
+      if (paletteIdx !== 0) coloredPixels.set(x, y, palette[paletteIdx - 1]);
     }
   }
 

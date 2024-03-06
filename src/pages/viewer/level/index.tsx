@@ -3,11 +3,12 @@ import { extract, read16 } from '../../../rom-parser/utils/buffer';
 import { ViewerModeBaseProps } from '../types';
 import { RomAddress } from '../../../rom-parser/types/address';
 import { ImageCanvas } from '../../../components/image-canvas';
-import { Color, Image } from '../../../rom-parser/sprites/types';
+import { Color } from '../../../rom-parser/sprites/types';
+import { Matrix } from '../../../types/matrix';
 
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const tileImages = extractLevelTiles(selectedRom.data);
-  const combinedImage = combineImages(tileImages);
+  const combinedImage = combineMatrixIntoGrid(tileImages);
 
   return (
     <div className="columns">
@@ -119,9 +120,7 @@ const readTileFromMeta = (
 
     // Look at each tile
     let index = 0;
-    const bmp: Image = new Array(32)
-      .fill(null)
-      .map(() => new Array(32).fill(null));
+    const largeLevelTile = new Matrix<Color | null>(32, 32, null);
 
     // Set each tile up from TL to BR
     for (let x = 0; x < 32; x += 8) {
@@ -132,31 +131,34 @@ const readTileFromMeta = (
         const paletteIndex = (attr & 0x1c00) >> 10;
         pointer &= 0x3ff;
 
-        let charImage = drawChar(chars[pointer], palette[paletteIndex]);
+        const smallLevelTile = getSmallLevelTile(
+          chars[pointer],
+          palette[paletteIndex],
+        );
 
         if ((attr & 0x4000) > 0) {
-          charImage = charImage.map((c) => c.reverse());
+          smallLevelTile.flip('vertical');
         }
         if ((attr & 0x8000) > 0) {
-          charImage = charImage.reverse();
+          smallLevelTile.flip('horizontal');
         }
 
-        for (let x2 = 0; x2 < charImage.length; x2++) {
-          for (let y2 = 0; y2 < charImage[0].length; y2++) {
-            bmp[x + x2][y + y2] = charImage[x2][y2];
+        for (let x2 = 0; x2 < smallLevelTile.width; x2++) {
+          for (let y2 = 0; y2 < smallLevelTile.height; y2++) {
+            largeLevelTile.set(x + x2, y + y2, smallLevelTile.get(x2, y2));
           }
         }
       }
     }
 
-    result.push(bmp);
+    result.push(largeLevelTile);
   }
 
   return result;
 };
 
-const drawChar = (char: Buffer, palette: Color[]) => {
-  const bmp: Image = new Array(8).fill(null).map(() => new Array(8).fill(null));
+const getSmallLevelTile = (char: Buffer, palette: Color[]) => {
+  const smallLevelTile = new Matrix<Color | null>(8, 8, null);
 
   for (let i = 0, index = 0; i < 8; i++) {
     for (let j = 0; j < 8; j++) {
@@ -168,12 +170,12 @@ const drawChar = (char: Buffer, palette: Color[]) => {
         colorIndex |= x | y;
       }
 
-      if (colorIndex > 0) bmp[i][j] = palette[colorIndex];
+      if (colorIndex > 0) smallLevelTile.set(i, j, palette[colorIndex]);
     }
     index += 2;
   }
 
-  return bmp;
+  return smallLevelTile;
 };
 
 const readPalettesFromROM = (
@@ -203,19 +205,20 @@ const readPalettesFromROM = (
   return result;
 };
 
-const combineImages = (images: Image[], imagesPerRow = 16) => {
-  const imageWidth = images[0].length;
-  const imageHeight = images[0][0].length;
-  const totalImageRows = Math.ceil(images.length / imagesPerRow);
+const combineMatrixIntoGrid = <T extends object>(
+  matrices: Matrix<T | null>[],
+  imagesPerRow = 16,
+) => {
+  const imageWidth = matrices[0].width;
+  const imageHeight = matrices[0].height;
+  const totalImageRows = Math.ceil(matrices.length / imagesPerRow);
 
   const pxHeight = totalImageRows * imageHeight;
   const pxWidth = imagesPerRow * imageWidth;
-  const combinedImage: Image = new Array(pxHeight)
-    .fill(null)
-    .map(() => new Array(pxWidth).fill(null));
+  const combinedImage = new Matrix<T | null>(pxWidth, pxHeight, null);
 
-  for (let imageIndex = 0; imageIndex < images.length; imageIndex++) {
-    const image = images[imageIndex];
+  for (let imageIndex = 0; imageIndex < matrices.length; imageIndex++) {
+    const image = matrices[imageIndex];
     const currentTileRow =
       (imageIndex - (imageIndex % imagesPerRow)) / imagesPerRow;
 
@@ -226,7 +229,7 @@ const combineImages = (images: Image[], imagesPerRow = 16) => {
       for (let y = 0; y < imageWidth; y++) {
         const pixelX = widthPixelOffset + x;
         const pixelY = heightPixelOffset + y;
-        combinedImage[pixelX][pixelY] = image[x][y];
+        combinedImage.set(pixelX, pixelY, image.get(x, y));
       }
     }
   }
