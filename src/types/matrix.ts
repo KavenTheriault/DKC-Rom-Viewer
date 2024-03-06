@@ -35,3 +35,40 @@ export class Matrix<T> {
     }
   }
 }
+
+/* Combine an array of matrices into a bigger matrix
+   All matrix are arrange into a grid format
+   Placing them left to right and moving to the next row when full
+   - All matrices must be of the same size
+ */
+export const combineMatrixIntoGrid = <T extends object>(
+  matrices: Matrix<T | null>[],
+  matricesPerRow = 16,
+) => {
+  const unitWidth = matrices[0].width;
+  const unitHeight = matrices[0].height;
+  const totalGridRows = Math.ceil(matrices.length / matricesPerRow);
+
+  const totalHeight = totalGridRows * unitHeight;
+  const totalWidth = matricesPerRow * unitWidth;
+  const combinedMatrix = new Matrix<T | null>(totalWidth, totalHeight, null);
+
+  for (let matrixIndex = 0; matrixIndex < matrices.length; matrixIndex++) {
+    const currentMatrix = matrices[matrixIndex];
+    const currentGridRow =
+      (matrixIndex - (matrixIndex % matricesPerRow)) / matricesPerRow;
+
+    const widthOffset = (matrixIndex % matricesPerRow) * unitWidth;
+    const heightOffset = currentGridRow * unitHeight;
+
+    for (let x = 0; x < unitHeight; x++) {
+      for (let y = 0; y < unitWidth; y++) {
+        const combinedX = widthOffset + x;
+        const combinedY = heightOffset + y;
+        combinedMatrix.set(combinedX, combinedY, currentMatrix.get(x, y));
+      }
+    }
+  }
+
+  return combinedMatrix;
+};

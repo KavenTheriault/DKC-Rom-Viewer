@@ -4,7 +4,7 @@ import { ViewerModeBaseProps } from '../types';
 import { RomAddress } from '../../../rom-parser/types/address';
 import { ImageCanvas } from '../../../components/image-canvas';
 import { Color } from '../../../rom-parser/sprites/types';
-import { Matrix } from '../../../types/matrix';
+import { combineMatrixIntoGrid, Matrix } from '../../../types/matrix';
 import { parseTilePixels } from '../../../rom-parser/sprites/tile';
 import { buildImageFromPixelsAndPalette } from '../../../rom-parser/palette';
 
@@ -81,7 +81,7 @@ const extractLevelTiles = (romData: Buffer) => {
     0x10000,
   );
   const decompressedChars = decompressDKC1(bitplaneData);
-  const tilesData = getTilesData(palettes, Buffer.from(decompressedChars));
+  const tilesData = getTilesData(Buffer.from(decompressedChars));
   const meta = extract(
     romData,
     RomAddress.fromSnesAddress(0xd9a3c0).pcAddress,
@@ -90,21 +90,12 @@ const extractLevelTiles = (romData: Buffer) => {
   return readTileFromMeta(meta, tilesData, palettes);
 };
 
-// This is only reading the first 0x20 bytes?????
-const getTilesData = (
-  palette: Color[][],
-  decompressedChars: Buffer,
-): Buffer[] => {
+const getTilesData = (decompressedChars: Buffer): Buffer[] => {
   const result = [];
 
-  let paletteIndex = 0;
-  while (paletteIndex < 1) {
-    const pal = palette[paletteIndex++];
-
-    for (let i = 0; i < decompressedChars.length; i += 0x20) {
-      const arr = extract(decompressedChars, i, 0x20);
-      result.push(arr);
-    }
+  for (let i = 0; i < decompressedChars.length; i += 0x20) {
+    const arr = extract(decompressedChars, i, 0x20);
+    result.push(arr);
   }
 
   return result;
@@ -189,36 +180,4 @@ const readPalettesFromROM = (
   }
 
   return result;
-};
-
-const combineMatrixIntoGrid = <T extends object>(
-  matrices: Matrix<T | null>[],
-  imagesPerRow = 16,
-) => {
-  const imageWidth = matrices[0].width;
-  const imageHeight = matrices[0].height;
-  const totalImageRows = Math.ceil(matrices.length / imagesPerRow);
-
-  const pxHeight = totalImageRows * imageHeight;
-  const pxWidth = imagesPerRow * imageWidth;
-  const combinedImage = new Matrix<T | null>(pxWidth, pxHeight, null);
-
-  for (let imageIndex = 0; imageIndex < matrices.length; imageIndex++) {
-    const image = matrices[imageIndex];
-    const currentTileRow =
-      (imageIndex - (imageIndex % imagesPerRow)) / imagesPerRow;
-
-    const widthPixelOffset = (imageIndex % imagesPerRow) * imageWidth;
-    const heightPixelOffset = currentTileRow * imageHeight;
-
-    for (let x = 0; x < imageHeight; x++) {
-      for (let y = 0; y < imageWidth; y++) {
-        const pixelX = widthPixelOffset + x;
-        const pixelY = heightPixelOffset + y;
-        combinedImage.set(pixelX, pixelY, image.get(x, y));
-      }
-    }
-  }
-
-  return combinedImage;
 };
