@@ -5,6 +5,8 @@ import { RomAddress } from '../../../rom-parser/types/address';
 import { ImageCanvas } from '../../../components/image-canvas';
 import { Color } from '../../../rom-parser/sprites/types';
 import { Matrix } from '../../../types/matrix';
+import { parseTilePixels } from '../../../rom-parser/sprites/tile';
+import { buildImageFromPixelsAndPalette } from '../../../rom-parser/palette';
 
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const tileImages = extractLevelTiles(selectedRom.data);
@@ -137,15 +139,15 @@ const readTileFromMeta = (
         );
 
         if ((attr & 0x4000) > 0) {
-          smallLevelTile.flip('vertical');
+          smallLevelTile.flip('horizontal');
         }
         if ((attr & 0x8000) > 0) {
-          smallLevelTile.flip('horizontal');
+          smallLevelTile.flip('vertical');
         }
 
         for (let x2 = 0; x2 < smallLevelTile.width; x2++) {
           for (let y2 = 0; y2 < smallLevelTile.height; y2++) {
-            largeLevelTile.set(x + x2, y + y2, smallLevelTile.get(x2, y2));
+            largeLevelTile.set(y + x2, x + y2, smallLevelTile.get(x2, y2));
           }
         }
       }
@@ -158,25 +160,8 @@ const readTileFromMeta = (
 };
 
 const getSmallLevelTile = (tileData: Buffer, palette: Color[]) => {
-  const smallLevelTile = new Matrix<Color | null>(8, 8, null);
-
-  for (let i = 0, index = 0; i < 8; i++) {
-    for (let j = 0; j < 8; j++) {
-      let colorIndex = 0;
-
-      for (let k = 0; k < 4 /* bpp */ / 2; k++) {
-        const x = ((tileData[index + k * 16] >> (7 - j)) & 1) << (k * 2);
-        const y =
-          ((tileData[index + 1 + k * 16] >> (7 - j)) & 1) << (k * 2 + 1);
-        colorIndex |= x | y;
-      }
-
-      if (colorIndex > 0) smallLevelTile.set(i, j, palette[colorIndex]);
-    }
-    index += 2;
-  }
-
-  return smallLevelTile;
+  const pixels = parseTilePixels(tileData);
+  return buildImageFromPixelsAndPalette(pixels, palette, 0);
 };
 
 const readPalettesFromROM = (

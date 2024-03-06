@@ -51,6 +51,7 @@ export const readPalette = (
 export const buildImageFromPixelsAndPalette = (
   pixels: Matrix<number>,
   palette: Color[],
+  paletteOffset = -1,
 ): Image => {
   const width: number = pixels.width;
   const height: number = pixels.height;
@@ -59,7 +60,8 @@ export const buildImageFromPixelsAndPalette = (
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       const paletteIdx: number = pixels.get(x, y);
-      if (paletteIdx !== 0) coloredPixels.set(x, y, palette[paletteIdx - 1]);
+      if (paletteIdx !== 0)
+        coloredPixels.set(x, y, palette[paletteIdx + paletteOffset]);
     }
   }
 

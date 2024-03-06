@@ -31,13 +31,13 @@ export const getSmallTiles = (
     );
     tiles.push({
       address: tileAddress,
-      pixels: parsePixels(tileData),
+      pixels: parseTilePixels(tileData),
     });
   }
   return tiles;
 };
 
-export const parsePixels = (pixelData: Buffer): Matrix<number> => {
+export const parseTilePixels = (pixelData: Buffer): Matrix<number> => {
   const pixels = new Matrix<number>(8, 8, 0);
 
   for (let row = 0; row < 8; row++) {
