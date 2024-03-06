@@ -142,9 +142,12 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
     spriteToBuild: Sprite,
     paletteAddress: RomAddress,
   ) => {
-    const palette: Color[] = readPalette(selectedRom.data, paletteAddress);
+    const palette = readPalette(selectedRom.data, paletteAddress);
     const spritePixels = assembleSprite(spriteToBuild.parts);
-    const image: Image = buildImageFromPixelsAndPalette(spritePixels, palette);
+    const image: Image = buildImageFromPixelsAndPalette(
+      spritePixels,
+      palette.colors,
+    );
     setSpriteImage(image);
   };
 

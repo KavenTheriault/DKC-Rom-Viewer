@@ -126,11 +126,11 @@ export const AnimationViewer = ({
       setRawAnimation(animationSequence);
       saveViewerModeAddress(ViewerMode.Animation, animationAddress);
 
-      const palette: Color[] = readPalette(selectedRom.data, paletteAddress);
+      const palette = readPalette(selectedRom.data, paletteAddress);
       const newAnimation = buildAnimation(
         selectedRom.data,
         animationSequence,
-        palette,
+        palette.colors,
       );
       setAnimation(newAnimation);
       setError('');

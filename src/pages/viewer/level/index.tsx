@@ -6,7 +6,11 @@ import { ImageCanvas } from '../../../components/image-canvas';
 import { Color } from '../../../rom-parser/sprites/types';
 import { combineMatrixIntoGrid, Matrix } from '../../../types/matrix';
 import { parseTilePixels } from '../../../rom-parser/sprites/tile';
-import { buildImageFromPixelsAndPalette } from '../../../rom-parser/palette';
+import {
+  buildImageFromPixelsAndPalette,
+  readPalettes,
+} from '../../../rom-parser/palette';
+import { Palette } from '../../../rom-parser/palette/types';
 
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const tileImages = extractLevelTiles(selectedRom.data);
@@ -68,9 +72,9 @@ const decompressDKC1 = (compressed: Buffer) => {
 };
 
 const extractLevelTiles = (romData: Buffer) => {
-  const palettes = readPalettesFromROM(
+  const palettes = readPalettes(
     romData,
-    RomAddress.fromSnesAddress(0xb9a1dc).pcAddress,
+    RomAddress.fromSnesAddress(0xb9a1dc),
     8,
     16,
   );
@@ -104,7 +108,7 @@ const getTilesData = (decompressedChars: Buffer): Buffer[] => {
 const readTileFromMeta = (
   meta: Buffer,
   tilesData: Buffer[],
-  palette: Color[][],
+  palette: Palette[],
 ) => {
   const result = [];
 
@@ -150,34 +154,7 @@ const readTileFromMeta = (
   return result;
 };
 
-const getSmallLevelTile = (tileData: Buffer, palette: Color[]) => {
+const getSmallLevelTile = (tileData: Buffer, palette: Palette) => {
   const pixels = parseTilePixels(tileData);
-  return buildImageFromPixelsAndPalette(pixels, palette, 0);
-};
-
-const readPalettesFromROM = (
-  romData: Buffer,
-  offset: number,
-  rows: number,
-  cols: number,
-) => {
-  const result = [];
-
-  let paletteOffset = offset;
-  for (let i = 0; i < rows; i++) {
-    const palette = [];
-    for (let j = 0; j < cols; j++) {
-      const raw = read16(romData, paletteOffset);
-      paletteOffset += 2;
-
-      const r = ((raw >> 0) & 0x1f) << 3;
-      const g = ((raw >> 5) & 0x1f) << 3;
-      const b = ((raw >> 10) & 0x1f) << 3;
-
-      palette.push({ r, g, b });
-    }
-    result.push(palette);
-  }
-
-  return result;
+  return buildImageFromPixelsAndPalette(pixels, palette.colors, 0);
 };

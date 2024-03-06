@@ -101,7 +101,7 @@ export const EntityViewer = ({
         const newAnimation = buildAnimation(
           selectedRom.data,
           rawAnimation,
-          palette || grayscalePalette(),
+          palette?.colors || grayscalePalette(),
         );
         setAnimation(newAnimation);
       } else {

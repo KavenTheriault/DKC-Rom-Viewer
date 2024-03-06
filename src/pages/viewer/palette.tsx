@@ -1,6 +1,5 @@
 import { ViewerMode, ViewerModeBaseProps } from './types';
 import { useEffect, useState } from 'react';
-import { Color } from '../../rom-parser/sprites/types';
 import { rgbToHex, toHexString } from '../../utils/hex';
 import { RomAddress } from '../../rom-parser/types/address';
 import {
@@ -13,11 +12,12 @@ import { ScanAddresses } from '../../components/scan-adresses';
 import { scanPalettes } from '../../rom-parser/scan/palettes';
 import { LoadHexadecimalInput } from '../../components/load-hexadecimal-input';
 import { EntityPaletteBank } from '../../rom-parser/constants/dkc1';
+import { Palette } from '../../rom-parser/palette/types';
 
 export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [paletteAddress, setPaletteAddress] = useState<number>();
   const [paletteReference, setPaletteReference] = useState<number>();
-  const [palette, setPalette] = useState<Color[]>();
+  const [palette, setPalette] = useState<Palette>();
 
   useEffect(() => {
     const initRomAddress = getViewerModeAddress(ViewerMode.Palette);
@@ -94,7 +94,7 @@ export const PaletteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
                     <span className="tag">Transparent</span>
                   </td>
                 </tr>
-                {palette.map((color, index) => (
+                {palette.colors.map((color, index) => (
                   <tr key={`color-${index}`}>
                     <th>{index + 1}</th>
                     <td>

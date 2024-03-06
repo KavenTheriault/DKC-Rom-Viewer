@@ -11,6 +11,7 @@ import { RawAnimation } from '../animations/types';
 import { Color } from '../sprites/types';
 import { paletteReferenceToSnesAddress, readPalette } from '../palette';
 import { EntityBank } from '../constants/dkc1';
+import { Palette } from '../palette/types';
 
 export const ENTITY_STARTING_ADDRESS = 0xb50000;
 
@@ -117,7 +118,7 @@ export const readEntityRawAnimation = (
 export const readEntityPalette = (
   romData: Buffer,
   entity: Entity,
-): Color[] | undefined => {
+): Palette | undefined => {
   const paletteCommand = findEntityInstruction(entity, EntityCommand.PALETTE);
   if (!paletteCommand) return;
 
