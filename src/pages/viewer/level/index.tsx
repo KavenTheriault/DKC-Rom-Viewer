@@ -2,7 +2,6 @@ import { Buffer } from 'buffer';
 import { extract, read16 } from '../../../rom-parser/utils/buffer';
 import { ViewerModeBaseProps } from '../types';
 import { RomAddress } from '../../../rom-parser/types/address';
-import { Color, Image } from '../../../rom-parser/sprites/types';
 import { combineMatrixIntoGrid, Matrix } from '../../../types/matrix';
 import { parseTilePixels } from '../../../rom-parser/sprites/tile';
 import {
@@ -14,6 +13,8 @@ import { BitmapCanvas } from '../../../components/bitmap-canvas';
 import styled from 'styled-components';
 import { useEffect, useState } from 'react';
 import { convertToImageBitmap } from '../../../utils/image-bitmap';
+import { Color, ImageMatrix } from '../../../types/image-matrix';
+import { decompress } from '../../../rom-parser/level/compression';
 
 const ScrollDiv = styled.div`
   overflow: scroll;
@@ -22,12 +23,12 @@ const ScrollDiv = styled.div`
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [bitmapImage, setBitmapImage] = useState<ImageBitmap>();
 
-  const tileImages = extractLevelTiles(selectedRom.data);
-  const tileMapImage = combineMatrixIntoGrid(tileImages);
-  const tileMap = readTileMap(selectedRom.data);
-  const levelImage = buildLevel(tileMap, tileImages);
-
   useEffect(() => {
+    const tileImages = extractLevelTiles(selectedRom.data);
+    const tileMapImage = combineMatrixIntoGrid(tileImages);
+    const tileMap = readTileMap(selectedRom.data);
+    const levelImage = buildLevel(tileMap, tileImages);
+
     const loadImage = async () => {
       const res = await convertToImageBitmap(levelImage);
       setBitmapImage(res);
@@ -45,48 +46,6 @@ export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   );
 };
 
-const decompressDKC1 = (compressed: Buffer) => {
-  const decompressed: number[] = [];
-  let cIndex = 0x80;
-
-  while (compressed[cIndex] !== 0) {
-    const command = compressed[cIndex++];
-    const rawCommand = command & 0xc0;
-
-    if (rawCommand == 0xc0) {
-      // Common
-      let commonIndex = (command & 0x3f) * 2;
-      decompressed.push(compressed[commonIndex++]);
-      decompressed.push(compressed[commonIndex++]);
-    } else if (rawCommand == 0x80) {
-      // Copy
-      let n = command & 0x3f;
-      let dIndex = (compressed[cIndex++] << 0) | (compressed[cIndex++] << 8);
-
-      while (n-- > 0) {
-        decompressed.push(decompressed[dIndex++]);
-      }
-    } else if (rawCommand == 0x40) {
-      // Write
-      let n = command & 0x3f;
-      const toRepeat = compressed[cIndex++];
-      while (n-- > 0) {
-        decompressed.push(toRepeat);
-      }
-    } else if (rawCommand < 0x40) {
-      // Raw
-      let n = command & 0x3f;
-      while (n-- > 0) {
-        decompressed.push(compressed[cIndex++]);
-      }
-    } else {
-      throw new Error('Invalid command');
-    }
-  }
-
-  return decompressed;
-};
-
 const extractLevelTiles = (romData: Buffer) => {
   const palettes = readPalettes(
     romData,
@@ -95,12 +54,10 @@ const extractLevelTiles = (romData: Buffer) => {
     16,
   );
 
-  const bitplaneData = extract(
+  const decompressedChars = decompress(
     romData,
-    RomAddress.fromSnesAddress(0xd58fc0).pcAddress,
-    0x10000,
+    RomAddress.fromSnesAddress(0xd58fc0),
   );
-  const decompressedChars = decompressDKC1(bitplaneData);
   const tilesData = getTilesData(Buffer.from(decompressedChars));
   const meta = extract(
     romData,
@@ -224,7 +181,7 @@ const readTileMap = (romData: Buffer) => {
   return result;
 };
 
-const buildLevel = (tileMap: Matrix<number>, tileImages: Image[]) => {
+const buildLevel = (tileMap: Matrix<number>, tileImages: ImageMatrix[]) => {
   const result = new Matrix<Color | null>(
     tileMap.width * 32,
     tileMap.height * 32,

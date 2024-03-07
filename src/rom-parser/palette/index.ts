@@ -1,9 +1,9 @@
 import { RomAddress } from '../types/address';
-import { Color, Image } from '../sprites/types';
 import { read16 } from '../utils/buffer';
 import { EntityPaletteBank } from '../constants/dkc1';
 import { Matrix } from '../../types/matrix';
 import { Palette } from './types';
+import { Color, ImageMatrix } from '../../types/image-matrix';
 
 const SPRITE_PALETTE_LENGTH = 15;
 
@@ -71,7 +71,7 @@ export const buildImageFromPixelsAndPalette = (
   pixels: Matrix<number>,
   colors: Color[],
   paletteOffset = -1,
-): Image => {
+): ImageMatrix => {
   const width: number = pixels.width;
   const height: number = pixels.height;
   const coloredPixels = new Matrix<Color | null>(width, height, null);

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Image } from '../rom-parser/sprites/types';
 import { rgbToHex } from '../utils/hex';
 import { Animation, AnimationStep } from '../rom-parser/animations/types';
 import styled from 'styled-components';
+import { ImageMatrix } from '../types/image-matrix';
 
 export interface Rectangle {
   x: number;
@@ -12,7 +12,7 @@ export interface Rectangle {
 }
 
 interface SpriteCanvasProps {
-  image?: Image;
+  image?: ImageMatrix;
   animation?: Animation;
   rectangles?: Rectangle[];
   defaultSize: { width: number; height: number };
@@ -66,8 +66,8 @@ export const ImageCanvas = ({
     context: CanvasRenderingContext2D,
     animationToDraw: Animation,
   ) => {
-    const frames: Image[] = animationToDraw.reduce(
-      (acc: Image[], step: AnimationStep) => {
+    const frames: ImageMatrix[] = animationToDraw.reduce(
+      (acc: ImageMatrix[], step: AnimationStep) => {
         for (let i = 0; i < step.time; i++) {
           acc.push(step.image);
         }
@@ -102,7 +102,10 @@ export const ImageCanvas = ({
     }
   };
 
-  const drawImage = (context: CanvasRenderingContext2D, imageToDraw: Image) => {
+  const drawImage = (
+    context: CanvasRenderingContext2D,
+    imageToDraw: ImageMatrix,
+  ) => {
     for (let x = 0; x < imageToDraw.width; x++) {
       for (let y = 0; y < imageToDraw.height; y++) {
         const color = imageToDraw.get(x, y);

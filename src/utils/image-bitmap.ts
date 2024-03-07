@@ -1,7 +1,7 @@
-import { Image } from '../rom-parser/sprites/types';
+import { ImageMatrix } from '../types/image-matrix';
 
 export const convertToImageBitmap = async (
-  image: Image,
+  image: ImageMatrix,
 ): Promise<ImageBitmap> => {
   const size = image.width * image.height * 4;
   const data = new Uint8ClampedArray(size);

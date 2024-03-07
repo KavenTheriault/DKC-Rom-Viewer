@@ -11,10 +11,10 @@ import {
 } from './types';
 import { getAddressFromSpritePointerIndex, readSprite } from '../sprites';
 import { toHexString } from '../../utils/hex';
-import { Color, Image } from '../sprites/types';
 import { assembleSprite } from '../sprites/sprite-part';
 import { buildImageFromPixelsAndPalette } from '../palette';
 import { AnimationScriptBank, AnimationScriptTable } from '../constants/dkc1';
+import { Color, ImageMatrix } from '../../types/image-matrix';
 
 const ANIMATION_POINTER_LENGTH = 2;
 
@@ -101,7 +101,7 @@ export const buildAnimation = (
         );
 
       const spritePixels = assembleSprite(sprite.parts);
-      const image: Image = buildImageFromPixelsAndPalette(
+      const image: ImageMatrix = buildImageFromPixelsAndPalette(
         spritePixels,
         palette,
       );
