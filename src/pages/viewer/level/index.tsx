@@ -10,23 +10,35 @@ import {
   readPalettes,
 } from '../../../rom-parser/palette';
 import { Palette } from '../../../rom-parser/palette/types';
-import { SimpleCanvas } from '../../../components/simple-canvas';
+import { BitmapCanvas } from '../../../components/bitmap-canvas';
 import styled from 'styled-components';
+import { useEffect, useState } from 'react';
+import { convertToImageBitmap } from '../../../utils/image-bitmap';
 
 const ScrollDiv = styled.div`
   overflow: scroll;
 `;
 
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
+  const [bitmapImage, setBitmapImage] = useState<ImageBitmap>();
+
   const tileImages = extractLevelTiles(selectedRom.data);
-  const combinedImage = combineMatrixIntoGrid(tileImages);
+  const tileMapImage = combineMatrixIntoGrid(tileImages);
   const tileMap = readTileMap(selectedRom.data);
   const levelImage = buildLevel(tileMap, tileImages);
 
+  useEffect(() => {
+    const loadImage = async () => {
+      const res = await convertToImageBitmap(levelImage);
+      setBitmapImage(res);
+    };
+    loadImage();
+  }, []);
+
   return (
     <ScrollDiv>
-      <SimpleCanvas
-        image={levelImage}
+      <BitmapCanvas
+        image={bitmapImage}
         defaultSize={{ width: 256, height: 256 }}
       />
     </ScrollDiv>

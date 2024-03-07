@@ -11,7 +11,7 @@ import {
   Sprite,
 } from '../../../rom-parser/sprites';
 import { ImageCanvas, Rectangle } from '../../../components/image-canvas';
-import { Color, Image } from '../../../rom-parser/sprites/types';
+import { Image } from '../../../rom-parser/sprites/types';
 import { assembleSprite } from '../../../rom-parser/sprites/sprite-part';
 import { SpritePartsViewer } from './sprite-parts';
 import { ViewerMode, ViewerModeBaseProps } from '../types';
