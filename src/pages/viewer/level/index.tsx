@@ -2,7 +2,6 @@ import { Buffer } from 'buffer';
 import { extract, read16 } from '../../../rom-parser/utils/buffer';
 import { ViewerModeBaseProps } from '../types';
 import { RomAddress } from '../../../rom-parser/types/address';
-import { ImageCanvas } from '../../../components/image-canvas';
 import { Color, Image } from '../../../rom-parser/sprites/types';
 import { combineMatrixIntoGrid, Matrix } from '../../../types/matrix';
 import { parseTilePixels } from '../../../rom-parser/sprites/tile';
@@ -11,24 +10,26 @@ import {
   readPalettes,
 } from '../../../rom-parser/palette';
 import { Palette } from '../../../rom-parser/palette/types';
+import { SimpleCanvas } from '../../../components/simple-canvas';
+import styled from 'styled-components';
+
+const ScrollDiv = styled.div`
+  overflow: scroll;
+`;
 
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const tileImages = extractLevelTiles(selectedRom.data);
   const combinedImage = combineMatrixIntoGrid(tileImages);
   const tileMap = readTileMap(selectedRom.data);
   const levelImage = buildLevel(tileMap, tileImages);
-  console.log('DEBUG', tileMap);
 
   return (
-    <div className="columns">
-      <div className="column">
-        <ImageCanvas
-          image={levelImage}
-          defaultSize={{ width: 256, height: 256 }}
-          defaultZoom={1}
-        />
-      </div>
-    </div>
+    <ScrollDiv>
+      <SimpleCanvas
+        image={levelImage}
+        defaultSize={{ width: 256, height: 256 }}
+      />
+    </ScrollDiv>
   );
 };
 
@@ -162,11 +163,27 @@ const getSmallLevelTile = (tileData: Buffer, palette: Palette) => {
   return buildImageFromPixelsAndPalette(pixels, palette.colors, 0);
 };
 
-const readTileMap = (romData: Buffer) => {
-  const jungleBoundStart = 0xd91500;
-  const jungleBoundEnd = 0xd91700;
+const getLevelSize = (romData: Buffer) => {
+  const jungleLevelCode = 0x16;
+  let tempX = jungleLevelCode << 1;
 
-  const jungleTileMapSize = jungleBoundEnd - jungleBoundStart;
+  const levelSizeAddress = RomAddress.fromSnesAddress(0xbc8000);
+  tempX = read16(romData, levelSizeAddress.pcAddress + tempX) - 4;
+
+  const lvlXBoundEnd = read16(
+    romData,
+    RomAddress.fromSnesAddress(0xbc0002).pcAddress + tempX,
+  );
+  const lvlXBoundStart = read16(
+    romData,
+    RomAddress.fromSnesAddress(0xbc0000).pcAddress + tempX,
+  );
+
+  return lvlXBoundEnd - lvlXBoundStart + 0x100;
+};
+
+const readTileMap = (romData: Buffer) => {
+  const jungleTileMapSize = getLevelSize(romData);
   const jungleTileMapAddress = RomAddress.fromSnesAddress(0xd90000);
 
   const rawTileMap = extract(
@@ -198,7 +215,7 @@ const readTileMap = (romData: Buffer) => {
 const buildLevel = (tileMap: Matrix<number>, tileImages: Image[]) => {
   const result = new Matrix<Color | null>(
     tileMap.width * 32,
-    tileMap.width * 32,
+    tileMap.height * 32,
     null,
   );
 
