@@ -37,6 +37,14 @@ export class Matrix<T> {
     }
   }
 
+  setMatrixAt(x: number, y: number, matrix: Matrix<T>) {
+    for (let x2 = 0; x2 < matrix.width; x2++) {
+      for (let y2 = 0; y2 < matrix.height; y2++) {
+        this.set(x + x2, y + y2, matrix.get(x2, y2));
+      }
+    }
+  }
+
   clone() {
     const newMatrix = new Matrix<T>(this.width, this.height, this._fill);
     for (let x = 0; x < newMatrix.width; x++) {
