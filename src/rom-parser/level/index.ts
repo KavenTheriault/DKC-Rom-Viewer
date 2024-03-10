@@ -21,33 +21,61 @@ const TILE_HEIGHT = 32;
 const TILE_PART_WIDTH = TILE_WIDTH / 4;
 const TILE_PART_HEIGHT = TILE_HEIGHT / 4;
 
+const CAMERA_MAP_ADDRESS = RomAddress.fromSnesAddress(0xbc8000);
+const LEVEL_BOUNDS = RomAddress.fromSnesAddress(0xbc0000);
+const SCREEN_WIDTH = 0x100;
 const HORIZONTAL_LEVEL_HEIGHT = 16;
 
+// Jungle Theme
 const JUNGLE_TILES_DATA = RomAddress.fromSnesAddress(0xd58fc0);
 const JUNGLE_TILES_META = RomAddress.fromSnesAddress(0xd9a3c0);
 const JUNGLE_PALETTES = RomAddress.fromSnesAddress(0xb9a1dc);
-const JUNGLE_TILE_MAP = RomAddress.fromSnesAddress(0xd90000);
 
-const CAMERA_MAP_ADDRESS = RomAddress.fromSnesAddress(0xbc8000);
-const LEVEL_BOUNDS = RomAddress.fromSnesAddress(0xbc0000);
-const JUNGLE_ENTRANCE_ID = 0x16;
-const SCREEN_WIDTH = 0x100;
+// Jungle Hijinxs
+const JUNGLE_HIJINXS_ENTRANCE_ID = 0x16;
+const JUNGLE_HIJINXS_TILE_MAP = RomAddress.fromSnesAddress(0xd90000);
 
-export const readLevel = (romData: Buffer) => {
-  const tileImages = readLevelTiles(romData);
-  const levelSize = readLevelSize(romData, JUNGLE_ENTRANCE_ID);
-  const tileMap = readLevelTileMap(romData, levelSize);
+// Ropey Rampage
+const ROPEY_RAMPAGE_ENTRANCE_ID = 0x0c;
+const ROPEY_RAMPAGE_TILE_MAP = RomAddress.fromSnesAddress(0xd91700);
+
+export const readJungleHijinxsLevel = (romData: Buffer) => {
+  const tileImages = readLevelTiles(
+    romData,
+    JUNGLE_TILES_DATA,
+    JUNGLE_TILES_META,
+    JUNGLE_PALETTES,
+  );
+  const levelSize = readLevelSize(romData, JUNGLE_HIJINXS_ENTRANCE_ID);
+  const tileMap = readLevelTileMap(romData, JUNGLE_HIJINXS_TILE_MAP, levelSize);
   return buildLevelImage(tileMap, tileImages);
 };
 
-export const readLevelTiles = (romData: Buffer): ImageMatrix[] => {
-  const tilesData = decompress(romData, JUNGLE_TILES_DATA);
+export const readRopeyRampageLevel = (romData: Buffer) => {
+  const tileImages = readLevelTiles(
+    romData,
+    JUNGLE_TILES_DATA,
+    JUNGLE_TILES_META,
+    JUNGLE_PALETTES,
+  );
+  const levelSize = readLevelSize(romData, ROPEY_RAMPAGE_ENTRANCE_ID);
+  const tileMap = readLevelTileMap(romData, ROPEY_RAMPAGE_TILE_MAP, levelSize);
+  return buildLevelImage(tileMap, tileImages);
+};
+
+export const readLevelTiles = (
+  romData: Buffer,
+  tilesDataAddress: RomAddress,
+  tilesMetaAddress: RomAddress,
+  palettesAddress: RomAddress,
+): ImageMatrix[] => {
+  const tilesData = decompress(romData, tilesDataAddress);
   const tilesMeta = extract(
     romData,
-    JUNGLE_TILES_META.pcAddress,
+    tilesMetaAddress.pcAddress,
     0x24a * TILE_DATA_LENGTH,
   );
-  const palettes = readPalettes(romData, JUNGLE_PALETTES, 8, 16);
+  const palettes = readPalettes(romData, palettesAddress, 8, 16);
   return buildLevelTileImages(tilesData, tilesMeta, palettes);
 };
 
@@ -124,9 +152,13 @@ export const readLevelSize = (romData: Buffer, entranceId: number) => {
   return lvlXBoundEnd - lvlXBoundStart + SCREEN_WIDTH;
 };
 
-const readLevelTileMap = (romData: Buffer, levelSize: number) => {
+const readLevelTileMap = (
+  romData: Buffer,
+  tileMapAddress: RomAddress,
+  levelSize: number,
+) => {
   const levelHeight = HORIZONTAL_LEVEL_HEIGHT;
-  const rawTileMap = extract(romData, JUNGLE_TILE_MAP.pcAddress, levelSize);
+  const rawTileMap = extract(romData, tileMapAddress.pcAddress, levelSize);
 
   const levelWidth = rawTileMap.length / levelHeight / 2;
   const levelTileMap = new Matrix<number>(levelWidth, levelHeight, 0);

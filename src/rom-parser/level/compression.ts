@@ -20,6 +20,8 @@ export const decompress = (romData: Buffer, address: RomAddress) => {
   let rawCommand = 1;
   const decompressed: number[] = [];
   while (rawCommand !== 0) {
+    if (index > 0xffffff) throw new Error('Infinite!');
+
     rawCommand = readNextByte();
 
     // Command is 11000000
