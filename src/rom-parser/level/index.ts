@@ -30,11 +30,12 @@ const JUNGLE_TILE_MAP = RomAddress.fromSnesAddress(0xd90000);
 
 const CAMERA_MAP_ADDRESS = RomAddress.fromSnesAddress(0xbc8000);
 const LEVEL_BOUNDS = RomAddress.fromSnesAddress(0xbc0000);
-const JUNGLE_LEVEL_CODE = 0x16;
+const JUNGLE_ENTRANCE_ID = 0x16;
+const SCREEN_WIDTH = 0x100;
 
 export const readLevel = (romData: Buffer) => {
   const tileImages = readLevelTiles(romData);
-  const levelSize = readLevelSize(romData, JUNGLE_LEVEL_CODE);
+  const levelSize = readLevelSize(romData, JUNGLE_ENTRANCE_ID);
   const tileMap = readLevelTileMap(romData, levelSize);
   return buildLevelImage(tileMap, tileImages);
 };
@@ -107,8 +108,9 @@ const buildLevelTileImages = (
   return result;
 };
 
-const readLevelSize = (romData: Buffer, levelCode: number) => {
-  const levelPointer = levelCode << 1;
+// From ASM $FCB052
+export const readLevelSize = (romData: Buffer, entranceId: number) => {
+  const levelPointer = entranceId << 1;
   const boundsIndex =
     read16(romData, CAMERA_MAP_ADDRESS.pcAddress + levelPointer) - 4;
 
@@ -118,7 +120,8 @@ const readLevelSize = (romData: Buffer, levelCode: number) => {
     LEVEL_BOUNDS.pcAddress + boundsIndex + 2,
   );
 
-  return lvlXBoundEnd - lvlXBoundStart + 0x100;
+  // End bound is from the left side of the screen
+  return lvlXBoundEnd - lvlXBoundStart + SCREEN_WIDTH;
 };
 
 const readLevelTileMap = (romData: Buffer, levelSize: number) => {
