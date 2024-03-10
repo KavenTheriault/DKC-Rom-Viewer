@@ -29,7 +29,14 @@ const HORIZONTAL_LEVEL_HEIGHT = 16;
 // Jungle Theme
 const JUNGLE_TILES_DATA = RomAddress.fromSnesAddress(0xd58fc0);
 const JUNGLE_TILES_META = RomAddress.fromSnesAddress(0xd9a3c0);
+const JUNGLE_TILES_META_SIZE = 0x24a;
 const JUNGLE_PALETTES = RomAddress.fromSnesAddress(0xb9a1dc);
+
+// Cave Theme
+const CAVE_TILES_DATA = RomAddress.fromSnesAddress(0xdc0000);
+const CAVE_TILES_META = RomAddress.fromSnesAddress(0xdabf00);
+const CAVE_TILES_META_SIZE = 0x1b3;
+const CAVE_PALETTES = RomAddress.fromSnesAddress(0xb9a01c);
 
 // Jungle Hijinxs
 const JUNGLE_HIJINXS_ENTRANCE_ID = 0x16;
@@ -39,11 +46,16 @@ const JUNGLE_HIJINXS_TILE_MAP = RomAddress.fromSnesAddress(0xd90000);
 const ROPEY_RAMPAGE_ENTRANCE_ID = 0x0c;
 const ROPEY_RAMPAGE_TILE_MAP = RomAddress.fromSnesAddress(0xd91700);
 
+// Reptile Rumble
+const REPTILE_RUMBLE_ENTRANCE_ID = 0x01;
+const REPTILE_RUMBLE_TILE_MAP = RomAddress.fromSnesAddress(0x1a0100);
+
 export const readJungleHijinxsLevel = (romData: Buffer) => {
   const tileImages = readLevelTiles(
     romData,
     JUNGLE_TILES_DATA,
     JUNGLE_TILES_META,
+    JUNGLE_TILES_META_SIZE,
     JUNGLE_PALETTES,
   );
   const levelSize = readLevelSize(romData, JUNGLE_HIJINXS_ENTRANCE_ID);
@@ -56,6 +68,7 @@ export const readRopeyRampageLevel = (romData: Buffer) => {
     romData,
     JUNGLE_TILES_DATA,
     JUNGLE_TILES_META,
+    JUNGLE_TILES_META_SIZE,
     JUNGLE_PALETTES,
   );
   const levelSize = readLevelSize(romData, ROPEY_RAMPAGE_ENTRANCE_ID);
@@ -63,17 +76,31 @@ export const readRopeyRampageLevel = (romData: Buffer) => {
   return buildLevelImage(tileMap, tileImages);
 };
 
+export const readReptileRumbleLevel = (romData: Buffer) => {
+  const tileImages = readLevelTiles(
+    romData,
+    CAVE_TILES_DATA,
+    CAVE_TILES_META,
+    CAVE_TILES_META_SIZE,
+    CAVE_PALETTES,
+  );
+  const levelSize = readLevelSize(romData, REPTILE_RUMBLE_ENTRANCE_ID);
+  const tileMap = readLevelTileMap(romData, REPTILE_RUMBLE_TILE_MAP, levelSize);
+  return buildLevelImage(tileMap, tileImages);
+};
+
 export const readLevelTiles = (
   romData: Buffer,
   tilesDataAddress: RomAddress,
   tilesMetaAddress: RomAddress,
+  tilesMetaSize: number,
   palettesAddress: RomAddress,
 ): ImageMatrix[] => {
   const tilesData = decompress(romData, tilesDataAddress);
   const tilesMeta = extract(
     romData,
     tilesMetaAddress.pcAddress,
-    0x24a * TILE_DATA_LENGTH,
+    tilesMetaSize * TILE_DATA_LENGTH,
   );
   const palettes = readPalettes(romData, palettesAddress, 8, 16);
   return buildLevelTileImages(tilesData, tilesMeta, palettes);

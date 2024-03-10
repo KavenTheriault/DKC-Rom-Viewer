@@ -4,9 +4,8 @@ import styled from 'styled-components';
 import { useEffect, useState } from 'react';
 import { convertToImageBitmap } from '../../../utils/image-bitmap';
 import {
-  readJungleHijinxsLevel,
   readLevelSize,
-  readRopeyRampageLevel,
+  readReptileRumbleLevel,
 } from '../../../rom-parser/level';
 import { LoadHexadecimalInput } from '../../../components/load-hexadecimal-input';
 import { toHexString } from '../../../utils/hex';
@@ -21,7 +20,7 @@ export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [levelSize, setLevelSize] = useState<number>();
 
   useEffect(() => {
-    const levelImage = readRopeyRampageLevel(selectedRom.data);
+    const levelImage = readReptileRumbleLevel(selectedRom.data);
 
     const loadImage = async () => {
       const res = await convertToImageBitmap(levelImage);
