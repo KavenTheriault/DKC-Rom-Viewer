@@ -11,6 +11,11 @@ export const read16 = (buffer: Buffer, position: number) => {
   return (bytes[1] << 8) | bytes[0];
 };
 
+export const read24 = (buffer: Buffer, position: number) => {
+  const bytes: Buffer = extract(buffer, position, 3);
+  return (bytes[2] << 16) | (bytes[1] << 8) | bytes[0];
+};
+
 export const read32 = (buffer: Buffer, position: number) => {
   const bytes: Buffer = extract(buffer, position, 4);
   return (bytes[3] << 24) | (bytes[2] << 16) | (bytes[1] << 8) | bytes[0];

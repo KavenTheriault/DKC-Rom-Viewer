@@ -27,15 +27,15 @@ const SCREEN_WIDTH = 0x100;
 const HORIZONTAL_LEVEL_HEIGHT = 16;
 
 // Jungle Theme
-const JUNGLE_TILES_DATA = RomAddress.fromSnesAddress(0xd58fc0);
-const JUNGLE_TILES_META = RomAddress.fromSnesAddress(0xd9a3c0);
-const JUNGLE_TILES_META_SIZE = 0x24a;
+const JUNGLE_TERRAIN_TYPE_DATA = RomAddress.fromSnesAddress(0xd58fc0);
+const JUNGLE_TERRAIN_TYPE_META = RomAddress.fromSnesAddress(0xd9a3c0);
+const JUNGLE_TERRAIN_TYPE_META_SIZE = 0x24a;
 const JUNGLE_PALETTES = RomAddress.fromSnesAddress(0xb9a1dc);
 
 // Cave Theme
-const CAVE_TILES_DATA = RomAddress.fromSnesAddress(0xdc0000);
-const CAVE_TILES_META = RomAddress.fromSnesAddress(0xdabf00);
-const CAVE_TILES_META_SIZE = 0x1b3;
+const CAVE_TERRAIN_TYPE_DATA = RomAddress.fromSnesAddress(0xdc0000);
+const CAVE_TERRAIN_TYPE_META = RomAddress.fromSnesAddress(0xdabf00);
+const CAVE_TERRAIN_TYPE_META_SIZE = 0x1b3;
 const CAVE_PALETTES = RomAddress.fromSnesAddress(0xb9a01c);
 
 // Jungle Hijinxs
@@ -48,48 +48,79 @@ const ROPEY_RAMPAGE_TILE_MAP = RomAddress.fromSnesAddress(0xd91700);
 
 // Reptile Rumble
 const REPTILE_RUMBLE_ENTRANCE_ID = 0x01;
-const REPTILE_RUMBLE_TILE_MAP = RomAddress.fromSnesAddress(0x1a0100);
+const REPTILE_RUMBLE_TILE_MAP = RomAddress.fromSnesAddress(0xda0100);
 
 export const readJungleHijinxsLevel = (romData: Buffer) => {
-  const tileImages = readLevelTiles(
+  return readLevel(
     romData,
-    JUNGLE_TILES_DATA,
-    JUNGLE_TILES_META,
-    JUNGLE_TILES_META_SIZE,
+    JUNGLE_TERRAIN_TYPE_DATA,
+    JUNGLE_TERRAIN_TYPE_META,
+    JUNGLE_TERRAIN_TYPE_META_SIZE,
     JUNGLE_PALETTES,
+    JUNGLE_HIJINXS_ENTRANCE_ID,
+    JUNGLE_HIJINXS_TILE_MAP,
   );
-  const levelSize = readLevelSize(romData, JUNGLE_HIJINXS_ENTRANCE_ID);
-  const tileMap = readLevelTileMap(romData, JUNGLE_HIJINXS_TILE_MAP, levelSize);
-  return buildLevelImage(tileMap, tileImages);
 };
 
 export const readRopeyRampageLevel = (romData: Buffer) => {
-  const tileImages = readLevelTiles(
+  return readLevel(
     romData,
-    JUNGLE_TILES_DATA,
-    JUNGLE_TILES_META,
-    JUNGLE_TILES_META_SIZE,
+    JUNGLE_TERRAIN_TYPE_DATA,
+    JUNGLE_TERRAIN_TYPE_META,
+    JUNGLE_TERRAIN_TYPE_META_SIZE,
     JUNGLE_PALETTES,
+    ROPEY_RAMPAGE_ENTRANCE_ID,
+    ROPEY_RAMPAGE_TILE_MAP,
   );
-  const levelSize = readLevelSize(romData, ROPEY_RAMPAGE_ENTRANCE_ID);
-  const tileMap = readLevelTileMap(romData, ROPEY_RAMPAGE_TILE_MAP, levelSize);
-  return buildLevelImage(tileMap, tileImages);
 };
 
 export const readReptileRumbleLevel = (romData: Buffer) => {
-  const tileImages = readLevelTiles(
+  return readLevel(
     romData,
-    CAVE_TILES_DATA,
-    CAVE_TILES_META,
-    CAVE_TILES_META_SIZE,
+    CAVE_TERRAIN_TYPE_DATA,
+    CAVE_TERRAIN_TYPE_META,
+    CAVE_TERRAIN_TYPE_META_SIZE,
     CAVE_PALETTES,
+    REPTILE_RUMBLE_ENTRANCE_ID,
+    REPTILE_RUMBLE_TILE_MAP,
   );
-  const levelSize = readLevelSize(romData, REPTILE_RUMBLE_ENTRANCE_ID);
-  const tileMap = readLevelTileMap(romData, REPTILE_RUMBLE_TILE_MAP, levelSize);
+};
+
+export const readLevel = (
+  romData: Buffer,
+  tilesDataAddress: RomAddress,
+  tilesMetaAddress: RomAddress,
+  tilesMetaSize: number,
+  palettesAddress: RomAddress,
+  entranceId: number,
+  levelTileMapAddress: RomAddress,
+) => {
+  const tileImages = readTerrainTypeTiles(
+    romData,
+    tilesDataAddress,
+    tilesMetaAddress,
+    tilesMetaSize,
+    palettesAddress,
+  );
+  const levelSize = readLevelSize(romData, entranceId);
+  const tileMap = readLevelTileMap(romData, levelTileMapAddress, levelSize);
   return buildLevelImage(tileMap, tileImages);
 };
 
-export const readLevelTiles = (
+export const readTerrainTypeAddress = (
+  romData: Buffer,
+  terrainTypeIndex: number,
+) => {
+  const terrainTypePointerTable = RomAddress.fromSnesAddress(0x818bbe);
+  const indexInTable = terrainTypeIndex * 3;
+
+  return read16(
+    romData,
+    terrainTypePointerTable.getOffsetAddress(indexInTable).pcAddress,
+  );
+};
+
+export const readTerrainTypeTiles = (
   romData: Buffer,
   tilesDataAddress: RomAddress,
   tilesMetaAddress: RomAddress,
@@ -205,7 +236,7 @@ const readLevelTileMap = (
 
 const buildLevelImage = (
   levelTileMap: Matrix<number>,
-  tileImages: ImageMatrix[],
+  terrainTypeTiles: ImageMatrix[],
 ) => {
   const result = new Matrix<Color | null>(
     levelTileMap.width * TILE_WIDTH,
@@ -222,7 +253,7 @@ const buildLevelImage = (
 
       // Tile Index = 0000001111111111
       const tileIndex = tileInfo & 0x3ff;
-      const tileImage = tileImages[tileIndex].clone();
+      const tileImage = terrainTypeTiles[tileIndex].clone();
 
       if ((flips & 0b01) > 0) {
         tileImage.flip('horizontal');
