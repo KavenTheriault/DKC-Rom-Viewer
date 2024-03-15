@@ -3,7 +3,7 @@ import { extract, read16, read24, read8 } from '../utils/buffer';
 import { Opcode, OPCODES_MAP } from './opcodes';
 import { bufferToString, toHexString } from '../../utils/hex';
 
-type OpcodeEntry = {
+export type OpcodeEntry = {
   address: RomAddress;
   opcode: Opcode;
   bytes: Buffer;

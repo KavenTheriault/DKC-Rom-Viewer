@@ -107,6 +107,7 @@ export const readLevel = (
   return buildLevelImage(tileMap, tileImages);
 };
 
+//TODO Remove this function
 export const readTerrainTypeAddress = (
   romData: Buffer,
   terrainTypeIndex: number,

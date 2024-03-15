@@ -5,8 +5,11 @@ import { useEffect, useState } from 'react';
 import { convertToImageBitmap } from '../../../utils/image-bitmap';
 import { readRopeyRampageLevel } from '../../../rom-parser/level';
 import { LoadHexadecimalInput } from '../../../components/load-hexadecimal-input';
-import { toHexString } from '../../../utils/hex';
-import { loadTerrainMetaIndex } from '../../../rom-parser/level/addresses';
+import {
+  EntranceInfo,
+  entranceInfoToString,
+  loadEntranceInfo,
+} from '../../../rom-parser/level/addresses';
 
 const ScrollDiv = styled.div`
   overflow: scroll;
@@ -15,7 +18,7 @@ const ScrollDiv = styled.div`
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [bitmapImage, setBitmapImage] = useState<ImageBitmap>();
   const [entranceIndex, setEntranceIndex] = useState<number | undefined>(0x16);
-  const [terrainMetaIndex, setTerrainMetaIndex] = useState<number>();
+  const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
 
   useEffect(() => {
     const levelImage = readRopeyRampageLevel(selectedRom.data);
@@ -29,8 +32,8 @@ export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
 
   const onTerrainMetaIndexLoadClick = () => {
     if (entranceIndex) {
-      const result = loadTerrainMetaIndex(selectedRom.data, entranceIndex);
-      setTerrainMetaIndex(result);
+      const result = loadEntranceInfo(selectedRom.data, entranceIndex);
+      setEntranceInfo(result);
     }
   };
 
@@ -43,9 +46,7 @@ export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
           onValueChange={setEntranceIndex}
           onValueLoad={onTerrainMetaIndexLoadClick}
         />
-        {terrainMetaIndex && (
-          <pre>{toHexString(terrainMetaIndex, { addPrefix: true })}</pre>
-        )}
+        {entranceInfo && <pre>{entranceInfoToString(entranceInfo)}</pre>}
       </div>
       <ScrollDiv>
         <BitmapCanvas
