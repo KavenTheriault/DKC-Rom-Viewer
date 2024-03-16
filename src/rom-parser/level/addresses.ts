@@ -10,14 +10,14 @@ Level Tile Map = How to stitch all terrain tiles together
  */
 
 export type EntranceInfo = {
-  // Internal index used to load data
-  terrainDataIndex: number;
   // Internal index used to load meta
   terrainMetaIndex: number;
+  // Internal index used to load data
+  terrainDataIndex: number;
 
   // Terrain
-  terrainTypeDataAddress: RomAddress;
   terrainTypeMetaAddress: RomAddress;
+  terrainTypeDataAddress: RomAddress;
   terrainPalettesAddress: RomAddress;
 
   // Level
@@ -26,8 +26,8 @@ export type EntranceInfo = {
 
 export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
   const lines = [];
-  lines.push(`terrainDataIndex: ${toHexString(entranceInfo.terrainDataIndex)}`);
   lines.push(`terrainMetaIndex: ${toHexString(entranceInfo.terrainMetaIndex)}`);
+  lines.push(`terrainDataIndex: ${toHexString(entranceInfo.terrainDataIndex)}`);
   lines.push(
     `terrainTypeMetaAddress: ${entranceInfo.terrainTypeMetaAddress.toString()}`,
   );
@@ -40,8 +40,10 @@ export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
 const LoadEntrancesBank = RomAddress.fromSnesAddress(0xb90000);
 const LoadEntrancesPointerTable = 0x801e;
 
+// Subroutines
 const LoadTerrainMetaSubroutineAddress = RomAddress.fromSnesAddress(0x818c66);
-const LoadTerrainDataSubroutineAddress = RomAddress.fromSnesAddress(0xb9a924);
+const LoadTerrainDataSubroutine1Address = RomAddress.fromSnesAddress(0xb896fc);
+const LoadTerrainDataSubroutine2Address = RomAddress.fromSnesAddress(0xb9a924);
 
 const TerrainMetaPointerTable = RomAddress.fromSnesAddress(0x818bbe);
 const TerrainMetaBankTable = RomAddress.fromSnesAddress(0x818b96);
@@ -61,13 +63,27 @@ export const loadEntranceInfo = (
     readTerrainTypeDataAddress(romData, opcodeEntries);
 
   return {
-    terrainDataIndex: terrainDataIndex,
     terrainMetaIndex: terrainMetaIndex,
-    terrainTypeDataAddress: terrainTypeDataAddress,
+    terrainDataIndex: terrainDataIndex,
     terrainTypeMetaAddress: terrainTypeMetaAddress,
+    terrainTypeDataAddress: terrainTypeDataAddress,
     terrainPalettesAddress: RomAddress.fromSnesAddress(0),
     levelTileMapAddress: RomAddress.fromSnesAddress(0),
   };
+};
+
+const readLoadEntranceOpcodes = (romData: Buffer, entranceId: number) => {
+  // Ref: ASM Code at $B98009
+  const entranceOffset = entranceId * 2;
+  const loadEntrancePointerAddress = LoadEntrancesBank.getOffsetAddress(
+    LoadEntrancesPointerTable + entranceOffset,
+  );
+
+  const absoluteAddress = read16(romData, loadEntrancePointerAddress.pcAddress);
+  return readOpcodeUntil(
+    romData,
+    LoadEntrancesBank.getOffsetAddress(absoluteAddress),
+  );
 };
 
 const readTerrainTypeMetaAddress = (
@@ -103,11 +119,11 @@ const readTerrainTypeDataAddress = (
 ) => {
   const loadTerrainDataSubroutine = findOpcodeEntryByAddress(
     opcodeEntries,
-    RomAddress.fromSnesAddress(0xb896fc),
+    LoadTerrainDataSubroutine1Address,
   );
 
   /* Some level use this subroutine with bank and address as "argument"
-     For example: ADM code $B98D06 */
+     Only use by Temple terrain type. For example: ADM code $B98D06 */
   if (loadTerrainDataSubroutine) {
     const subroutineIndex = opcodeEntries.indexOf(loadTerrainDataSubroutine);
     const bank = readOpcodeEntryArgument(opcodeEntries[subroutineIndex - 2]);
@@ -122,7 +138,7 @@ const readTerrainTypeDataAddress = (
 
   const terrainDataIndex = findSubroutineArgument(
     opcodeEntries,
-    LoadTerrainDataSubroutineAddress,
+    LoadTerrainDataSubroutine2Address,
   );
 
   const dataTableOffset = getTerrainDataTableOffset(romData, terrainDataIndex);
@@ -141,11 +157,11 @@ const readTerrainTypeDataAddress = (
   return { terrainDataIndex, terrainTypeDataAddress };
 };
 
-// Logic from ASM code $B9A924
 const getTerrainDataTableOffset = (
   romData: Buffer,
   terrainDataIndex: number,
 ) => {
+  // Ref: ASM Code at $B9A924
   let dataTableOffset = read16(
     romData,
     TerrainDataPointerTable.getOffsetAddress(terrainDataIndex * 2).pcAddress,
@@ -161,20 +177,6 @@ const getTerrainDataTableOffset = (
   }
 
   return dataTableOffset;
-};
-
-// Ref: ASM Code at $B98009
-const readLoadEntranceOpcodes = (romData: Buffer, entranceId: number) => {
-  const entranceOffset = entranceId * 2;
-  const loadEntrancePointerAddress = LoadEntrancesBank.getOffsetAddress(
-    LoadEntrancesPointerTable + entranceOffset,
-  );
-
-  const absoluteAddress = read16(romData, loadEntrancePointerAddress.pcAddress);
-  return readOpcodeUntil(
-    romData,
-    LoadEntrancesBank.getOffsetAddress(absoluteAddress),
-  );
 };
 
 const findOpcodeEntryByAddress = (
@@ -199,6 +201,8 @@ const findSubroutineArgument = (
   if (!subroutine) {
     throw new Error(`Subroutine not found (${subroutineAddress.toString()})`);
   }
+  /* I name it "Argument" but it's the LDA, LDX, or LDY opcode called just before calling the subroutine
+     It's 2 opcodes before the actual subroutine start (1 before is the jump opcode itself) */
   const argument = opcodeEntries.indexOf(subroutine) - 2;
   return readOpcodeEntryArgument(opcodeEntries[argument]);
 };
