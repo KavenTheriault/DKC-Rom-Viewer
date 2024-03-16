@@ -38,23 +38,32 @@ export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
   lines.push(
     `levelTileMapAddress: ${entranceInfo.levelTileMapAddress.toString()}`,
   );
+  lines.push(
+    `levelTileMapLength: ${toHexString(entranceInfo.levelTileMapLength)}`,
+  );
+  lines.push(
+    `terrainPalettesAddress: ${entranceInfo.terrainPalettesAddress.toString()}`,
+  );
   return lines.join('\n');
 };
 
-const LoadEntrancesBank = RomAddress.fromSnesAddress(0xb90000);
+const LoadEntrancesBank = 0xb9;
 const LoadEntrancesPointerTable = 0x801e;
 
 // Subroutines
 const LoadTerrainMetaSubroutineAddress = RomAddress.fromSnesAddress(0x818c66);
 const LoadTerrainDataSubroutine1Address = RomAddress.fromSnesAddress(0xb896fc);
 const LoadTerrainDataSubroutine2Address = RomAddress.fromSnesAddress(0xb9a924);
+const LoadTerrainPaletteSubroutineAddress =
+  RomAddress.fromSnesAddress(0xb999f1);
 
 const TerrainMetaPointerTable = RomAddress.fromSnesAddress(0x818bbe);
 const TerrainMetaBankTable = RomAddress.fromSnesAddress(0x818b96);
-
 const TerrainDataPointerTable = RomAddress.fromSnesAddress(0xb9a994);
 
-const LevelBoundsBank = RomAddress.fromSnesAddress(0xbc0000);
+const TerrainPaletteBank = 0xb9;
+
+const LevelBoundsBank = 0xbc;
 const LevelBoundsPointerTable = 0x8000;
 
 const SCREEN_WIDTH = 0x100;
@@ -71,36 +80,37 @@ export const loadEntranceInfo = (
   const { terrainDataIndex, terrainTypeDataAddress } =
     readTerrainTypeDataAddress(romData, opcodeEntries);
 
-  // Level Tile Maps are in the same bank as the Terrain Type Meta
-  const levelTileMapBank = terrainTypeMetaAddress.bank;
-  const { levelXStart, levelXEnd } = readLevelBounds(romData, entranceId);
-  const levelTileMapAddress = RomAddress.fromBankAndAbsolute(
-    levelTileMapBank,
-    levelXStart,
+  const { levelTileMapAddress, levelTileMapLength } = readLevelTileMapInfo(
+    romData,
+    entranceId,
+    terrainTypeMetaAddress.bank,
   );
+
+  const terrainPalettesAddress = readTerrainPaletteAddress(opcodeEntries);
 
   return {
     terrainMetaIndex: terrainMetaIndex,
     terrainDataIndex: terrainDataIndex,
     terrainTypeMetaAddress: terrainTypeMetaAddress,
     terrainTypeDataAddress: terrainTypeDataAddress,
-    terrainPalettesAddress: RomAddress.fromSnesAddress(0),
+    terrainPalettesAddress: terrainPalettesAddress,
     levelTileMapAddress: levelTileMapAddress,
-    levelTileMapLength: levelXEnd - levelXStart,
+    levelTileMapLength: levelTileMapLength,
   };
 };
 
 const readLoadEntranceOpcodes = (romData: Buffer, entranceId: number) => {
   // Ref: ASM Code at $B98009
   const entranceOffset = entranceId * 2;
-  const loadEntrancePointerAddress = LoadEntrancesBank.getOffsetAddress(
-    LoadEntrancesPointerTable + entranceOffset,
-  );
+  const loadEntrancePointerAddress = RomAddress.fromBankAndAbsolute(
+    LoadEntrancesBank,
+    LoadEntrancesPointerTable,
+  ).getOffsetAddress(entranceOffset);
 
   const absoluteAddress = read16(romData, loadEntrancePointerAddress.pcAddress);
   return readOpcodeUntil(
     romData,
-    LoadEntrancesBank.getOffsetAddress(absoluteAddress),
+    RomAddress.fromBankAndAbsolute(LoadEntrancesBank, absoluteAddress),
   );
 };
 
@@ -197,25 +207,56 @@ const getTerrainDataTableOffset = (
   return dataTableOffset;
 };
 
-export const readLevelBounds = (romData: Buffer, entranceId: number) => {
+const readLevelTileMapInfo = (
+  romData: Buffer,
+  entranceId: number,
+  levelTileMapBank: number,
+) => {
+  // Level Tile Maps are in the same bank as the Terrain Type Meta
+  const { levelXStart, levelXEnd } = readLevelBounds(romData, entranceId);
+  const levelTileMapAddress = RomAddress.fromBankAndAbsolute(
+    levelTileMapBank,
+    levelXStart,
+  );
+  const levelTileMapLength = levelXEnd - levelXStart;
+
+  return { levelTileMapAddress, levelTileMapLength };
+};
+
+const readLevelBounds = (romData: Buffer, entranceId: number) => {
   // Ref: ASM Code at $FCB052
   const levelOffset = entranceId << 1;
   const boundsIndex =
     read16(
       romData,
-      RomAddress.fromBankAndAbsolute(
-        LevelBoundsBank.bank,
-        LevelBoundsPointerTable,
-      ).pcAddress + levelOffset,
+      RomAddress.fromBankAndAbsolute(LevelBoundsBank, LevelBoundsPointerTable)
+        .pcAddress + levelOffset,
     ) - 4;
 
-  const levelXStart = read16(romData, LevelBoundsBank.pcAddress + boundsIndex);
-  let levelXEnd = read16(romData, LevelBoundsBank.pcAddress + boundsIndex + 2);
+  const levelXStart = read16(
+    romData,
+    RomAddress.fromBankAndAbsolute(LevelBoundsBank, boundsIndex).pcAddress,
+  );
+  let levelXEnd = read16(
+    romData,
+    RomAddress.fromBankAndAbsolute(LevelBoundsBank, boundsIndex + 2).pcAddress,
+  );
 
   // End bound is from the left side of the screen
   levelXEnd += SCREEN_WIDTH;
 
   return { levelXStart, levelXEnd };
+};
+
+const readTerrainPaletteAddress = (opcodeEntries: OpcodeEntry[]) => {
+  const paletteAbsoluteAddress = findSubroutineArgument(
+    opcodeEntries,
+    LoadTerrainPaletteSubroutineAddress,
+  );
+  return RomAddress.fromBankAndAbsolute(
+    TerrainPaletteBank,
+    paletteAbsoluteAddress,
+  );
 };
 
 const findOpcodeEntryByAddress = (
