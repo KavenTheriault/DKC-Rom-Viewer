@@ -3,7 +3,7 @@ import { BitmapCanvas } from '../../../components/bitmap-canvas';
 import styled from 'styled-components';
 import { useEffect, useState } from 'react';
 import { convertToImageBitmap } from '../../../utils/image-bitmap';
-import { readRopeyRampageLevel } from '../../../rom-parser/level';
+import { readJungleHijinxsLevel } from '../../../rom-parser/level';
 import { LoadHexadecimalInput } from '../../../components/load-hexadecimal-input';
 import {
   EntranceInfo,
@@ -21,7 +21,7 @@ export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
 
   useEffect(() => {
-    const levelImage = readRopeyRampageLevel(selectedRom.data);
+    const levelImage = readJungleHijinxsLevel(selectedRom.data);
 
     const loadImage = async () => {
       const res = await convertToImageBitmap(levelImage);

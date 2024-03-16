@@ -8,6 +8,7 @@ import { Color, ImageMatrix } from '../../types/image-matrix';
 import { parseTilePixels } from '../sprites/tile';
 import { buildImageFromPixelsAndPalette, readPalettes } from '../palette';
 import { chunk } from 'lodash';
+import { EntranceInfo, loadEntranceInfo } from './addresses';
 
 /*
 TilePart = 8x8 Image - 1/16 part of a Tile
@@ -21,104 +22,56 @@ const TILE_HEIGHT = 32;
 const TILE_PART_WIDTH = TILE_WIDTH / 4;
 const TILE_PART_HEIGHT = TILE_HEIGHT / 4;
 
-const CAMERA_MAP_ADDRESS = RomAddress.fromSnesAddress(0xbc8000);
-const LEVEL_BOUNDS = RomAddress.fromSnesAddress(0xbc0000);
-const SCREEN_WIDTH = 0x100;
 const HORIZONTAL_LEVEL_HEIGHT = 16;
 
 // Jungle Theme
-const JUNGLE_TERRAIN_TYPE_DATA = RomAddress.fromSnesAddress(0xd58fc0);
-const JUNGLE_TERRAIN_TYPE_META = RomAddress.fromSnesAddress(0xd9a3c0);
 const JUNGLE_TERRAIN_TYPE_META_SIZE = 0x24a;
-const JUNGLE_PALETTES = RomAddress.fromSnesAddress(0xb9a1dc);
 
 // Cave Theme
-const CAVE_TERRAIN_TYPE_DATA = RomAddress.fromSnesAddress(0xdc0000);
-const CAVE_TERRAIN_TYPE_META = RomAddress.fromSnesAddress(0xdabf00);
 const CAVE_TERRAIN_TYPE_META_SIZE = 0x1b3;
-const CAVE_PALETTES = RomAddress.fromSnesAddress(0xb9a01c);
 
 // Jungle Hijinxs
 const JUNGLE_HIJINXS_ENTRANCE_ID = 0x16;
-const JUNGLE_HIJINXS_TILE_MAP = RomAddress.fromSnesAddress(0xd90000);
 
 // Ropey Rampage
 const ROPEY_RAMPAGE_ENTRANCE_ID = 0x0c;
-const ROPEY_RAMPAGE_TILE_MAP = RomAddress.fromSnesAddress(0xd91700);
 
 // Reptile Rumble
 const REPTILE_RUMBLE_ENTRANCE_ID = 0x01;
-const REPTILE_RUMBLE_TILE_MAP = RomAddress.fromSnesAddress(0xda0100);
 
 export const readJungleHijinxsLevel = (romData: Buffer) => {
-  return readLevel(
-    romData,
-    JUNGLE_TERRAIN_TYPE_DATA,
-    JUNGLE_TERRAIN_TYPE_META,
-    JUNGLE_TERRAIN_TYPE_META_SIZE,
-    JUNGLE_PALETTES,
-    JUNGLE_HIJINXS_ENTRANCE_ID,
-    JUNGLE_HIJINXS_TILE_MAP,
-  );
+  const entranceInfo = loadEntranceInfo(romData, JUNGLE_HIJINXS_ENTRANCE_ID);
+  return readLevel(romData, JUNGLE_TERRAIN_TYPE_META_SIZE, entranceInfo);
 };
 
 export const readRopeyRampageLevel = (romData: Buffer) => {
-  return readLevel(
-    romData,
-    JUNGLE_TERRAIN_TYPE_DATA,
-    JUNGLE_TERRAIN_TYPE_META,
-    JUNGLE_TERRAIN_TYPE_META_SIZE,
-    JUNGLE_PALETTES,
-    ROPEY_RAMPAGE_ENTRANCE_ID,
-    ROPEY_RAMPAGE_TILE_MAP,
-  );
+  const entranceInfo = loadEntranceInfo(romData, ROPEY_RAMPAGE_ENTRANCE_ID);
+  return readLevel(romData, JUNGLE_TERRAIN_TYPE_META_SIZE, entranceInfo);
 };
 
 export const readReptileRumbleLevel = (romData: Buffer) => {
-  return readLevel(
-    romData,
-    CAVE_TERRAIN_TYPE_DATA,
-    CAVE_TERRAIN_TYPE_META,
-    CAVE_TERRAIN_TYPE_META_SIZE,
-    CAVE_PALETTES,
-    REPTILE_RUMBLE_ENTRANCE_ID,
-    REPTILE_RUMBLE_TILE_MAP,
-  );
+  const entranceInfo = loadEntranceInfo(romData, REPTILE_RUMBLE_ENTRANCE_ID);
+  return readLevel(romData, CAVE_TERRAIN_TYPE_META_SIZE, entranceInfo);
 };
 
 export const readLevel = (
   romData: Buffer,
-  tilesDataAddress: RomAddress,
-  tilesMetaAddress: RomAddress,
   tilesMetaSize: number,
-  palettesAddress: RomAddress,
-  entranceId: number,
-  levelTileMapAddress: RomAddress,
+  entranceInfo: EntranceInfo,
 ) => {
   const tileImages = readTerrainTypeTiles(
     romData,
-    tilesDataAddress,
-    tilesMetaAddress,
+    entranceInfo.terrainTypeDataAddress,
+    entranceInfo.terrainTypeMetaAddress,
     tilesMetaSize,
-    palettesAddress,
+    entranceInfo.terrainPalettesAddress,
   );
-  const levelSize = readLevelSize(romData, entranceId);
-  const tileMap = readLevelTileMap(romData, levelTileMapAddress, levelSize);
-  return buildLevelImage(tileMap, tileImages);
-};
-
-//TODO Remove this function
-export const readTerrainTypeAddress = (
-  romData: Buffer,
-  terrainTypeIndex: number,
-) => {
-  const terrainTypePointerTable = RomAddress.fromSnesAddress(0x818bbe);
-  const indexInTable = terrainTypeIndex * 3;
-
-  return read16(
+  const tileMap = readLevelTileMap(
     romData,
-    terrainTypePointerTable.getOffsetAddress(indexInTable).pcAddress,
+    entranceInfo.levelTileMapAddress,
+    entranceInfo.levelTileMapLength,
   );
+  return buildLevelImage(tileMap, tileImages);
 };
 
 export const readTerrainTypeTiles = (
@@ -193,22 +146,6 @@ const buildLevelTileImages = (
   }
 
   return result;
-};
-
-// From ASM $FCB052
-export const readLevelSize = (romData: Buffer, entranceId: number) => {
-  const levelPointer = entranceId << 1;
-  const boundsIndex =
-    read16(romData, CAMERA_MAP_ADDRESS.pcAddress + levelPointer) - 4;
-
-  const lvlXBoundStart = read16(romData, LEVEL_BOUNDS.pcAddress + boundsIndex);
-  const lvlXBoundEnd = read16(
-    romData,
-    LEVEL_BOUNDS.pcAddress + boundsIndex + 2,
-  );
-
-  // End bound is from the left side of the screen
-  return lvlXBoundEnd - lvlXBoundStart + SCREEN_WIDTH;
 };
 
 const readLevelTileMap = (
