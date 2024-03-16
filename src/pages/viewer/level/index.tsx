@@ -1,9 +1,9 @@
 import { ViewerModeBaseProps } from '../types';
 import { BitmapCanvas } from '../../../components/bitmap-canvas';
 import styled from 'styled-components';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { convertToImageBitmap } from '../../../utils/image-bitmap';
-import { readJungleHijinxsLevel } from '../../../rom-parser/level';
+import { buildLevelImageByEntranceId } from '../../../rom-parser/level';
 import { LoadHexadecimalInput } from '../../../components/load-hexadecimal-input';
 import {
   EntranceInfo,
@@ -20,21 +20,23 @@ export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [entranceIndex, setEntranceIndex] = useState<number | undefined>(0x16);
   const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
 
-  useEffect(() => {
-    const levelImage = readJungleHijinxsLevel(selectedRom.data);
-
-    const loadImage = async () => {
-      const res = await convertToImageBitmap(levelImage);
-      setBitmapImage(res);
-    };
-    loadImage();
-  }, []);
-
   const onTerrainMetaIndexLoadClick = () => {
     if (entranceIndex) {
       const result = loadEntranceInfo(selectedRom.data, entranceIndex);
       setEntranceInfo(result);
+
+      loadLevelImage(entranceIndex);
     }
+  };
+
+  const loadLevelImage = async (entranceId: number) => {
+    const levelImage = buildLevelImageByEntranceId(
+      selectedRom.data,
+      entranceId,
+    );
+
+    const imageBitmap = await convertToImageBitmap(levelImage);
+    setBitmapImage(imageBitmap);
   };
 
   return (
