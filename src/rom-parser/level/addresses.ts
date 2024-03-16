@@ -22,6 +22,7 @@ export type EntranceInfo = {
 
   // Level
   levelTileMapAddress: RomAddress;
+  levelTileMapLength: number;
 };
 
 export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
@@ -33,6 +34,9 @@ export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
   );
   lines.push(
     `terrainTypeDataAddress: ${entranceInfo.terrainTypeDataAddress.toString()}`,
+  );
+  lines.push(
+    `levelTileMapAddress: ${entranceInfo.levelTileMapAddress.toString()}`,
   );
   return lines.join('\n');
 };
@@ -50,6 +54,11 @@ const TerrainMetaBankTable = RomAddress.fromSnesAddress(0x818b96);
 
 const TerrainDataPointerTable = RomAddress.fromSnesAddress(0xb9a994);
 
+const LevelBoundsBank = RomAddress.fromSnesAddress(0xbc0000);
+const LevelBoundsPointerTable = 0x8000;
+
+const SCREEN_WIDTH = 0x100;
+
 export const loadEntranceInfo = (
   romData: Buffer,
   entranceId: number,
@@ -62,13 +71,22 @@ export const loadEntranceInfo = (
   const { terrainDataIndex, terrainTypeDataAddress } =
     readTerrainTypeDataAddress(romData, opcodeEntries);
 
+  // Level Tile Maps are in the same bank as the Terrain Type Meta
+  const levelTileMapBank = terrainTypeMetaAddress.bank;
+  const { levelXStart, levelXEnd } = readLevelBounds(romData, entranceId);
+  const levelTileMapAddress = RomAddress.fromBankAndAbsolute(
+    levelTileMapBank,
+    levelXStart,
+  );
+
   return {
     terrainMetaIndex: terrainMetaIndex,
     terrainDataIndex: terrainDataIndex,
     terrainTypeMetaAddress: terrainTypeMetaAddress,
     terrainTypeDataAddress: terrainTypeDataAddress,
     terrainPalettesAddress: RomAddress.fromSnesAddress(0),
-    levelTileMapAddress: RomAddress.fromSnesAddress(0),
+    levelTileMapAddress: levelTileMapAddress,
+    levelTileMapLength: levelXEnd - levelXStart,
   };
 };
 
@@ -177,6 +195,27 @@ const getTerrainDataTableOffset = (
   }
 
   return dataTableOffset;
+};
+
+export const readLevelBounds = (romData: Buffer, entranceId: number) => {
+  // Ref: ASM Code at $FCB052
+  const levelOffset = entranceId << 1;
+  const boundsIndex =
+    read16(
+      romData,
+      RomAddress.fromBankAndAbsolute(
+        LevelBoundsBank.bank,
+        LevelBoundsPointerTable,
+      ).pcAddress + levelOffset,
+    ) - 4;
+
+  const levelXStart = read16(romData, LevelBoundsBank.pcAddress + boundsIndex);
+  let levelXEnd = read16(romData, LevelBoundsBank.pcAddress + boundsIndex + 2);
+
+  // End bound is from the left side of the screen
+  levelXEnd += SCREEN_WIDTH;
+
+  return { levelXStart, levelXEnd };
 };
 
 const findOpcodeEntryByAddress = (
