@@ -99,6 +99,9 @@ const buildLevelTileImage = (
       // Tile Part Index = 0000001111111111
       const tilePartIndex = tilePartMeta & 0x3ff;
 
+      // Skip tile part index outside of available data
+      if (tilePartIndex >= tilePartsData.length) continue;
+
       const pixels = parseTilePixels(Buffer.from(tilePartsData[tilePartIndex]));
       const tilePartImage = buildImageFromPixelsAndPalette(
         pixels,
