@@ -132,7 +132,7 @@ const readLevelTileMap = (
   const levelHeight = HORIZONTAL_LEVEL_HEIGHT;
   const rawTileMap = extract(romData, tileMapAddress.pcAddress, levelSize);
 
-  const levelWidth = rawTileMap.length / levelHeight / 2;
+  const levelWidth = Math.ceil(rawTileMap.length / levelHeight / 2);
   const levelTileMap = new Matrix<number>(levelWidth, levelHeight, 0);
 
   let offset = 0;

@@ -58,6 +58,7 @@ const LoadTerrainPaletteSubroutineAddress =
   RomAddress.fromSnesAddress(0xb999f1);
 
 const TerrainMetaPointerTable = RomAddress.fromSnesAddress(0x818bbe);
+const TerrainMetaTileOffsetTable = RomAddress.fromSnesAddress(0x818b94);
 const TerrainMetaBankTable = RomAddress.fromSnesAddress(0x818b96);
 const TerrainDataPointerTable = RomAddress.fromSnesAddress(0xb9a994);
 
@@ -74,8 +75,8 @@ export const loadEntranceInfo = (
 ): EntranceInfo => {
   const opcodeEntries = readLoadEntranceOpcodes(romData, entranceId);
 
-  const { terrainMetaIndex, terrainTypeMetaAddress } =
-    readTerrainTypeMetaAddress(romData, opcodeEntries);
+  const { terrainMetaIndex, terrainTileOffset, terrainTypeMetaAddress } =
+    readTerrainTypeMeta(romData, opcodeEntries);
 
   const { terrainDataIndex, terrainTypeDataAddress } =
     readTerrainTypeDataAddress(romData, opcodeEntries);
@@ -84,6 +85,7 @@ export const loadEntranceInfo = (
     romData,
     entranceId,
     terrainTypeMetaAddress.bank,
+    terrainTileOffset,
   );
 
   const terrainPalettesAddress = readTerrainPaletteAddress(opcodeEntries);
@@ -114,10 +116,7 @@ const readLoadEntranceOpcodes = (romData: Buffer, entranceId: number) => {
   );
 };
 
-const readTerrainTypeMetaAddress = (
-  romData: Buffer,
-  opcodeEntries: OpcodeEntry[],
-) => {
+const readTerrainTypeMeta = (romData: Buffer, opcodeEntries: OpcodeEntry[]) => {
   const terrainMetaIndex = findSubroutineArgument(
     opcodeEntries,
     LoadTerrainMetaSubroutineAddress,
@@ -125,6 +124,11 @@ const readTerrainTypeMetaAddress = (
 
   // Ref: ASM Code at $818C66
   const metaTableOffset = terrainMetaIndex * 3;
+
+  const terrainTileOffset = read16(
+    romData,
+    TerrainMetaTileOffsetTable.getOffsetAddress(metaTableOffset).pcAddress,
+  );
   const terrainMetaAbsolute = read16(
     romData,
     TerrainMetaPointerTable.getOffsetAddress(metaTableOffset).pcAddress,
@@ -138,7 +142,7 @@ const readTerrainTypeMetaAddress = (
     terrainMetaBank,
     terrainMetaAbsolute,
   );
-  return { terrainMetaIndex, terrainTypeMetaAddress };
+  return { terrainMetaIndex, terrainTileOffset, terrainTypeMetaAddress };
 };
 
 const readTerrainTypeDataAddress = (
@@ -211,12 +215,13 @@ const readLevelTileMapInfo = (
   romData: Buffer,
   entranceId: number,
   levelTileMapBank: number,
+  terrainTileOffset: number,
 ) => {
   // Level Tile Maps are in the same bank as the Terrain Type Meta
   const { levelXStart, levelXEnd } = readLevelBounds(romData, entranceId);
   const levelTileMapAddress = RomAddress.fromBankAndAbsolute(
     levelTileMapBank,
-    levelXStart,
+    levelXStart + terrainTileOffset,
   );
   const levelTileMapLength = levelXEnd - levelXStart;
 
@@ -225,7 +230,7 @@ const readLevelTileMapInfo = (
 
 const readLevelBounds = (romData: Buffer, entranceId: number) => {
   // Ref: ASM Code at $FCB052
-  const levelOffset = entranceId << 1;
+  const levelOffset = entranceId * 2;
   const boundsIndex =
     read16(
       romData,
