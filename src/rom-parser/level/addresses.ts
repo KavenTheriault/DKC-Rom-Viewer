@@ -153,6 +153,10 @@ const readTerrainTypeDataAddress = (
     opcodeEntries,
     LoadTerrainDataSubroutine1Address,
   );
+  const terrainDataIndex = findSubroutineArgument(
+    opcodeEntries,
+    LoadTerrainDataSubroutine2Address,
+  );
 
   /* Some level use this subroutine with bank and address as "argument"
      Only use by Temple terrain type. For example: ADM code $B98D06 */
@@ -163,15 +167,10 @@ const readTerrainTypeDataAddress = (
       opcodeEntries[subroutineIndex - 3],
     );
     return {
-      terrainDataIndex: -1,
+      terrainDataIndex: terrainDataIndex,
       terrainTypeDataAddress: RomAddress.fromBankAndAbsolute(bank, absolute),
     };
   }
-
-  const terrainDataIndex = findSubroutineArgument(
-    opcodeEntries,
-    LoadTerrainDataSubroutine2Address,
-  );
 
   const dataTableOffset = getTerrainDataTableOffset(romData, terrainDataIndex);
   const terrainDataAbsolute = read16(

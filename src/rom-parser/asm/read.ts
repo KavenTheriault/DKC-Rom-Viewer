@@ -67,7 +67,6 @@ export const readOpcodeUntil = (
       readStatus.flags,
     );
     opcodeEntries.push(opcodeEntry);
-    //logOpcodeEntry(opcodeEntry);
 
     readOffset += opcodeEntry.opcode.bytesCount;
     readStatus.count++;

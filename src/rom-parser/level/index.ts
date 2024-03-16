@@ -33,7 +33,19 @@ export const buildLevelImageByEntranceId = (
 };
 
 const readLevel = (romData: Buffer, entranceInfo: EntranceInfo) => {
-  const tilesData = decompress(romData, entranceInfo.terrainTypeDataAddress);
+  let tilesData = decompress(romData, entranceInfo.terrainTypeDataAddress);
+
+  // TODO: Improve this custom code for temple
+  if (entranceInfo.terrainDataIndex === 0xe) {
+    // This additional data is not compressed
+    const additionalData = extract(
+      romData,
+      RomAddress.fromSnesAddress(0xdbccd2).pcAddress,
+      0x22c0,
+    );
+    tilesData = [...additionalData, ...tilesData.slice(0x20)];
+  }
+
   const tilePartsData = chunk(tilesData, TILE_DATA_LENGTH);
 
   const palettes = readPalettes(
