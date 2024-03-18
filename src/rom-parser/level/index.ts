@@ -8,7 +8,7 @@ import { Color, ImageMatrix } from '../../types/image-matrix';
 import { parseTilePixels } from '../sprites/tile';
 import { buildImageFromPixelsAndPalette, readPalettes } from '../palette';
 import { chunk, memoize } from 'lodash';
-import { EntranceInfo, loadEntranceInfo } from './addresses';
+import { EntranceInfo, GraphicInfo, loadEntranceInfo } from './addresses';
 
 /*
 TilePart = 8x8 Image - 1/16 part of a Tile
@@ -33,20 +33,11 @@ export const buildLevelImageByEntranceId = (
 };
 
 const readLevel = (romData: Buffer, entranceInfo: EntranceInfo) => {
-  let tilesData = decompress(romData, entranceInfo.terrainTypeDataAddress);
-
-  // TODO: Improve this custom code for temple
-  if (entranceInfo.terrainDataIndex === 0xe) {
-    // This additional data is not compressed
-    const additionalData = extract(
-      romData,
-      RomAddress.fromSnesAddress(0xdbccd2).pcAddress,
-      0x22c0,
-    );
-    tilesData = [...additionalData, ...tilesData.slice(0x20)];
-  }
-
-  const tilePartsData = chunk(tilesData, TILE_DATA_LENGTH);
+  const graphicsData = buildGraphicsData(
+    romData,
+    entranceInfo.terrainGraphicsInfo,
+  );
+  const tilePartsData = chunk(graphicsData, TILE_DATA_LENGTH);
 
   const palettes = readPalettes(
     romData,
@@ -71,6 +62,38 @@ const readLevel = (romData: Buffer, entranceInfo: EntranceInfo) => {
       ),
     ),
   );
+};
+
+const buildGraphicsData = (romData: Buffer, graphicsInfo: GraphicInfo[]) => {
+  const result: number[] = new Array(0xffff).fill(0);
+
+  let decompressedData: number[] | undefined = undefined;
+  for (const graphicInfo of graphicsInfo) {
+    let dataToAdd: number[];
+
+    if (graphicInfo.isCompressed) {
+      if (!decompressedData)
+        decompressedData = decompress(romData, graphicInfo.address);
+
+      dataToAdd = decompressedData;
+    } else {
+      dataToAdd = Array.from(
+        extract(romData, graphicInfo.address.pcAddress, graphicInfo.length),
+      );
+    }
+
+    const dataLengthToAdd = Math.min(
+      graphicInfo.length,
+      dataToAdd.length - graphicInfo.offset,
+    );
+    result.splice(
+      graphicInfo.placeAt,
+      dataLengthToAdd,
+      ...dataToAdd.slice(graphicInfo.offset, dataLengthToAdd),
+    );
+  }
+
+  return result;
 };
 
 const readTerrainTypeTile = (

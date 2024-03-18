@@ -20,7 +20,7 @@ export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [entranceIndex, setEntranceIndex] = useState<number | undefined>(0x16);
   const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
 
-  const onTerrainMetaIndexLoadClick = () => {
+  const onEntranceIndexLoadClick = () => {
     if (entranceIndex) {
       const result = loadEntranceInfo(selectedRom.data, entranceIndex);
       setEntranceInfo(result);
@@ -46,7 +46,7 @@ export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
           label="Entrance Index"
           hexadecimalValue={entranceIndex}
           onValueChange={setEntranceIndex}
-          onValueLoad={onTerrainMetaIndexLoadClick}
+          onValueLoad={onEntranceIndexLoadClick}
         />
         {entranceInfo && <pre>{entranceInfoToString(entranceInfo)}</pre>}
       </div>

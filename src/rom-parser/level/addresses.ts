@@ -2,23 +2,30 @@ import { RomAddress } from '../types/address';
 import { read16, read24, read8 } from '../utils/buffer';
 import { OpcodeEntry, readOpcodeUntil } from '../asm/read';
 import { toHexString } from '../../utils/hex';
+import { MainGraphicAddress, readDmaTransfers } from './dma-transfers';
 
 /*
-Terrain Type Data = Compressed data to form all terrain tile parts
+Terrain Graphics Data = Compressed data to form all terrain tile parts
 Terrain Type Meta = How to stitch all terrain tile parts together
 Level Tile Map = How to stitch all terrain tiles together
  */
 
+export type GraphicInfo = {
+  address: RomAddress;
+  isCompressed: boolean;
+  length: number;
+  offset: number;
+  placeAt: number;
+};
+
 export type EntranceInfo = {
   // Internal index used to load meta
   terrainMetaIndex: number;
-  // Internal index used to load data
-  terrainDataIndex: number;
 
   // Terrain
   terrainTypeMetaAddress: RomAddress;
-  terrainTypeDataAddress: RomAddress;
   terrainPalettesAddress: RomAddress;
+  terrainGraphicsInfo: GraphicInfo[];
 
   // Level
   levelTileMapAddress: RomAddress;
@@ -28,12 +35,8 @@ export type EntranceInfo = {
 export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
   const lines = [];
   lines.push(`terrainMetaIndex: ${toHexString(entranceInfo.terrainMetaIndex)}`);
-  lines.push(`terrainDataIndex: ${toHexString(entranceInfo.terrainDataIndex)}`);
   lines.push(
     `terrainTypeMetaAddress: ${entranceInfo.terrainTypeMetaAddress.toString()}`,
-  );
-  lines.push(
-    `terrainTypeDataAddress: ${entranceInfo.terrainTypeDataAddress.toString()}`,
   );
   lines.push(
     `levelTileMapAddress: ${entranceInfo.levelTileMapAddress.toString()}`,
@@ -44,6 +47,9 @@ export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
   lines.push(
     `terrainPalettesAddress: ${entranceInfo.terrainPalettesAddress.toString()}`,
   );
+  for (const graphicInfo of entranceInfo.terrainGraphicsInfo) {
+    lines.push(`graphicInfo: ${graphicInfo.address.toString()}`);
+  }
   return lines.join('\n');
 };
 
@@ -52,15 +58,15 @@ const LoadEntrancesPointerTable = 0x801e;
 
 // Subroutines
 const LoadTerrainMetaSubroutineAddress = RomAddress.fromSnesAddress(0x818c66);
-const LoadTerrainDataSubroutine1Address = RomAddress.fromSnesAddress(0xb896fc);
-const LoadTerrainDataSubroutine2Address = RomAddress.fromSnesAddress(0xb9a924);
+const LoadGraphicsWithAddressSubroutine = RomAddress.fromSnesAddress(0xb896fc);
+const LoadGraphicsWithTerrainIndexSubroutine =
+  RomAddress.fromSnesAddress(0xb9a924);
 const LoadTerrainPaletteSubroutineAddress =
   RomAddress.fromSnesAddress(0xb999f1);
 
 const TerrainMetaPointerTable = RomAddress.fromSnesAddress(0x818bbe);
 const TerrainMetaTileOffsetTable = RomAddress.fromSnesAddress(0x818b94);
 const TerrainMetaBankTable = RomAddress.fromSnesAddress(0x818b96);
-const TerrainDataPointerTable = RomAddress.fromSnesAddress(0xb9a994);
 
 const TerrainPaletteBank = 0xb9;
 
@@ -78,8 +84,7 @@ export const loadEntranceInfo = (
   const { terrainMetaIndex, terrainTileOffset, terrainTypeMetaAddress } =
     readTerrainTypeMeta(romData, opcodeEntries);
 
-  const { terrainDataIndex, terrainTypeDataAddress } =
-    readTerrainTypeDataAddress(romData, opcodeEntries);
+  const graphicsInfo = readGraphicsInfo(romData, opcodeEntries);
 
   const { levelTileMapAddress, levelTileMapLength } = readLevelTileMapInfo(
     romData,
@@ -92,10 +97,9 @@ export const loadEntranceInfo = (
 
   return {
     terrainMetaIndex: terrainMetaIndex,
-    terrainDataIndex: terrainDataIndex,
     terrainTypeMetaAddress: terrainTypeMetaAddress,
-    terrainTypeDataAddress: terrainTypeDataAddress,
     terrainPalettesAddress: terrainPalettesAddress,
+    terrainGraphicsInfo: graphicsInfo,
     levelTileMapAddress: levelTileMapAddress,
     levelTileMapLength: levelTileMapLength,
   };
@@ -145,69 +149,57 @@ const readTerrainTypeMeta = (romData: Buffer, opcodeEntries: OpcodeEntry[]) => {
   return { terrainMetaIndex, terrainTileOffset, terrainTypeMetaAddress };
 };
 
-const readTerrainTypeDataAddress = (
+const readGraphicsInfo = (
   romData: Buffer,
   opcodeEntries: OpcodeEntry[],
-) => {
-  const loadTerrainDataSubroutine = findOpcodeEntryByAddress(
-    opcodeEntries,
-    LoadTerrainDataSubroutine1Address,
-  );
+): GraphicInfo[] => {
   const terrainDataIndex = findSubroutineArgument(
     opcodeEntries,
-    LoadTerrainDataSubroutine2Address,
+    LoadGraphicsWithTerrainIndexSubroutine,
   );
+  const readDmaTransfersResult = readDmaTransfers(romData, terrainDataIndex);
+  let mainGraphicAddress = readDmaTransfersResult.compressedGraphicAddress;
 
   /* Some level use this subroutine with bank and address as "argument"
-     Only use by Temple terrain type. For example: ADM code $B98D06 */
-  if (loadTerrainDataSubroutine) {
+     Only used by Temple terrain type. For example: ADM code $B98D06 */
+  if (!mainGraphicAddress) {
+    const loadTerrainDataSubroutine = findOpcodeEntryByAddress(
+      opcodeEntries,
+      LoadGraphicsWithAddressSubroutine,
+    );
+    if (!loadTerrainDataSubroutine) {
+      throw new Error(
+        `Subroutine not found (${LoadGraphicsWithAddressSubroutine.toString()})`,
+      );
+    }
+
     const subroutineIndex = opcodeEntries.indexOf(loadTerrainDataSubroutine);
     const bank = readOpcodeEntryArgument(opcodeEntries[subroutineIndex - 2]);
     const absolute = readOpcodeEntryArgument(
       opcodeEntries[subroutineIndex - 3],
     );
+
+    mainGraphicAddress = RomAddress.fromBankAndAbsolute(bank, absolute);
+  }
+
+  return readDmaTransfersResult.dmaTransfers.map((dmaTransfer) => {
+    const isMainGraphic = dmaTransfer.origin.bank === MainGraphicAddress.bank;
+    const offset = isMainGraphic
+      ? dmaTransfer.origin.snesAddress - MainGraphicAddress.snesAddress
+      : 0;
+
     return {
-      terrainDataIndex: terrainDataIndex,
-      terrainTypeDataAddress: RomAddress.fromBankAndAbsolute(bank, absolute),
+      address: isMainGraphic
+        ? mainGraphicAddress!.getOffsetAddress(offset)
+        : dmaTransfer.origin,
+      isCompressed: isMainGraphic,
+      offset: offset,
+      length: dmaTransfer.length,
+      /* PPU destination are starting at 0x2000
+         PPU is a 16 bits storage, must multiply by 2 */
+      placeAt: (dmaTransfer.destination - 0x2000) * 2,
     };
-  }
-
-  const dataTableOffset = getTerrainDataTableOffset(romData, terrainDataIndex);
-  const terrainDataAbsolute = read16(
-    romData,
-    TerrainDataPointerTable.getOffsetAddress(dataTableOffset + 1).pcAddress,
-  );
-  const terrainDataBank = read8(
-    romData,
-    TerrainDataPointerTable.getOffsetAddress(dataTableOffset).pcAddress,
-  );
-  const terrainTypeDataAddress = RomAddress.fromBankAndAbsolute(
-    terrainDataBank,
-    terrainDataAbsolute,
-  );
-  return { terrainDataIndex, terrainTypeDataAddress };
-};
-
-const getTerrainDataTableOffset = (
-  romData: Buffer,
-  terrainDataIndex: number,
-) => {
-  // Ref: ASM Code at $B9A924
-  let dataTableOffset = read16(
-    romData,
-    TerrainDataPointerTable.getOffsetAddress(terrainDataIndex * 2).pcAddress,
-  );
-
-  // Add 7 to offset until ($a998 + offset) is negative (> $7F)
-  const compareAddress = TerrainDataPointerTable.getOffsetAddress(4);
-  while (
-    read8(romData, compareAddress.getOffsetAddress(dataTableOffset).pcAddress) <
-    0x80
-  ) {
-    dataTableOffset += 0x7;
-  }
-
-  return dataTableOffset;
+  });
 };
 
 const readLevelTileMapInfo = (
