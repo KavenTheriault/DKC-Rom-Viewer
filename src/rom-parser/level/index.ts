@@ -8,7 +8,7 @@ import { Color, ImageMatrix } from '../../types/image-matrix';
 import { parseTilePixels } from '../sprites/tile';
 import { buildImageFromPixelsAndPalette, readPalettes } from '../palette';
 import { chunk, memoize } from 'lodash';
-import { EntranceInfo, GraphicInfo, loadEntranceInfo } from './addresses';
+import { EntranceInfo, GraphicInfo, loadEntranceInfo } from './entrance-info';
 
 /*
 TilePart = 8x8 Image - 1/16 part of a Tile
@@ -23,6 +23,7 @@ const TILE_PART_WIDTH = TILE_WIDTH / 4;
 const TILE_PART_HEIGHT = TILE_HEIGHT / 4;
 
 const HORIZONTAL_LEVEL_HEIGHT = 16;
+const VERTICAL_LEVEL_HEIGHT = 64;
 
 export const buildLevelImageByEntranceId = (
   romData: Buffer,
@@ -49,6 +50,7 @@ const readLevel = (romData: Buffer, entranceInfo: EntranceInfo) => {
     romData,
     entranceInfo.levelTileMapAddress,
     entranceInfo.levelTileMapLength,
+    entranceInfo.isVertical,
   );
   return buildLevelImage(
     levelTileMap,
@@ -166,8 +168,11 @@ const readLevelTileMap = (
   romData: Buffer,
   tileMapAddress: RomAddress,
   levelSize: number,
+  isVertical: boolean,
 ) => {
-  const levelHeight = HORIZONTAL_LEVEL_HEIGHT;
+  const levelHeight = isVertical
+    ? VERTICAL_LEVEL_HEIGHT
+    : HORIZONTAL_LEVEL_HEIGHT;
   const rawTileMap = extract(romData, tileMapAddress.pcAddress, levelSize);
 
   const levelWidth = Math.ceil(rawTileMap.length / levelHeight / 2);

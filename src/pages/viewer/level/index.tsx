@@ -9,7 +9,7 @@ import {
   EntranceInfo,
   entranceInfoToString,
   loadEntranceInfo,
-} from '../../../rom-parser/level/addresses';
+} from '../../../rom-parser/level/entrance-info';
 
 const ScrollDiv = styled.div`
   overflow: scroll;

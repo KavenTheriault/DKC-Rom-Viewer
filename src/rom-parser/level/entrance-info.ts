@@ -1,6 +1,6 @@
 import { RomAddress } from '../types/address';
 import { read16, read24, read8 } from '../utils/buffer';
-import { OpcodeEntry, readOpcodeUntil } from '../asm/read';
+import { logOpcodeEntry, OpcodeEntry, readOpcodeUntil } from '../asm/read';
 import { toHexString } from '../../utils/hex';
 import { MainGraphicAddress, readDmaTransfers } from './dma-transfers';
 
@@ -30,6 +30,8 @@ export type EntranceInfo = {
   // Level
   levelTileMapAddress: RomAddress;
   levelTileMapLength: number;
+
+  isVertical: boolean;
 };
 
 export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
@@ -50,6 +52,7 @@ export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
   for (const graphicInfo of entranceInfo.terrainGraphicsInfo) {
     lines.push(`graphicInfo: ${graphicInfo.address.toString()}`);
   }
+  lines.push(`isVertical: ${entranceInfo.isVertical}`);
   return lines.join('\n');
 };
 
@@ -93,7 +96,19 @@ export const loadEntranceInfo = (
     terrainTileOffset,
   );
 
-  const terrainPalettesAddress = readTerrainPaletteAddress(opcodeEntries);
+  const loadTerrainPaletteSubroutine = findSubroutine(
+    opcodeEntries,
+    LoadTerrainPaletteSubroutineAddress,
+  );
+  const terrainPalettesAddress = readTerrainPaletteAddress(
+    opcodeEntries,
+    loadTerrainPaletteSubroutine,
+  );
+
+  const isVertical = isLevelVertical(
+    opcodeEntries,
+    loadTerrainPaletteSubroutine,
+  );
 
   return {
     terrainMetaIndex: terrainMetaIndex,
@@ -102,6 +117,7 @@ export const loadEntranceInfo = (
     terrainGraphicsInfo: graphicsInfo,
     levelTileMapAddress: levelTileMapAddress,
     levelTileMapLength: levelTileMapLength,
+    isVertical: isVertical,
   };
 };
 
@@ -121,9 +137,14 @@ const readLoadEntranceOpcodes = (romData: Buffer, entranceId: number) => {
 };
 
 const readTerrainTypeMeta = (romData: Buffer, opcodeEntries: OpcodeEntry[]) => {
-  const terrainMetaIndex = findSubroutineArgument(
+  const loadTerrainMetaSubroutine = findSubroutine(
     opcodeEntries,
     LoadTerrainMetaSubroutineAddress,
+  );
+  const terrainMetaIndex = findSubroutineArgument(
+    opcodeEntries,
+    loadTerrainMetaSubroutine,
+    'LDA',
   );
 
   // Ref: ASM Code at $818C66
@@ -153,9 +174,14 @@ const readGraphicsInfo = (
   romData: Buffer,
   opcodeEntries: OpcodeEntry[],
 ): GraphicInfo[] => {
-  const terrainDataIndex = findSubroutineArgument(
+  const loadGraphicsSubroutine = findSubroutine(
     opcodeEntries,
     LoadGraphicsWithTerrainIndexSubroutine,
+  );
+  const terrainDataIndex = findSubroutineArgument(
+    opcodeEntries,
+    loadGraphicsSubroutine,
+    'LDA',
   );
   const readDmaTransfersResult = readDmaTransfers(romData, terrainDataIndex);
   let mainGraphicAddress = readDmaTransfersResult.compressedGraphicAddress;
@@ -244,10 +270,14 @@ const readLevelBounds = (romData: Buffer, entranceId: number) => {
   return { levelXStart, levelXEnd };
 };
 
-const readTerrainPaletteAddress = (opcodeEntries: OpcodeEntry[]) => {
+const readTerrainPaletteAddress = (
+  opcodeEntries: OpcodeEntry[],
+  loadTerrainPaletteSubroutine: OpcodeEntry,
+) => {
   const paletteAbsoluteAddress = findSubroutineArgument(
     opcodeEntries,
-    LoadTerrainPaletteSubroutineAddress,
+    loadTerrainPaletteSubroutine,
+    'LDA',
   );
   return RomAddress.fromBankAndAbsolute(
     TerrainPaletteBank,
@@ -255,10 +285,26 @@ const readTerrainPaletteAddress = (opcodeEntries: OpcodeEntry[]) => {
   );
 };
 
+const isLevelVertical = (
+  opcodeEntries: OpcodeEntry[],
+  loadTerrainPaletteSubroutine: OpcodeEntry,
+) => {
+  const xArgument = findSubroutineArgument(
+    opcodeEntries,
+    loadTerrainPaletteSubroutine,
+    'LDX',
+  );
+  // Discovered that vertical level use this value here
+  return xArgument === 0x40;
+};
+
 const findOpcodeEntryByAddress = (
   opcodeEntries: OpcodeEntry[],
   address: RomAddress,
 ) => opcodeEntries.find((o) => o.address.snesAddress === address.snesAddress);
+
+const findOpcodeEntryByName = (opcodeEntries: OpcodeEntry[], name: string) =>
+  opcodeEntries.find((o) => o.opcode.name.includes(name));
 
 const readOpcodeEntryArgument = (opcodeEntry: OpcodeEntry) => {
   if (opcodeEntry.bytes.length === 1) return read8(opcodeEntry.bytes, 0);
@@ -269,16 +315,34 @@ const readOpcodeEntryArgument = (opcodeEntry: OpcodeEntry) => {
   );
 };
 
-const findSubroutineArgument = (
+const findSubroutine = (
   opcodeEntries: OpcodeEntry[],
   subroutineAddress: RomAddress,
-): number => {
+): OpcodeEntry => {
   const subroutine = findOpcodeEntryByAddress(opcodeEntries, subroutineAddress);
   if (!subroutine) {
     throw new Error(`Subroutine not found (${subroutineAddress.toString()})`);
   }
-  /* I name it "Argument" but it's the LDA, LDX, or LDY opcode called just before calling the subroutine
-     It's 2 opcodes before the actual subroutine start (1 before is the jump opcode itself) */
-  const argument = opcodeEntries.indexOf(subroutine) - 2;
-  return readOpcodeEntryArgument(opcodeEntries[argument]);
+  return subroutine;
+};
+
+const findSubroutineArgument = (
+  opcodeEntries: OpcodeEntry[],
+  subroutineOpcode: OpcodeEntry,
+  argumentOpcode: string,
+): number => {
+  const previousOpcodesToSearch = 4;
+  const subroutineIndex = opcodeEntries.indexOf(subroutineOpcode);
+  const argument = findOpcodeEntryByName(
+    opcodeEntries
+      .slice(subroutineIndex - previousOpcodesToSearch, subroutineIndex)
+      .reverse(),
+    argumentOpcode,
+  );
+
+  if (!argument) {
+    throw new Error(`Can't find subroutine argument (${argumentOpcode})`);
+  }
+
+  return readOpcodeEntryArgument(argument);
 };
