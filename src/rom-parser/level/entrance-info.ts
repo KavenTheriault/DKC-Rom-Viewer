@@ -1,6 +1,6 @@
 import { RomAddress } from '../types/address';
 import { read16, read24, read8 } from '../utils/buffer';
-import { logOpcodeEntry, OpcodeEntry, readOpcodeUntil } from '../asm/read';
+import { OpcodeEntry, readOpcodeUntil } from '../asm/read';
 import { toHexString } from '../../utils/hex';
 import { MainGraphicAddress, readDmaTransfers } from './dma-transfers';
 
@@ -30,8 +30,6 @@ export type EntranceInfo = {
   // Level
   levelTileMapAddress: RomAddress;
   levelTileMapLength: number;
-
-  isVertical: boolean;
 };
 
 export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
@@ -52,7 +50,6 @@ export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
   for (const graphicInfo of entranceInfo.terrainGraphicsInfo) {
     lines.push(`graphicInfo: ${graphicInfo.address.toString()}`);
   }
-  lines.push(`isVertical: ${entranceInfo.isVertical}`);
   return lines.join('\n');
 };
 
@@ -96,19 +93,7 @@ export const loadEntranceInfo = (
     terrainTileOffset,
   );
 
-  const loadTerrainPaletteSubroutine = findSubroutine(
-    opcodeEntries,
-    LoadTerrainPaletteSubroutineAddress,
-  );
-  const terrainPalettesAddress = readTerrainPaletteAddress(
-    opcodeEntries,
-    loadTerrainPaletteSubroutine,
-  );
-
-  const isVertical = isLevelVertical(
-    opcodeEntries,
-    loadTerrainPaletteSubroutine,
-  );
+  const terrainPalettesAddress = readTerrainPaletteAddress(opcodeEntries);
 
   return {
     terrainMetaIndex: terrainMetaIndex,
@@ -117,7 +102,6 @@ export const loadEntranceInfo = (
     terrainGraphicsInfo: graphicsInfo,
     levelTileMapAddress: levelTileMapAddress,
     levelTileMapLength: levelTileMapLength,
-    isVertical: isVertical,
   };
 };
 
@@ -270,10 +254,11 @@ const readLevelBounds = (romData: Buffer, entranceId: number) => {
   return { levelXStart, levelXEnd };
 };
 
-const readTerrainPaletteAddress = (
-  opcodeEntries: OpcodeEntry[],
-  loadTerrainPaletteSubroutine: OpcodeEntry,
-) => {
+const readTerrainPaletteAddress = (opcodeEntries: OpcodeEntry[]) => {
+  const loadTerrainPaletteSubroutine = findSubroutine(
+    opcodeEntries,
+    LoadTerrainPaletteSubroutineAddress,
+  );
   const paletteAbsoluteAddress = findSubroutineArgument(
     opcodeEntries,
     loadTerrainPaletteSubroutine,
@@ -283,19 +268,6 @@ const readTerrainPaletteAddress = (
     TerrainPaletteBank,
     paletteAbsoluteAddress,
   );
-};
-
-const isLevelVertical = (
-  opcodeEntries: OpcodeEntry[],
-  loadTerrainPaletteSubroutine: OpcodeEntry,
-) => {
-  const xArgument = findSubroutineArgument(
-    opcodeEntries,
-    loadTerrainPaletteSubroutine,
-    'LDX',
-  );
-  // Discovered that vertical level use this value here
-  return xArgument === 0x40;
 };
 
 const findOpcodeEntryByAddress = (

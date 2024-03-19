@@ -23,7 +23,6 @@ const TILE_PART_WIDTH = TILE_WIDTH / 4;
 const TILE_PART_HEIGHT = TILE_HEIGHT / 4;
 
 const HORIZONTAL_LEVEL_HEIGHT = 16;
-const VERTICAL_LEVEL_HEIGHT = 64;
 
 export const buildLevelImageByEntranceId = (
   romData: Buffer,
@@ -50,7 +49,6 @@ const readLevel = (romData: Buffer, entranceInfo: EntranceInfo) => {
     romData,
     entranceInfo.levelTileMapAddress,
     entranceInfo.levelTileMapLength,
-    entranceInfo.isVertical,
   );
   return buildLevelImage(
     levelTileMap,
@@ -168,11 +166,8 @@ const readLevelTileMap = (
   romData: Buffer,
   tileMapAddress: RomAddress,
   levelSize: number,
-  isVertical: boolean,
 ) => {
-  const levelHeight = isVertical
-    ? VERTICAL_LEVEL_HEIGHT
-    : HORIZONTAL_LEVEL_HEIGHT;
+  const levelHeight = HORIZONTAL_LEVEL_HEIGHT;
   const rawTileMap = extract(romData, tileMapAddress.pcAddress, levelSize);
 
   const levelWidth = Math.ceil(rawTileMap.length / levelHeight / 2);
