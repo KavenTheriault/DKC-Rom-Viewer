@@ -30,11 +30,13 @@ export type EntranceInfo = {
   // Level
   levelTileMapAddress: RomAddress;
   levelTileMapLength: number;
+  isVertical: boolean;
 };
 
 export const entranceInfoToString = (entranceInfo: EntranceInfo) => {
   const lines = [];
   lines.push(`terrainMetaIndex: ${toHexString(entranceInfo.terrainMetaIndex)}`);
+  lines.push(`isVertical: ${entranceInfo.isVertical}`);
   lines.push(
     `terrainTypeMetaAddress: ${entranceInfo.terrainTypeMetaAddress.toString()}`,
   );
@@ -73,6 +75,9 @@ const TerrainPaletteBank = 0xb9;
 const LevelBoundsBank = 0xbc;
 const LevelBoundsPointerTable = 0x8000;
 
+const LevelFormatStorageAddress = 0x32;
+const VERTICAL_LEVELS_FORMAT = [0x3, 0x9];
+
 const SCREEN_WIDTH = 0x100;
 
 export const loadEntranceInfo = (
@@ -94,6 +99,7 @@ export const loadEntranceInfo = (
   );
 
   const terrainPalettesAddress = readTerrainPaletteAddress(opcodeEntries);
+  const isVertical = readIsVerticalLevel(opcodeEntries);
 
   return {
     terrainMetaIndex: terrainMetaIndex,
@@ -102,6 +108,7 @@ export const loadEntranceInfo = (
     terrainGraphicsInfo: graphicsInfo,
     levelTileMapAddress: levelTileMapAddress,
     levelTileMapLength: levelTileMapLength,
+    isVertical: isVertical,
   };
 };
 
@@ -125,7 +132,7 @@ const readTerrainTypeMeta = (romData: Buffer, opcodeEntries: OpcodeEntry[]) => {
     opcodeEntries,
     LoadTerrainMetaSubroutineAddress,
   );
-  const terrainMetaIndex = findSubroutineArgument(
+  const terrainMetaIndex = findArgumentInPreviousOpcodes(
     opcodeEntries,
     loadTerrainMetaSubroutine,
     'LDA',
@@ -162,7 +169,7 @@ const readGraphicsInfo = (
     opcodeEntries,
     LoadGraphicsWithTerrainIndexSubroutine,
   );
-  const terrainDataIndex = findSubroutineArgument(
+  const terrainDataIndex = findArgumentInPreviousOpcodes(
     opcodeEntries,
     loadGraphicsSubroutine,
     'LDA',
@@ -230,7 +237,7 @@ const readLevelTileMapInfo = (
 };
 
 const readLevelBounds = (romData: Buffer, entranceId: number) => {
-  // Ref: ASM Code at $FCB052
+  // Ref: ASM Code at $BCB052
   const levelOffset = entranceId * 2;
   const boundsIndex =
     read16(
@@ -259,7 +266,7 @@ const readTerrainPaletteAddress = (opcodeEntries: OpcodeEntry[]) => {
     opcodeEntries,
     LoadTerrainPaletteSubroutineAddress,
   );
-  const paletteAbsoluteAddress = findSubroutineArgument(
+  const paletteAbsoluteAddress = findArgumentInPreviousOpcodes(
     opcodeEntries,
     loadTerrainPaletteSubroutine,
     'LDA',
@@ -270,6 +277,23 @@ const readTerrainPaletteAddress = (opcodeEntries: OpcodeEntry[]) => {
   );
 };
 
+const readIsVerticalLevel = (opcodeEntries: OpcodeEntry[]) => {
+  let levelFormatIndex = 0;
+  const storeLevelFormatOpcode = findOpcodeEntryByNameAndArgument(
+    opcodeEntries,
+    'STA',
+    LevelFormatStorageAddress,
+  );
+  if (storeLevelFormatOpcode) {
+    levelFormatIndex = findArgumentInPreviousOpcodes(
+      opcodeEntries,
+      storeLevelFormatOpcode,
+      'LDA',
+    );
+  }
+  return VERTICAL_LEVELS_FORMAT.includes(levelFormatIndex);
+};
+
 const findOpcodeEntryByAddress = (
   opcodeEntries: OpcodeEntry[],
   address: RomAddress,
@@ -277,6 +301,16 @@ const findOpcodeEntryByAddress = (
 
 const findOpcodeEntryByName = (opcodeEntries: OpcodeEntry[], name: string) =>
   opcodeEntries.find((o) => o.opcode.name.includes(name));
+
+const findOpcodeEntryByNameAndArgument = (
+  opcodeEntries: OpcodeEntry[],
+  name: string,
+  argument: number,
+) =>
+  opcodeEntries.find(
+    (o) =>
+      o.opcode.name.includes(name) && readOpcodeEntryArgument(o) === argument,
+  );
 
 const readOpcodeEntryArgument = (opcodeEntry: OpcodeEntry) => {
   if (opcodeEntry.bytes.length === 1) return read8(opcodeEntry.bytes, 0);
@@ -298,22 +332,25 @@ const findSubroutine = (
   return subroutine;
 };
 
-const findSubroutineArgument = (
+const findArgumentInPreviousOpcodes = (
   opcodeEntries: OpcodeEntry[],
-  subroutineOpcode: OpcodeEntry,
+  targetOpcodeEntry: OpcodeEntry,
   argumentOpcode: string,
 ): number => {
   const previousOpcodesToSearch = 4;
-  const subroutineIndex = opcodeEntries.indexOf(subroutineOpcode);
+  const subroutineIndex = opcodeEntries.indexOf(targetOpcodeEntry);
   const argument = findOpcodeEntryByName(
     opcodeEntries
-      .slice(subroutineIndex - previousOpcodesToSearch, subroutineIndex)
+      .slice(
+        Math.max(subroutineIndex - previousOpcodesToSearch, 0),
+        subroutineIndex,
+      )
       .reverse(),
     argumentOpcode,
   );
 
   if (!argument) {
-    throw new Error(`Can't find subroutine argument (${argumentOpcode})`);
+    throw new Error(`Can't find argument (${argumentOpcode})`);
   }
 
   return readOpcodeEntryArgument(argument);
