@@ -22,8 +22,6 @@ const TILE_HEIGHT = 32;
 const TILE_PART_WIDTH = TILE_WIDTH / 4;
 const TILE_PART_HEIGHT = TILE_HEIGHT / 4;
 
-const HORIZONTAL_LEVEL_HEIGHT = 16;
-
 export const buildLevelImageByEntranceId = (
   romData: Buffer,
   entranceId: number,
@@ -49,6 +47,7 @@ const readLevel = (romData: Buffer, entranceInfo: EntranceInfo) => {
     romData,
     entranceInfo.levelTileMapAddress,
     entranceInfo.levelTileMapLength,
+    entranceInfo.isVertical,
   );
   return buildLevelImage(
     levelTileMap,
@@ -166,20 +165,40 @@ const readLevelTileMap = (
   romData: Buffer,
   tileMapAddress: RomAddress,
   levelSize: number,
+  isVertical: boolean,
 ) => {
-  const levelHeight = HORIZONTAL_LEVEL_HEIGHT;
+  let levelWidth, levelHeight;
   const rawTileMap = extract(romData, tileMapAddress.pcAddress, levelSize);
 
-  const levelWidth = Math.ceil(rawTileMap.length / levelHeight / 2);
+  if (isVertical) {
+    levelWidth = 64;
+    levelHeight = Math.ceil(rawTileMap.length / levelWidth / 2);
+  } else {
+    levelHeight = 16;
+    levelWidth = Math.ceil(rawTileMap.length / levelHeight / 2);
+  }
+
   const levelTileMap = new Matrix<number>(levelWidth, levelHeight, 0);
 
   let offset = 0;
-  for (let x = 0; x < levelWidth; x++) {
-    for (let y = 0; y < levelHeight; y++) {
-      const tileInfo = read16(rawTileMap, offset);
-      offset += 2;
 
-      levelTileMap.set(x, y, tileInfo);
+  const readTile = (x: number, y: number) => {
+    const tileInfo = read16(rawTileMap, offset);
+    offset += 2;
+    levelTileMap.set(x, y, tileInfo);
+  };
+
+  if (isVertical) {
+    for (let y = 0; y < levelTileMap.height; y++) {
+      for (let x = 0; x < levelTileMap.width; x++) {
+        readTile(x, y);
+      }
+    }
+  } else {
+    for (let x = 0; x < levelTileMap.width; x++) {
+      for (let y = 0; y < levelTileMap.height; y++) {
+        readTile(x, y);
+      }
     }
   }
 
