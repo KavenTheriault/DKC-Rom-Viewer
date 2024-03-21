@@ -68,7 +68,8 @@ const LoadTerrainPaletteSubroutineAddress =
 
 const TerrainMetaPointerTable = RomAddress.fromSnesAddress(0x818bbe);
 const TerrainMetaTileOffsetTable = RomAddress.fromSnesAddress(0x818b94);
-const TerrainMetaBankTable = RomAddress.fromSnesAddress(0x818b96);
+const TerrainMetaBankTable = RomAddress.fromSnesAddress(0x818bc0);
+const TerrainTileMapBankTable = RomAddress.fromSnesAddress(0x818b96);
 
 const TerrainPaletteBank = 0xb9;
 
@@ -86,15 +87,19 @@ export const loadEntranceInfo = (
 ): EntranceInfo => {
   const opcodeEntries = readLoadEntranceOpcodes(romData, entranceId);
 
-  const { terrainMetaIndex, terrainTileOffset, terrainTypeMetaAddress } =
-    readTerrainTypeMeta(romData, opcodeEntries);
+  const {
+    terrainMetaIndex,
+    terrainTileOffset,
+    terrainTypeMetaAddress,
+    terrainTileMapBank,
+  } = readTerrainTypeMeta(romData, opcodeEntries);
 
   const graphicsInfo = readGraphicsInfo(romData, opcodeEntries);
 
   const { levelTileMapAddress, levelTileMapLength } = readLevelTileMapInfo(
     romData,
     entranceId,
-    terrainTypeMetaAddress.bank,
+    terrainTileMapBank,
     terrainTileOffset,
   );
 
@@ -107,9 +112,21 @@ export const loadEntranceInfo = (
     terrainPalettesAddress: terrainPalettesAddress,
     terrainGraphicsInfo: graphicsInfo,
     levelTileMapAddress: levelTileMapAddress,
-    levelTileMapLength: levelTileMapLength,
+    levelTileMapLength: getCorrectedTileMapLength(
+      entranceId,
+      levelTileMapLength,
+    ),
     isVertical: isVertical,
   };
+};
+
+const getCorrectedTileMapLength = (
+  entranceId: number,
+  levelTileMapLength: number,
+) => {
+  if (entranceId === 0xde) return 0xc380;
+  if (entranceId === 0x6d) return 0x3a00;
+  return levelTileMapLength;
 };
 
 const readLoadEntranceOpcodes = (romData: Buffer, entranceId: number) => {
@@ -149,16 +166,28 @@ const readTerrainTypeMeta = (romData: Buffer, opcodeEntries: OpcodeEntry[]) => {
     romData,
     TerrainMetaPointerTable.getOffsetAddress(metaTableOffset).pcAddress,
   );
+
+  /* For most terrain type, value in terrainMetaBank is zero
+     In that case, the bank to use is terrainTileMapBank */
   const terrainMetaBank = read8(
     romData,
     TerrainMetaBankTable.getOffsetAddress(metaTableOffset).pcAddress,
   );
+  const terrainTileMapBank = read8(
+    romData,
+    TerrainTileMapBankTable.getOffsetAddress(metaTableOffset).pcAddress,
+  );
 
   const terrainTypeMetaAddress = RomAddress.fromBankAndAbsolute(
-    terrainMetaBank,
+    terrainMetaBank !== 0 ? terrainMetaBank : terrainTileMapBank,
     terrainMetaAbsolute,
   );
-  return { terrainMetaIndex, terrainTileOffset, terrainTypeMetaAddress };
+  return {
+    terrainMetaIndex,
+    terrainTileOffset,
+    terrainTypeMetaAddress,
+    terrainTileMapBank,
+  };
 };
 
 const readGraphicsInfo = (
