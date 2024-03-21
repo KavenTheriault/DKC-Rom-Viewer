@@ -5,28 +5,17 @@ import { useState } from 'react';
 import { convertToImageBitmap } from '../../../utils/image-bitmap';
 import { buildLevelImageByEntranceId } from '../../../rom-parser/level';
 import { LoadHexadecimalInput } from '../../../components/load-hexadecimal-input';
-import {
-  EntranceInfo,
-  entranceInfoToString,
-  loadEntranceInfo,
-} from '../../../rom-parser/level/entrance-info';
 
 const ScrollDiv = styled.div`
-  overflow: scroll;
+  overflow: auto;
 `;
 
 export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [bitmapImage, setBitmapImage] = useState<ImageBitmap>();
   const [entranceIndex, setEntranceIndex] = useState<number | undefined>(0x16);
-  const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
 
   const onEntranceIndexLoadClick = () => {
-    if (entranceIndex) {
-      const result = loadEntranceInfo(selectedRom.data, entranceIndex);
-      setEntranceInfo(result);
-
-      loadLevelImage(entranceIndex);
-    }
+    if (entranceIndex) loadLevelImage(entranceIndex);
   };
 
   const loadLevelImage = async (entranceId: number) => {
@@ -41,21 +30,17 @@ export const LevelViewer = ({ selectedRom }: ViewerModeBaseProps) => {
 
   return (
     <div>
-      <div>
-        <LoadHexadecimalInput
-          label="Entrance Index"
-          hexadecimalValue={entranceIndex}
-          onValueChange={setEntranceIndex}
-          onValueLoad={onEntranceIndexLoadClick}
-        />
-        {entranceInfo && <pre>{entranceInfoToString(entranceInfo)}</pre>}
-      </div>
-      <ScrollDiv>
-        <BitmapCanvas
-          image={bitmapImage}
-          defaultSize={{ width: 256, height: 256 }}
-        />
-      </ScrollDiv>
+      <LoadHexadecimalInput
+        label="Entrance Index"
+        hexadecimalValue={entranceIndex}
+        onValueChange={setEntranceIndex}
+        onValueLoad={onEntranceIndexLoadClick}
+      />
+      {bitmapImage && (
+        <ScrollDiv>
+          <BitmapCanvas image={bitmapImage} />
+        </ScrollDiv>
+      )}
     </div>
   );
 };

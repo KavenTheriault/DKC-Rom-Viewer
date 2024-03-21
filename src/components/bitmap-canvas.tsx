@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
-interface SpriteCanvasProps {
+interface BitmapCanvasProps {
   image?: ImageBitmap;
-  defaultSize: { width: number; height: number };
 }
 
 const BorderedCanvas = styled.canvas<{ color: string }>`
@@ -13,14 +12,14 @@ const BorderedCanvas = styled.canvas<{ color: string }>`
   background-color: ${(props) => props.color};
 `;
 
-export const BitmapCanvas = ({ image, defaultSize }: SpriteCanvasProps) => {
+export const BitmapCanvas = ({ image }: BitmapCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.width = image ? image.width : defaultSize.width;
-      canvas.height = image ? image.height : defaultSize.height;
+      canvas.width = image ? image.width : 0;
+      canvas.height = image ? image.height : 0;
 
       const context = canvas.getContext('2d');
       if (context) {
