@@ -1,5 +1,6 @@
 import { RomAddress } from '../types/address';
-import { Image } from '../sprites/types';
+
+import { ImageMatrix } from '../../types/image-matrix';
 
 /* Animation Commands
    Ref: http://www.dkc-atlas.com/forum/viewtopic.php?f=38&t=448
@@ -59,6 +60,6 @@ export type EntrySprite = {
   spriteIndex: number;
 };
 
-export type AnimationStep = { time: number; image: Image };
+export type AnimationStep = { time: number; image: ImageMatrix };
 
 export type Animation = AnimationStep[];

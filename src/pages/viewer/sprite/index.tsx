@@ -11,7 +11,6 @@ import {
   Sprite,
 } from '../../../rom-parser/sprites';
 import { ImageCanvas, Rectangle } from '../../../components/image-canvas';
-import { Array2D, Color, Image } from '../../../rom-parser/sprites/types';
 import { assembleSprite } from '../../../rom-parser/sprites/sprite-part';
 import { SpritePartsViewer } from './sprite-parts';
 import { ViewerMode, ViewerModeBaseProps } from '../types';
@@ -26,6 +25,7 @@ import { ScanAddresses } from '../../../components/scan-adresses';
 import { LoadHexadecimalInput } from '../../../components/load-hexadecimal-input';
 import { toHexString } from '../../../utils/hex';
 import { SpritePointerTable } from '../../../rom-parser/constants/dkc1';
+import { ImageMatrix } from '../../../types/image-matrix';
 
 export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [snesAddress, setSnesAddress] = useState<number>();
@@ -33,7 +33,7 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
   const [spritePointer, setSpritePointer] = useState<number>();
 
   const [sprite, setSprite] = useState<Sprite>();
-  const [spriteImage, setSpriteImage] = useState<Image>();
+  const [spriteImage, setSpriteImage] = useState<ImageMatrix>();
 
   const [selectedPartIndexes, setSelectedPartIndexes] = useState<number[]>([]);
   const [showSelectedPartsBorder, setShowSelectedPartsBorder] =
@@ -142,9 +142,12 @@ export const SpriteViewer = ({ selectedRom }: ViewerModeBaseProps) => {
     spriteToBuild: Sprite,
     paletteAddress: RomAddress,
   ) => {
-    const palette: Color[] = readPalette(selectedRom.data, paletteAddress);
-    const spritePixels: Array2D = assembleSprite(spriteToBuild.parts);
-    const image: Image = buildImageFromPixelsAndPalette(spritePixels, palette);
+    const palette = readPalette(selectedRom.data, paletteAddress);
+    const spritePixels = assembleSprite(spriteToBuild.parts);
+    const image: ImageMatrix = buildImageFromPixelsAndPalette(
+      spritePixels,
+      palette.colors,
+    );
     setSpriteImage(image);
   };
 

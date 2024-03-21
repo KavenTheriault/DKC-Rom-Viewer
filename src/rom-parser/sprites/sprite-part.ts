@@ -1,6 +1,6 @@
 import { SpriteHeader } from './header';
-import { Array2D, Coordinate, SmallTile, SpritePart } from './types';
-import { create2DArray } from '../utils/array';
+import { Coordinate, SmallTile, SpritePart } from './types';
+import { Matrix } from '../../types/matrix';
 
 export const buildSpriteParts = (
   spriteHeader: SpriteHeader,
@@ -78,24 +78,24 @@ export const buildSpriteParts = (
 };
 
 /* 4 8x8 tiles to 1 16x16 tile */
-export const getLargeTilePixels = (tiles: SmallTile[]): Array2D => {
+export const getLargeTilePixels = (tiles: SmallTile[]): Matrix<number> => {
   if (tiles.length !== 4) throw new Error('INVALID_TILE_QUANTITY');
 
-  const pixels: Array2D[] = tiles.map((t) => t.pixels);
-  const largeTilePixels: Array2D = create2DArray(16, 16);
+  const pixels: Matrix<number>[] = tiles.map((t) => t.pixels);
+  const largeTilePixels: Matrix<number> = new Matrix<number>(16, 16, 0);
   for (let x = 0; x < 16; x++) {
     for (let y = 0; y < 16; y++) {
       if (x < 8) {
         if (y < 8) {
-          largeTilePixels[x][y] = pixels[0][x][y];
+          largeTilePixels.set(x, y, pixels[0].get(x, y));
         } else {
-          largeTilePixels[x][y] = pixels[1][x][y - 8];
+          largeTilePixels.set(x, y, pixels[2].get(x, y - 8));
         }
       } else {
         if (y < 8) {
-          largeTilePixels[x][y] = pixels[2][x - 8][y];
+          largeTilePixels.set(x, y, pixels[1].get(x - 8, y));
         } else {
-          largeTilePixels[x][y] = pixels[3][x - 8][y - 8];
+          largeTilePixels.set(x, y, pixels[3].get(x - 8, y - 8));
         }
       }
     }
@@ -104,16 +104,16 @@ export const getLargeTilePixels = (tiles: SmallTile[]): Array2D => {
 };
 
 export const assembleSprite = (spriteParts: SpritePart[]) => {
-  const spritePixels: Array2D = create2DArray(256, 256);
+  const spritePixels = new Matrix<number>(256, 256, 0);
 
   for (const spritePart of spriteParts) {
-    const partPixels: Array2D = spritePart.tile.pixels;
-    for (let y = 0; y < partPixels.length; y++) {
-      for (let x = 0; x < partPixels[0].length; x++) {
-        const spriteY: number = y + spritePart.coordinate.y;
+    const partPixels = spritePart.tile.pixels;
+    for (let x = 0; x < partPixels.width; x++) {
+      for (let y = 0; y < partPixels.height; y++) {
         const spriteX: number = x + spritePart.coordinate.x;
+        const spriteY: number = y + spritePart.coordinate.y;
         if (spriteY > 255 || spriteX > 255) throw new Error('INVALID_SPRITE');
-        spritePixels[spriteY][spriteX] = partPixels[y][x];
+        spritePixels.set(spriteX, spriteY, partPixels.get(x, y));
       }
     }
   }

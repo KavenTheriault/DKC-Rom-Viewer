@@ -13,7 +13,6 @@ import {
   RawAnimation,
 } from '../../rom-parser/animations/types';
 import { ImageCanvas } from '../../components/image-canvas';
-import { Color } from '../../rom-parser/sprites/types';
 import { ViewerMode, ViewerModeBaseProps } from './types';
 import { getAddressFromSpritePointerIndex } from '../../rom-parser/sprites';
 import { readPalette } from '../../rom-parser/palette';
@@ -126,11 +125,11 @@ export const AnimationViewer = ({
       setRawAnimation(animationSequence);
       saveViewerModeAddress(ViewerMode.Animation, animationAddress);
 
-      const palette: Color[] = readPalette(selectedRom.data, paletteAddress);
+      const palette = readPalette(selectedRom.data, paletteAddress);
       const newAnimation = buildAnimation(
         selectedRom.data,
         animationSequence,
-        palette,
+        palette.colors,
       );
       setAnimation(newAnimation);
       setError('');

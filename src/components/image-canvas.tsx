@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Image } from '../rom-parser/sprites/types';
 import { rgbToHex } from '../utils/hex';
 import { Animation, AnimationStep } from '../rom-parser/animations/types';
 import styled from 'styled-components';
+import { ImageMatrix } from '../types/image-matrix';
 
 export interface Rectangle {
   x: number;
@@ -12,10 +12,11 @@ export interface Rectangle {
 }
 
 interface SpriteCanvasProps {
-  image?: Image;
+  image?: ImageMatrix;
   animation?: Animation;
   rectangles?: Rectangle[];
   defaultSize: { width: number; height: number };
+  defaultZoom?: number;
 }
 
 const BorderedCanvas = styled.canvas<{ color: string }>`
@@ -30,17 +31,18 @@ export const ImageCanvas = ({
   animation,
   rectangles,
   defaultSize,
+  defaultZoom,
 }: SpriteCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [zoom, setZoom] = useState<number>(2);
+  const [zoom, setZoom] = useState<number>(defaultZoom || 2);
   const [backgroundColor, setBackgroundColor] = useState<string>('#1e1f22');
   const animationInterval = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (canvas) {
-      canvas.width = (image ? image.length : defaultSize.width) * zoom;
-      canvas.height = (image ? image[0].length : defaultSize.height) * zoom;
+      canvas.width = (image ? image.width : defaultSize.width) * zoom;
+      canvas.height = (image ? image.height : defaultSize.height) * zoom;
 
       const context = canvas.getContext('2d');
       if (context) {
@@ -64,8 +66,8 @@ export const ImageCanvas = ({
     context: CanvasRenderingContext2D,
     animationToDraw: Animation,
   ) => {
-    const frames: Image[] = animationToDraw.reduce(
-      (acc: Image[], step: AnimationStep) => {
+    const frames: ImageMatrix[] = animationToDraw.reduce(
+      (acc: ImageMatrix[], step: AnimationStep) => {
         for (let i = 0; i < step.time; i++) {
           acc.push(step.image);
         }
@@ -100,10 +102,13 @@ export const ImageCanvas = ({
     }
   };
 
-  const drawImage = (context: CanvasRenderingContext2D, imageToDraw: Image) => {
-    for (let x = 0; x < imageToDraw.length; x++) {
-      for (let y = 0; y < imageToDraw[0].length; y++) {
-        const color = imageToDraw[y][x];
+  const drawImage = (
+    context: CanvasRenderingContext2D,
+    imageToDraw: ImageMatrix,
+  ) => {
+    for (let x = 0; x < imageToDraw.width; x++) {
+      for (let y = 0; y < imageToDraw.height; y++) {
+        const color = imageToDraw.get(x, y);
 
         if (color) {
           context.fillStyle = rgbToHex(color.r, color.g, color.b);

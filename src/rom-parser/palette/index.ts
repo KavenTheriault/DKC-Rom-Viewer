@@ -1,9 +1,11 @@
 import { RomAddress } from '../types/address';
-import { Color, Image } from '../sprites/types';
 import { read16 } from '../utils/buffer';
 import { EntityPaletteBank } from '../constants/dkc1';
+import { Matrix } from '../../types/matrix';
+import { Palette } from './types';
+import { Color, ImageMatrix } from '../../types/image-matrix';
 
-const PALETTE_LENGTH = 15;
+const SPRITE_PALETTE_LENGTH = 15;
 
 export const colorToSnes = (color: Color): number => {
   let r: number = color.r;
@@ -27,8 +29,8 @@ export const snesToColor = (rawSnes: number): Color => {
 
 export const grayscalePalette = (): Color[] => {
   const palette: Color[] = [];
-  const increment = 256 / PALETTE_LENGTH;
-  for (let i = 0; i < PALETTE_LENGTH; i++) {
+  const increment = 256 / SPRITE_PALETTE_LENGTH;
+  for (let i = 0; i < SPRITE_PALETTE_LENGTH; i++) {
     const grayTone = Math.floor(i * increment);
     palette.push({ r: grayTone, g: grayTone, b: grayTone });
   }
@@ -38,29 +40,47 @@ export const grayscalePalette = (): Color[] => {
 export const readPalette = (
   romData: Buffer,
   paletteAddress: RomAddress,
-): Color[] => {
-  const palette: Color[] = [];
-  for (let i = 0; i < PALETTE_LENGTH; i++) {
+  paletteLength: number = SPRITE_PALETTE_LENGTH,
+): Palette => {
+  const colors: Color[] = [];
+  for (let i = 0; i < paletteLength; i++) {
     const value: number = read16(romData, paletteAddress.pcAddress + i * 2);
-    palette.push(snesToColor(value));
+    colors.push(snesToColor(value));
   }
-  return palette;
+  return { address: paletteAddress, colors: colors };
+};
+
+export const readPalettes = (
+  romData: Buffer,
+  palettesAddress: RomAddress,
+  paletteQuantity: number,
+  paletteLength: number,
+): Palette[] => {
+  const palettes: Palette[] = [];
+  for (let i = 0; i < paletteQuantity; i++) {
+    const paletteAddress = palettesAddress.getOffsetAddress(
+      i * paletteLength * 2,
+    );
+    const palette = readPalette(romData, paletteAddress, paletteLength);
+    palettes.push(palette);
+  }
+  return palettes;
 };
 
 export const buildImageFromPixelsAndPalette = (
-  pixels: number[][],
-  palette: Color[],
-): Image => {
-  const width: number = pixels.length;
-  const height: number = pixels[0].length;
-  const coloredPixels: Image = new Array(width)
-    .fill(0)
-    .map(() => new Array(height).fill(0));
+  pixels: Matrix<number>,
+  colors: Color[],
+  paletteOffset = -1,
+): ImageMatrix => {
+  const width: number = pixels.width;
+  const height: number = pixels.height;
+  const coloredPixels = new Matrix<Color | null>(width, height, null);
 
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
-      const paletteIdx: number = pixels[x][y];
-      coloredPixels[x][y] = paletteIdx !== 0 ? palette[paletteIdx - 1] : null;
+      const paletteIdx: number = pixels.get(x, y);
+      if (paletteIdx !== 0)
+        coloredPixels.set(x, y, colors[paletteIdx + paletteOffset]);
     }
   }
 
