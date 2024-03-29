@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Home } from './pages/home';
 import { Viewer } from './pages/viewer';
+import { CanvasTest } from './pages/canvas-test';
 
 const router = createBrowserRouter([
   {
@@ -10,6 +11,10 @@ const router = createBrowserRouter([
   {
     path: 'viewer',
     element: <Viewer />,
+  },
+  {
+    path: 'canvas-test',
+    element: <CanvasTest />,
   },
   {
     path: 'error',
