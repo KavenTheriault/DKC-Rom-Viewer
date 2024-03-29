@@ -2,8 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CustomCanvas } from './styles';
 import { CanvasController } from './canvas-controller';
 
-const ZOOM_SPEED_PERCENTAGE = 1.2;
-
 export type Size = {
   width: number;
   height: number;
@@ -54,9 +52,8 @@ export const Canvas = ({ canvasController }: CanvasProps) => {
   };
 
   const onWheel = (event: WheelEvent) => {
-    const factor =
-      event.deltaY < 0 ? ZOOM_SPEED_PERCENTAGE : 1 / ZOOM_SPEED_PERCENTAGE;
-    zoom(factor, event.clientX, event.clientY);
+    const direction = event.deltaY < 0 ? 'in' : 'out';
+    canvasController.zoom(direction, event.clientX, event.clientY);
   };
 
   const onMouseDown = (mouseDownEvent: MouseEvent) => {
@@ -83,18 +80,6 @@ export const Canvas = ({ canvasController }: CanvasProps) => {
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
-  };
-
-  const zoom = (factor: number, mouseX: number, mouseY: number) => {
-    canvasController.scale *= factor;
-
-    const currentPosition = canvasController.translatePosition;
-    canvasController.translatePosition = {
-      x: (currentPosition.x -= (mouseX - currentPosition.x) * (factor - 1)),
-      y: (currentPosition.y -= (mouseY - currentPosition.y) * (factor - 1)),
-    };
-
-    canvasController.draw();
   };
 
   const applyTransform = () => {

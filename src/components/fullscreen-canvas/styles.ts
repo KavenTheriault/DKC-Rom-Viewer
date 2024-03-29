@@ -12,7 +12,7 @@ export const OverlayContainer = styled.div`
   flex-direction: column;
   justify-content: space-between;
 
-  padding: 12px;
+  padding: 16px;
   pointer-events: none;
   height: 100vh;
   width: 100vw;

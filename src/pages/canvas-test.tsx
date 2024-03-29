@@ -19,10 +19,21 @@ export const CanvasTest = () => {
   };
 
   const draw = (
-    _canvas: HTMLCanvasElement,
+    canvas: HTMLCanvasElement,
     context: CanvasRenderingContext2D,
   ) => {
-    if (image.current) context.drawImage(image.current, 0, 0);
+    if (!image.current) return;
+    context.drawImage(
+      image.current,
+      canvas.width / 2 - image.current.width / 2,
+      canvas.height / 2 - image.current.height / 2,
+    );
+    context.strokeRect(
+      canvas.width / 2 - image.current.width / 2,
+      canvas.height / 2 - image.current.height / 2,
+      image.current.width,
+      image.current.height,
+    );
   };
 
   return <FullscreenCanvas canvasController={canvasController.current} />;

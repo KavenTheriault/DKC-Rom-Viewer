@@ -1,3 +1,5 @@
+const ZOOM_SPEED_PERCENTAGE = 1.2;
+
 type OnScaleChangeHandler = (scale: number) => void;
 type OnDrawHandler = (
   canvas: HTMLCanvasElement,
@@ -40,6 +42,14 @@ export class CanvasController {
     this._mainDraw = mainDraw;
   }
 
+  get canvas(): HTMLCanvasElement {
+    if (!this._canvas) {
+      throw new Error('No canvas attached to this controller.');
+    }
+
+    return this._canvas;
+  }
+
   get scale(): number {
     return this._scale;
   }
@@ -76,5 +86,19 @@ export class CanvasController {
 
   onScaleChange(handler: OnScaleChangeHandler) {
     this._onScaleChangeHandlers.push(handler);
+  }
+
+  zoom(direction: 'in' | 'out', x: number, y: number) {
+    const currentPosition = this.translatePosition;
+    const factor =
+      direction === 'in' ? ZOOM_SPEED_PERCENTAGE : 1 / ZOOM_SPEED_PERCENTAGE;
+
+    this.scale *= factor;
+    this.translatePosition = {
+      x: (currentPosition.x -= (x - currentPosition.x) * (factor - 1)),
+      y: (currentPosition.y -= (y - currentPosition.y) * (factor - 1)),
+    };
+
+    this.draw();
   }
 }
