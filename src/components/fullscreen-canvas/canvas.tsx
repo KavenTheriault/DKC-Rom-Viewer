@@ -16,14 +16,16 @@ const getWindowSize = (): Size => ({
 
 export type CanvasProps = {
   canvasController: CanvasController;
-  draw: (canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) => void;
 };
 
-export const Canvas = ({ canvasController, draw }: CanvasProps) => {
+export const Canvas = ({ canvasController }: CanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [canvasSize, setCanvasSize] = useState<Size>(getWindowSize());
 
   useEffect(() => {
+    const { canvas, context } = getCanvas();
+    canvasController.attachCanvas(canvas, context, internalDraw);
+
     window.addEventListener('resize', onResizeWindow);
     canvasRef.current?.addEventListener('wheel', onWheel);
     canvasRef.current?.addEventListener('mousedown', onMouseDown);
@@ -35,7 +37,7 @@ export const Canvas = ({ canvasController, draw }: CanvasProps) => {
   }, []);
 
   useEffect(() => {
-    internalDraw();
+    canvasController.draw();
   }, [canvasSize]);
 
   const onResizeWindow = () => {
@@ -71,7 +73,7 @@ export const Canvas = ({ canvasController, draw }: CanvasProps) => {
       startX = mouseMoveEvent.clientX;
       startY = mouseMoveEvent.clientY;
 
-      internalDraw();
+      canvasController.draw();
     };
 
     const onMouseUp = () => {
@@ -92,7 +94,7 @@ export const Canvas = ({ canvasController, draw }: CanvasProps) => {
       y: (currentPosition.y -= (mouseY - currentPosition.y) * (factor - 1)),
     };
 
-    internalDraw();
+    canvasController.draw();
   };
 
   const applyTransform = () => {
@@ -108,12 +110,12 @@ export const Canvas = ({ canvasController, draw }: CanvasProps) => {
     );
   };
 
-  const internalDraw = () => {
+  const internalDraw = (
+    canvas: HTMLCanvasElement,
+    context: CanvasRenderingContext2D,
+  ) => {
     applyTransform();
-
-    const { canvas, context } = getCanvas();
     context.clearRect(0, 0, canvas.width, canvas.height);
-    draw(canvas, context);
   };
 
   console.log('Render Canvas');

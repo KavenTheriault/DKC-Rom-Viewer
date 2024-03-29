@@ -1,14 +1,20 @@
 import { FullscreenCanvas } from '../components/fullscreen-canvas';
 import React, { useEffect, useRef } from 'react';
+import { CanvasController } from '../components/fullscreen-canvas/canvas-controller';
 
 export const CanvasTest = () => {
+  const canvasController = useRef<CanvasController>(new CanvasController());
   const image = useRef<HTMLImageElement>(new Image());
 
   useEffect(() => {
     loadImage();
+    canvasController.current.onDraw(draw);
   }, []);
 
   const loadImage = () => {
+    image.current.onload = () => {
+      canvasController.current.draw();
+    };
     image.current.src = 'dk2.png';
   };
 
@@ -19,5 +25,5 @@ export const CanvasTest = () => {
     if (image.current) context.drawImage(image.current, 0, 0);
   };
 
-  return <FullscreenCanvas draw={draw} />;
+  return <FullscreenCanvas canvasController={canvasController.current} />;
 };
