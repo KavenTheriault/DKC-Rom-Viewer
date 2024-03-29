@@ -1,33 +1,44 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { OverlayContainer, OverlayRowContainer } from './styles';
-import { CanvasController } from './canvas-controller';
-import { ZoomControls } from './zoom-controls';
 
-type OverlayProps = {
-  canvasController: CanvasController;
+export type OverlayProps = {
+  slots?: {
+    top?: {
+      left?: ReactNode;
+      middle?: ReactNode;
+      right?: ReactNode;
+    };
+    center?: {
+      left?: ReactNode;
+      middle?: ReactNode;
+      right?: ReactNode;
+    };
+    bottom?: {
+      left?: ReactNode;
+      middle?: ReactNode;
+      right?: ReactNode;
+    };
+  };
 };
 
-export const Overlay = ({ canvasController }: OverlayProps) => {
+export const Overlay = ({ slots }: OverlayProps) => {
   console.log('Render Overlay');
   return (
     <OverlayContainer>
       <OverlayRowContainer>
-        <div>{/*Top Left*/}</div>
-        <div>{/*Top Middle*/}</div>
-        <div>{/*Top Right*/}</div>
+        <div>{slots?.top?.left}</div>
+        <div>{slots?.top?.middle}</div>
+        <div>{slots?.top?.right}</div>
       </OverlayRowContainer>
       <OverlayRowContainer>
-        <div>{/*Center Left*/}</div>
-        <div>{/*Center Middle*/}</div>
-        <div>{/*Center Right*/}</div>
+        <div>{slots?.center?.left}</div>
+        <div>{slots?.center?.middle}</div>
+        <div>{slots?.center?.right}</div>
       </OverlayRowContainer>
       <OverlayRowContainer>
-        <div>{/*Bottom Left*/}</div>
-        <div>{/*Bottom Middle*/}</div>
-        <div>
-          {/*Bottom Right*/}
-          <ZoomControls canvasController={canvasController} />
-        </div>
+        <div>{slots?.bottom?.left}</div>
+        <div>{slots?.bottom?.middle}</div>
+        <div>{slots?.bottom?.right}</div>
       </OverlayRowContainer>
     </OverlayContainer>
   );

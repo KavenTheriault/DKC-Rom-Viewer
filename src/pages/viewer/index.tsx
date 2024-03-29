@@ -8,6 +8,7 @@ import { AnimationViewer } from './animation';
 import { PaletteViewer } from './palette';
 import { NavigateToMode, ViewerMode } from './types';
 import { LevelViewer } from './level';
+import { CanvasTestState } from '../canvas-test';
 
 export interface ViewerState {
   selectedRom: SelectedRom;
@@ -95,6 +96,17 @@ export const Viewer = () => {
               Viewer
             </a>
           </li>
+          <button
+            className="button is-info is-small"
+            onClick={() => {
+              const canvasTestState: CanvasTestState = {
+                selectedRom: viewerState.selectedRom,
+              };
+              navigate('/canvas-test', { state: canvasTestState });
+            }}
+          >
+            Canvas Test
+          </button>
         </ul>
       </nav>
 

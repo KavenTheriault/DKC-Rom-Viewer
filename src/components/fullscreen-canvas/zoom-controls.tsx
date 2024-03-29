@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { CanvasController } from './canvas-controller';
-import styled from 'styled-components';
+import { ClickableContainer } from './styles';
 
 type ZoomControlsProps = {
   canvasController: CanvasController;
 };
-
-export const ZoomControlsContainer = styled.div`
-  pointer-events: auto;
-`;
 
 export const ZoomControls = ({ canvasController }: ZoomControlsProps) => {
   const [scale, setScale] = useState<number>(canvasController.scale);
@@ -41,7 +37,7 @@ export const ZoomControls = ({ canvasController }: ZoomControlsProps) => {
 
   console.log('Render ZoomControls');
   return (
-    <ZoomControlsContainer className="field has-addons is-small">
+    <ClickableContainer className="field has-addons is-small">
       <p className="control">
         <button className="button" onClick={onZoomOutClick}>
           <span className="icon is-small">
@@ -61,6 +57,6 @@ export const ZoomControls = ({ canvasController }: ZoomControlsProps) => {
           </span>
         </button>
       </p>
-    </ZoomControlsContainer>
+    </ClickableContainer>
   );
 };

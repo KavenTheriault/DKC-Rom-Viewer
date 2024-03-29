@@ -24,3 +24,7 @@ export const OverlayRowContainer = styled.div`
   flex-direction: row;
   justify-content: space-between;
 `;
+
+export const ClickableContainer = styled.div`
+  pointer-events: auto;
+`;

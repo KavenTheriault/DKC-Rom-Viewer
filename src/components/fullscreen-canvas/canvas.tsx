@@ -16,7 +16,7 @@ export type CanvasProps = {
   canvasController: CanvasController;
 };
 
-export const Canvas = ({ canvasController }: CanvasProps) => {
+export const Canvas = React.memo(({ canvasController }: CanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [canvasSize, setCanvasSize] = useState<Size>(getWindowSize());
 
@@ -100,9 +100,13 @@ export const Canvas = ({ canvasController }: CanvasProps) => {
     context: CanvasRenderingContext2D,
   ) => {
     applyTransform();
+
+    context.save();
+    context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
+    context.restore();
   };
 
   console.log('Render Canvas');
   return <CustomCanvas ref={canvasRef} color={'#1e1f22'} {...canvasSize} />;
-};
+});
