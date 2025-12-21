@@ -1,15 +1,10 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Home } from './pages/home';
-import { Viewer } from './pages/viewer';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <Home />,
-  },
-  {
-    path: 'viewer',
-    element: <Viewer />,
   },
   {
     path: 'error',
