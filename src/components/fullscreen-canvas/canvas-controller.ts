@@ -19,7 +19,6 @@ export class CanvasController {
 
   private _canvas: HTMLCanvasElement | undefined;
   private _context: CanvasRenderingContext2D | undefined;
-  private _mainDraw: OnDrawHandler | undefined;
 
   constructor() {
     console.log('CanvasController constructor');
@@ -30,16 +29,11 @@ export class CanvasController {
     this._onScaleChangeHandlers = [];
   }
 
-  attachCanvas(
-    canvas: HTMLCanvasElement,
-    context: CanvasRenderingContext2D,
-    mainDraw: OnDrawHandler,
-  ) {
+  attachCanvas(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) {
     console.log('CanvasController attachCanvas');
 
     this._canvas = canvas;
     this._context = context;
-    this._mainDraw = mainDraw;
   }
 
   get canvas(): HTMLCanvasElement {
@@ -70,11 +64,24 @@ export class CanvasController {
   }
 
   draw() {
-    if (!this._canvas || !this._context || !this._mainDraw) {
+    if (!this._canvas || !this._context) {
       throw new Error('No canvas attached to this controller.');
     }
 
-    this._mainDraw(this._canvas, this._context);
+    this._context.setTransform(
+      this._scale,
+      0,
+      0,
+      this._scale,
+      this._translatePosition.x,
+      this._translatePosition.y,
+    );
+
+    this._context.save();
+    this._context.setTransform(1, 0, 0, 1, 0, 0);
+    this._context.clearRect(0, 0, this._canvas.width, this._canvas.height);
+    this._context.restore();
+
     for (const onDrawHandler of this._onDrawHandlers) {
       onDrawHandler(this._canvas, this._context);
     }

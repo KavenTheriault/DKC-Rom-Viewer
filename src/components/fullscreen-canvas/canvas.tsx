@@ -17,17 +17,22 @@ export type CanvasProps = {
 };
 
 export const Canvas = React.memo(({ canvasController }: CanvasProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [canvasSize, setCanvasSize] = useState<Size>(getWindowSize());
 
   useEffect(() => {
-    const { canvas, context } = getCanvas();
-    canvasController.attachCanvas(canvas, context, internalDraw);
+    if (!canvasRef.current) return;
+    const context = canvasRef.current.getContext('2d');
+    if (!context) return;
+
+    canvasController.attachCanvas(canvasRef.current, context);
 
     window.addEventListener('resize', onResizeWindow);
     canvasRef.current?.addEventListener('wheel', onWheel);
     canvasRef.current?.addEventListener('mousedown', onMouseDown);
     return () => {
+      if (!canvasRef.current) return;
+
       window.removeEventListener('resize', onResizeWindow);
       canvasRef.current?.removeEventListener('wheel', onWheel);
       canvasRef.current?.removeEventListener('mousedown', onMouseDown);
@@ -40,15 +45,6 @@ export const Canvas = React.memo(({ canvasController }: CanvasProps) => {
 
   const onResizeWindow = () => {
     setCanvasSize(getWindowSize());
-  };
-
-  const getCanvas = () => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const context = canvas.getContext('2d');
-      if (context) return { canvas, context };
-    }
-    throw new Error();
   };
 
   const onWheel = (event: WheelEvent) => {
@@ -80,31 +76,6 @@ export const Canvas = React.memo(({ canvasController }: CanvasProps) => {
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
-  };
-
-  const applyTransform = () => {
-    const { context } = getCanvas();
-
-    context.setTransform(
-      canvasController.scale,
-      0,
-      0,
-      canvasController.scale,
-      canvasController.translatePosition.x,
-      canvasController.translatePosition.y,
-    );
-  };
-
-  const internalDraw = (
-    canvas: HTMLCanvasElement,
-    context: CanvasRenderingContext2D,
-  ) => {
-    applyTransform();
-
-    context.save();
-    context.setTransform(1, 0, 0, 1, 0, 0);
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.restore();
   };
 
   console.log('Render Canvas');
