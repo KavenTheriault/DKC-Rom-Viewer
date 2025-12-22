@@ -6,7 +6,7 @@ interface CollapsibleBoxProps {
 }
 
 export const CollapsibleBox = ({ children }: CollapsibleBoxProps) => {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(true);
 
   const renderShowHideButton = () => {
     return (

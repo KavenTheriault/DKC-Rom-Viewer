@@ -40,20 +40,7 @@ export const Home = () => {
         top: {
           left: (
             <HomeContainer>
-              <MainMenu
-                menuGroups={[
-                  {
-                    label: 'General',
-                    items: [
-                      { fasIcon: 'fa-object-group', label: 'Entity' },
-                      { fasIcon: 'fa-panorama', label: 'Animation' },
-                      { fasIcon: 'fa-image', label: 'Sprite' },
-                      { fasIcon: 'fa-palette', label: 'Palette' },
-                      { fasIcon: 'fa-scroll', label: 'Level' },
-                    ],
-                  },
-                ]}
-              />
+              <MainMenu />
               <CollapsibleBox>
                 <label className="label">Address</label>
                 <input type="text" className="input" />

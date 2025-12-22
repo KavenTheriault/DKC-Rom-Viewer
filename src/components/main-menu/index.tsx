@@ -1,21 +1,11 @@
 import React from 'react';
 import { MenuDiv, MenuItemA } from './styles';
+import { MainMenuGroup, MainMenuItem } from './types';
+import { useAppSelector } from '../../state';
 
-interface MainMenuItem {
-  label: string;
-  fasIcon?: string;
-}
+export const MainMenu = () => {
+  const mainMenuGroups = useAppSelector((s) => s.mainMenuGroups);
 
-interface MainMenuGroup {
-  label: string;
-  items: MainMenuItem[];
-}
-
-interface MainMenuProps {
-  menuGroups: MainMenuGroup[];
-}
-
-export const MainMenu = ({ menuGroups }: MainMenuProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState<MainMenuItem>();
 
@@ -75,7 +65,7 @@ export const MainMenu = ({ menuGroups }: MainMenuProps) => {
         <div className="dropdown-content">
           <MenuDiv>
             <aside className="menu">
-              {menuGroups.map(renderMainMenuGroup)}
+              {mainMenuGroups.map(renderMainMenuGroup)}
             </aside>
           </MenuDiv>
         </div>
