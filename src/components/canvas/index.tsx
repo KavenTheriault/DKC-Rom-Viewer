@@ -14,7 +14,7 @@ export type CanvasProps = {
 
 export const Canvas = React.memo(({ canvasController }: CanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [canvasSize, setCanvasSize] = useState<Size>(getWindowSize());
+  const [windowSize, setWindowSize] = useState<Size>(getWindowSize());
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -37,10 +37,10 @@ export const Canvas = React.memo(({ canvasController }: CanvasProps) => {
 
   useEffect(() => {
     canvasController.draw();
-  }, [canvasSize]);
+  }, [windowSize]);
 
   const onResizeWindow = () => {
-    setCanvasSize(getWindowSize());
+    setWindowSize(getWindowSize());
   };
 
   const onWheel = (event: WheelEvent) => {
@@ -78,8 +78,8 @@ export const Canvas = React.memo(({ canvasController }: CanvasProps) => {
     <CustomCanvas
       ref={canvasRef}
       color={'#1e1f22'}
-      width={canvasSize.width}
-      height={canvasSize.height}
+      width={windowSize.width}
+      height={windowSize.height}
     />
   );
 });

@@ -1,7 +1,6 @@
 import { CanvasController } from '../components/canvas/canvas-controller';
 import { useEffect, useRef } from 'react';
-import { ZoomControls } from '../components/zoom-controls';
-import { Canvas } from '../components/canvas';
+import { CanvasWithControl } from '../components/canvas-with-controls';
 
 export const Home = () => {
   const canvasController = useRef<CanvasController>(new CanvasController());
@@ -31,10 +30,5 @@ export const Home = () => {
     );
   };
 
-  return (
-    <>
-      <Canvas canvasController={canvasController.current} />
-      <ZoomControls canvasController={canvasController.current} />
-    </>
-  );
+  return <CanvasWithControl canvasController={canvasController.current} />;
 };
