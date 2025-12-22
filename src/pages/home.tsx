@@ -1,6 +1,8 @@
 import { CanvasController } from '../components/canvas/canvas-controller';
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { CanvasWithControl } from '../components/canvas-with-controls';
+import { Overlay } from '../components/overlay';
+import { MainMenu } from '../components/main-menu';
 
 export const Home = () => {
   const canvasController = useRef<CanvasController>(new CanvasController());
@@ -30,5 +32,32 @@ export const Home = () => {
     );
   };
 
-  return <CanvasWithControl canvasController={canvasController.current} />;
+  return (
+    <Overlay
+      slots={{
+        top: {
+          left: (
+            <div style={{ pointerEvents: 'auto' }}>
+              <MainMenu
+                menuGroups={[
+                  {
+                    label: 'General',
+                    items: [
+                      { fasIcon: 'fa-object-group', label: 'Entity' },
+                      { fasIcon: 'fa-panorama', label: 'Animation' },
+                      { fasIcon: 'fa-image', label: 'Sprite' },
+                      { fasIcon: 'fa-palette', label: 'Palette' },
+                      { fasIcon: 'fa-scroll', label: 'Level' },
+                    ],
+                  },
+                ]}
+              />
+            </div>
+          ),
+        },
+      }}
+    >
+      <CanvasWithControl canvasController={canvasController.current} />
+    </Overlay>
+  );
 };

@@ -13,6 +13,9 @@ export const OverlayContainer = styled.div`
   pointer-events: none;
   height: 100vh;
   width: 100vw;
+
+  position: relative;
+  z-index: 1;
 `;
 
 export const OverlayRowContainer = styled.div`
