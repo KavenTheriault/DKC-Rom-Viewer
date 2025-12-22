@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import {
+  OverlayCellContainer,
   OverlayChildrenContainer,
   OverlayContainer,
   OverlayRowContainer,
@@ -31,19 +32,19 @@ export const Overlay = ({ children, slots }: OverlayProps) => (
     <OverlayChildrenContainer>{children}</OverlayChildrenContainer>
     <OverlayContainer>
       <OverlayRowContainer>
-        <div>{slots?.top?.left}</div>
-        <div>{slots?.top?.middle}</div>
-        <div>{slots?.top?.right}</div>
+        <OverlayCellContainer>{slots?.top?.left}</OverlayCellContainer>
+        <OverlayCellContainer>{slots?.top?.middle}</OverlayCellContainer>
+        <OverlayCellContainer>{slots?.top?.right}</OverlayCellContainer>
       </OverlayRowContainer>
       <OverlayRowContainer>
-        <div>{slots?.center?.left}</div>
-        <div>{slots?.center?.middle}</div>
-        <div>{slots?.center?.right}</div>
+        <OverlayCellContainer>{slots?.center?.left}</OverlayCellContainer>
+        <OverlayCellContainer>{slots?.center?.middle}</OverlayCellContainer>
+        <OverlayCellContainer>{slots?.center?.right}</OverlayCellContainer>
       </OverlayRowContainer>
       <OverlayRowContainer>
-        <div>{slots?.bottom?.left}</div>
-        <div>{slots?.bottom?.middle}</div>
-        <div>{slots?.bottom?.right}</div>
+        <OverlayCellContainer>{slots?.bottom?.left}</OverlayCellContainer>
+        <OverlayCellContainer>{slots?.bottom?.middle}</OverlayCellContainer>
+        <OverlayCellContainer>{slots?.bottom?.right}</OverlayCellContainer>
       </OverlayRowContainer>
     </OverlayContainer>
   </>

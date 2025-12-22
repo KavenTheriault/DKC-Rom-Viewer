@@ -23,3 +23,7 @@ export const OverlayRowContainer = styled.div`
   flex-direction: row;
   justify-content: space-between;
 `;
+
+export const OverlayCellContainer = styled.div`
+  pointer-events: auto;
+`;

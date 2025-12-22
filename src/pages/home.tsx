@@ -3,6 +3,8 @@ import React, { useEffect, useRef } from 'react';
 import { CanvasWithControl } from '../components/canvas-with-controls';
 import { Overlay } from '../components/overlay';
 import { MainMenu } from '../components/main-menu';
+import { CollapsibleBox } from '../components/collapsible-box';
+import styled from 'styled-components';
 
 export const Home = () => {
   const canvasController = useRef<CanvasController>(new CanvasController());
@@ -37,7 +39,7 @@ export const Home = () => {
       slots={{
         top: {
           left: (
-            <div style={{ pointerEvents: 'auto' }}>
+            <HomeContainer>
               <MainMenu
                 menuGroups={[
                   {
@@ -52,7 +54,13 @@ export const Home = () => {
                   },
                 ]}
               />
-            </div>
+              <CollapsibleBox>
+                <label className="label">Address</label>
+                <input type="text" className="input" />
+                <label className="label">Index</label>
+                <input type="text" className="input" />
+              </CollapsibleBox>
+            </HomeContainer>
           ),
         },
       }}
@@ -61,3 +69,11 @@ export const Home = () => {
     </Overlay>
   );
 };
+
+export const HomeContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: start;
+  gap: 16px;
+`;

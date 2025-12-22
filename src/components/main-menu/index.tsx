@@ -55,11 +55,19 @@ export const MainMenu = ({ menuGroups }: MainMenuProps) => {
           }}
         >
           <span className="icon is-small">
-            <i className="fas fa-bars" aria-hidden="true"></i>
+            <i
+              className={
+                selectedItem ? `fas ${selectedItem.fasIcon}` : 'fas fa-bars'
+              }
+              aria-hidden="true"
+            ></i>
           </span>
-          <span>{`Menu${selectedItem ? ' | ' + selectedItem.label : ''}`}</span>
+          <span>{selectedItem ? selectedItem.label : 'Menu'}</span>
           <span className="icon is-small">
-            <i className="fas fa-angle-down" aria-hidden="true"></i>
+            <i
+              className={isOpen ? 'fas fa-angle-up' : 'fas fa-angle-down'}
+              aria-hidden="true"
+            ></i>
           </span>
         </button>
       </div>
