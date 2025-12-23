@@ -1,4 +1,4 @@
-import { Position } from '../../common/types';
+import { Position } from '../../types/spatial';
 
 const ZOOM_SPEED_PERCENTAGE = 1.2;
 

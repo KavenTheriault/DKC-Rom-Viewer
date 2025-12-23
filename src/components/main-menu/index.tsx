@@ -1,20 +1,22 @@
 import React from 'react';
 import { MenuDiv, MenuItemA } from './styles';
-import { MainMenuGroup, MainMenuItem } from './types';
-import { useAppSelector } from '../../state';
+import { setState, useAppSelector } from '../../state';
+import { MainMenuGroup, MainMenuItem } from '../../types/layout';
 
 export const MainMenu = () => {
-  const mainMenuGroups = useAppSelector((s) => s.mainMenuGroups);
-
   const [isOpen, setIsOpen] = React.useState(false);
-  const [selectedItem, setSelectedItem] = React.useState<MainMenuItem>();
 
-  const renderMainMenuItem = (item: MainMenuItem) => (
-    <li>
+  const groups = useAppSelector((s) => s.mainMenu.groups);
+  const selectedItem = useAppSelector((s) => s.mainMenu.selectedItem);
+
+  const renderItem = (item: MainMenuItem) => (
+    <li key={item.label.toLowerCase()}>
       <MenuItemA
         className={selectedItem === item ? 'is-active' : ''}
         onClick={() => {
-          setSelectedItem(item);
+          setState(() => ({
+            mainMenu: { selectedItem: item },
+          }));
           setIsOpen(false);
         }}
       >
@@ -26,10 +28,10 @@ export const MainMenu = () => {
     </li>
   );
 
-  const renderMainMenuGroup = (item: MainMenuGroup) => (
+  const renderGroup = (item: MainMenuGroup) => (
     <>
       <p className="menu-label">{item.label}</p>
-      <ul className="menu-list">{item.items.map(renderMainMenuItem)}</ul>
+      <ul className="menu-list">{item.items.map(renderItem)}</ul>
     </>
   );
 
@@ -64,9 +66,7 @@ export const MainMenu = () => {
       <div className="dropdown-menu" id="dropdown-menu" role="menu">
         <div className="dropdown-content">
           <MenuDiv>
-            <aside className="menu">
-              {mainMenuGroups.map(renderMainMenuGroup)}
-            </aside>
+            <aside className="menu">{groups.map(renderGroup)}</aside>
           </MenuDiv>
         </div>
       </div>

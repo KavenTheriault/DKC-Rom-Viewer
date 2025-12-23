@@ -1,16 +1,15 @@
 import { AppState } from './types';
+import { generalGroup, otherGroup } from '../menu/groups';
+import { aboutItem, loadRomItem } from '../menu/items';
+import { CanvasController } from '../components/canvas/canvas-controller';
 
 export const defaultAppState: AppState = {
-  mainMenuGroups: [
-    {
-      label: 'General',
-      items: [
-        { fasIcon: 'fa-object-group', label: 'Entity' },
-        { fasIcon: 'fa-panorama', label: 'Animation' },
-        { fasIcon: 'fa-image', label: 'Sprite' },
-        { fasIcon: 'fa-palette', label: 'Palette' },
-        { fasIcon: 'fa-scroll', label: 'Level' },
-      ],
-    },
-  ],
+  canvasController: new CanvasController(),
+  mainMenu: {
+    groups: [
+      { ...generalGroup, items: [loadRomItem] },
+      { ...otherGroup, items: [aboutItem] },
+    ],
+    selectedItem: loadRomItem,
+  },
 };

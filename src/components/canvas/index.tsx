@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CustomCanvas } from './styles';
 import { CanvasController } from './canvas-controller';
-import { Size } from '../../common/types';
+import { Size } from '../../types/spatial';
+
+const BACKGROUND_COLOR = '#1e1f22';
 
 const getWindowSize = (): Size => ({
   width: window.innerWidth,
@@ -77,7 +79,7 @@ export const Canvas = React.memo(({ canvasController }: CanvasProps) => {
   return (
     <CustomCanvas
       ref={canvasRef}
-      color={'#1e1f22'}
+      color={BACKGROUND_COLOR}
       width={windowSize.width}
       height={windowSize.height}
     />

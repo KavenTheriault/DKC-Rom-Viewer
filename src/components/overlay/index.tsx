@@ -5,26 +5,11 @@ import {
   OverlayContainer,
   OverlayRowContainer,
 } from './styles';
+import { OverlaySlots } from '../../types/layout';
 
 export type OverlayProps = {
   children: ReactNode;
-  slots?: {
-    top?: {
-      left?: ReactNode;
-      middle?: ReactNode;
-      right?: ReactNode;
-    };
-    center?: {
-      left?: ReactNode;
-      middle?: ReactNode;
-      right?: ReactNode;
-    };
-    bottom?: {
-      left?: ReactNode;
-      middle?: ReactNode;
-      right?: ReactNode;
-    };
-  };
+  slots?: OverlaySlots;
 };
 
 export const Overlay = ({ children, slots }: OverlayProps) => (
