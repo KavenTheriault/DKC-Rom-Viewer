@@ -6,7 +6,7 @@ import { MainMenu } from '../components/main-menu';
 import { CollapsibleBox } from '../components/collapsible-box';
 import styled from 'styled-components';
 
-export const Home = () => {
+export const Explorer = () => {
   const canvasController = useRef<CanvasController>(new CanvasController());
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export const Home = () => {
     canvas: HTMLCanvasElement,
     context: CanvasRenderingContext2D,
   ) => {
-    const text = 'Hello World';
+    const text = 'Donkey Kong Country - Explorer';
     context.fillStyle = 'white';
     context.font = '48px Arial';
 
