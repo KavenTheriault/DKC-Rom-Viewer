@@ -11,8 +11,8 @@ export type OnDrawHandler = (
 export class CanvasController {
   private _scale: number;
   private _translatePosition: Position;
-  private readonly _onDrawHandlers: OnDrawHandler[];
-  private readonly _onScaleChangeHandlers: OnScaleChangeHandler[];
+  private readonly _onDrawHandlers: Set<OnDrawHandler>;
+  private readonly _onScaleChangeHandlers: Set<OnScaleChangeHandler>;
 
   private _canvas: HTMLCanvasElement | undefined;
   private _context: CanvasRenderingContext2D | undefined;
@@ -20,8 +20,8 @@ export class CanvasController {
   constructor() {
     this._scale = 1;
     this._translatePosition = { x: 0, y: 0 };
-    this._onDrawHandlers = [];
-    this._onScaleChangeHandlers = [];
+    this._onDrawHandlers = new Set<OnDrawHandler>();
+    this._onScaleChangeHandlers = new Set<OnScaleChangeHandler>();
   }
 
   attachCanvas(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) {
@@ -79,27 +79,19 @@ export class CanvasController {
   }
 
   registerDrawHandler(handler: OnDrawHandler) {
-    this._onDrawHandlers.push(handler);
+    this._onDrawHandlers.add(handler);
   }
 
   unregisterDrawHandler(handler: OnDrawHandler) {
-    const handlerIndex = this._onDrawHandlers.findIndex((h) => h === handler);
-    if (handlerIndex >= 0) {
-      this._onDrawHandlers.splice(handlerIndex, 1);
-    }
+    this._onDrawHandlers.delete(handler);
   }
 
   registerScaleChangeHandler(handler: OnScaleChangeHandler) {
-    this._onScaleChangeHandlers.push(handler);
+    this._onScaleChangeHandlers.add(handler);
   }
 
   unregisterScaleChangeHandler(handler: OnScaleChangeHandler) {
-    const handlerIndex = this._onScaleChangeHandlers.findIndex(
-      (h) => h === handler,
-    );
-    if (handlerIndex >= 0) {
-      this._onScaleChangeHandlers.splice(handlerIndex, 1);
-    }
+    this._onScaleChangeHandlers.delete(handler);
   }
 
   zoom(direction: 'in' | 'out', x: number, y: number) {
