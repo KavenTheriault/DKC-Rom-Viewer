@@ -1,5 +1,6 @@
 import { MainMenuGroup, MainMenuItem } from '../types/layout';
 import { CanvasController } from '../components/canvas/canvas-controller';
+import { Rom } from '../../rom-io/rom/types';
 
 export interface AppState {
   canvasController: CanvasController;
@@ -7,5 +8,5 @@ export interface AppState {
     groups: MainMenuGroup[];
     selectedItem: MainMenuItem;
   };
-  rom?: object;
+  rom: Rom | null;
 }
