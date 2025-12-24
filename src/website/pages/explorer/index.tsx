@@ -17,6 +17,7 @@ export const Explorer = () => {
           slots={{
             ...slots,
             top: {
+              ...slots.top,
               left: (
                 <OverlaySlotsContainer>
                   <MainMenu />
