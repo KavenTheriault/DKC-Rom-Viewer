@@ -36,7 +36,7 @@ export const romInfoMenuItem: MainMenuItem = {
   isAvailable: (s) => !!s.rom,
 };
 export const aboutMenuItem: MainMenuItem = {
-  label: 'About',
+  label: 'About this project',
   fasIcon: 'fa-circle-info',
   component: About,
 };

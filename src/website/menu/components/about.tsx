@@ -1,6 +1,6 @@
 import { MainMenuItemComponent } from '../../types/layout';
 import React from 'react';
-import { CollapsibleBox } from '../../components/collapsible-box';
+import { CollapsiblePanel } from '../../components/collapsible-panel';
 import { useDrawAppName } from '../common/draw-app-name';
 
 export const About: MainMenuItemComponent = ({ children }) => {
@@ -9,22 +9,22 @@ export const About: MainMenuItemComponent = ({ children }) => {
   return children({
     top: {
       left: (
-        <CollapsibleBox>
-          <p>
+        <CollapsiblePanel title="About this project">
+          <div>
             <strong>Donkey Kong Country - Explorer</strong> by{' '}
             <a href="https://github.com/KavenTheriault" target="_blank">
               Kaven Thériault
             </a>
-            <br />
-            <br />
+          </div>
+          <div className="mt-2">
             <a
               href="https://github.com/KavenTheriault/DKC-Rom-Viewer/"
               target="_blank"
             >
               GitHub Repository
             </a>
-          </p>
-        </CollapsibleBox>
+          </div>
+        </CollapsiblePanel>
       ),
     },
   });

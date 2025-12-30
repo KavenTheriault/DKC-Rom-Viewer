@@ -1,7 +1,7 @@
 import { Buffer as WebBuffer } from 'buffer';
 import React, { ChangeEvent, useState } from 'react';
 import { readRomFile } from '../../../rom-io/rom';
-import { CollapsibleBox } from '../../components/collapsible-box';
+import { CollapsiblePanel } from '../../components/collapsible-panel';
 import { setState, useAppSelector } from '../../state';
 import { MainMenuItemComponent } from '../../types/layout';
 import { useDrawAppName } from '../common/draw-app-name';
@@ -33,14 +33,14 @@ export const LoadRom: MainMenuItemComponent = ({ children }) => {
   return children({
     top: {
       left: (
-        <CollapsibleBox>
+        <CollapsiblePanel title="Load Rom">
           {rom ? (
             <>
               <div className="block">
                 Selected Rom:{' '}
                 <strong>
                   {rom.header.title}{' '}
-                  <span className="tag is-info">{rom.header.version}</span>
+                  <span className="tag is-light">{rom.header.version}</span>
                 </strong>
               </div>
               <button
@@ -80,7 +80,7 @@ export const LoadRom: MainMenuItemComponent = ({ children }) => {
               </div>
             </>
           )}
-        </CollapsibleBox>
+        </CollapsiblePanel>
       ),
     },
   });

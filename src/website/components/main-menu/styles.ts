@@ -2,6 +2,7 @@ import styled from 'styled-components';
 
 export const MenuDiv = styled.div`
   margin: 0 8px;
+  min-width: 12rem;
 `;
 
 export const MenuItemA = styled.a`

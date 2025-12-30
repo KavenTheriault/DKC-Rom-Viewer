@@ -15,21 +15,21 @@ export const LoadHexadecimalInput = ({
 }: LoadHexadecimalInputProps) => {
   return (
     <div className="block">
-      <label className="label">{label}</label>
+      <label className="label is-small">{label}</label>
       <div className="field has-addons">
         <p className="control">
-          <a className="button is-static">0x</a>
+          <a className="button is-static is-small">0x</a>
         </p>
         <p className="control">
           <HexadecimalInput
-            className="input"
+            className="input is-small"
             placeholder="Hexadecimal"
             value={hexadecimalValue}
             onChange={onValueChange}
           />
         </p>
         <p className="control">
-          <a className="button is-primary" onClick={onValueLoad}>
+          <a className="button is-primary is-small" onClick={onValueLoad}>
             Load
           </a>
         </p>
