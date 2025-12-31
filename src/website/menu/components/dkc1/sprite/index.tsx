@@ -15,6 +15,7 @@ import { MainMenuItemComponent } from '../../../../types/layout';
 import { drawImage, getDrawCenterOffset } from '../../../../utils/draw';
 import { toHexString } from '../../../../utils/hex';
 import { DEFAULT_PALETTE, DEFAULT_SPRITE_POINTER } from '../defaults';
+import { SpriteHeaderInfo } from './header';
 import { SpritePointerInput } from './pointer-input';
 import { AddressesDiv } from './styles';
 
@@ -113,39 +114,47 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
   return children({
     top: {
       left: (
-        <CollapsiblePanel title="Addresses">
-          <AddressesDiv>
-            <LoadHexadecimalInput
-              label="SNES Address"
-              hexadecimalValue={snesAddress}
-              onValueChange={setSnesAddress}
-              onValueLoad={loadSpriteFromSnesAddressInput}
-            />
-            <SpritePointerInput
-              label={
-                <>
-                  Sprite Pointer{' '}
-                  <span className="tag is-light">
-                    from {toHexString(SpritePointerTable, { addPrefix: true })}
-                  </span>
-                </>
-              }
-              hexadecimalValue={spritePointer}
-              onValueChange={(value) => {
-                if (value) setSpritePointer(value);
-              }}
-              onValueLoad={(value) => loadSpritePointer(value)}
-            />
-            <LoadHexadecimalInput
-              label="Palette Address"
-              hexadecimalValue={paletteAddress}
-              onValueChange={(value) => {
-                if (value) setPaletteAddress(value);
-              }}
-              onValueLoad={loadSpriteFromSnesAddressInput}
-            />
-          </AddressesDiv>
-        </CollapsiblePanel>
+        <>
+          <CollapsiblePanel title="Addresses">
+            <AddressesDiv>
+              <LoadHexadecimalInput
+                label="SNES Address"
+                hexadecimalValue={snesAddress}
+                onValueChange={setSnesAddress}
+                onValueLoad={loadSpriteFromSnesAddressInput}
+              />
+              <SpritePointerInput
+                label={
+                  <>
+                    Sprite Pointer{' '}
+                    <span className="tag is-light">
+                      from{' '}
+                      {toHexString(SpritePointerTable, { addPrefix: true })}
+                    </span>
+                  </>
+                }
+                hexadecimalValue={spritePointer}
+                onValueChange={(value) => {
+                  if (value) setSpritePointer(value);
+                }}
+                onValueLoad={(value) => loadSpritePointer(value)}
+              />
+              <LoadHexadecimalInput
+                label="Palette Address"
+                hexadecimalValue={paletteAddress}
+                onValueChange={(value) => {
+                  if (value) setPaletteAddress(value);
+                }}
+                onValueLoad={loadSpriteFromSnesAddressInput}
+              />
+            </AddressesDiv>
+          </CollapsiblePanel>
+          {sprite && (
+            <CollapsiblePanel title="Sprite Header">
+              <SpriteHeaderInfo spriteHeader={sprite.header} />
+            </CollapsiblePanel>
+          )}
+        </>
       ),
       middle: (
         <>{error && <div className="notification is-danger">{error}</div>}</>
