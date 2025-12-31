@@ -3,6 +3,7 @@ import { buildImageFromPixelsAndPalette } from '../../../../../rom-io/common/ima
 import { readPalette } from '../../../../../rom-io/common/palettes';
 import { readSprite, Sprite } from '../../../../../rom-io/common/sprites';
 import { assembleSprite } from '../../../../../rom-io/common/sprites/sprite-part';
+import { SpritePart } from '../../../../../rom-io/common/sprites/types';
 import { validateSpriteHeader } from '../../../../../rom-io/common/sprites/validation';
 import { SpritePointerTable } from '../../../../../rom-io/dkc1/constants';
 import { getAddressFromSpritePointerIndex } from '../../../../../rom-io/dkc1/utils';
@@ -10,12 +11,19 @@ import { RomAddress } from '../../../../../rom-io/rom/address';
 import { ImageMatrix } from '../../../../../rom-io/types/image-matrix';
 import { CollapsiblePanel } from '../../../../components/collapsible-panel';
 import { LoadHexadecimalInput } from '../../../../components/hexadecimal-input/with-load-button';
+import { OverlaySlotsContainer } from '../../../../pages/explorer/styles';
 import { useAppSelector } from '../../../../state';
 import { MainMenuItemComponent } from '../../../../types/layout';
-import { drawImage, getDrawCenterOffset } from '../../../../utils/draw';
+import {
+  drawImage,
+  drawRectangle,
+  getDrawCenterOffset,
+} from '../../../../utils/draw';
 import { toHexString } from '../../../../utils/hex';
 import { DEFAULT_PALETTE, DEFAULT_SPRITE_POINTER } from '../defaults';
 import { SpriteHeaderInfo } from './header';
+import { SpritePartInfo } from './part-info';
+import { SpritePartSelector } from './part-selector';
 import { SpritePointerInput } from './pointer-input';
 import { AddressesDiv } from './styles';
 
@@ -32,6 +40,9 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
 
   const [sprite, setSprite] = useState<Sprite>();
   const [spriteImage, setSpriteImage] = useState<ImageMatrix>();
+  const [selectedSpriteParts, setSelectedSpriteParts] = useState<SpritePart[]>(
+    [],
+  );
   const [error, setError] = useState('');
 
   const loadSpriteFromSnesAddressInput = () => {
@@ -71,8 +82,7 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
       setSprite(undefined);
       setSpriteImage(undefined);
     }
-    //setShowSelectedPartsBorder(false);
-    //setSelectedPartIndexes([0]);
+    setSelectedSpriteParts([]);
   };
 
   const buildSpriteImage = (
@@ -95,6 +105,21 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
     if (spriteImage) {
       const centerOffset = getDrawCenterOffset(canvas, spriteImage.size);
       drawImage(context, spriteImage, centerOffset);
+
+      selectedSpriteParts.forEach((part) =>
+        drawRectangle(
+          context,
+          {
+            lineWidth: 0.5,
+            strokeStyle: 'white',
+            x: part.coordinate.x,
+            y: part.coordinate.y,
+            width: part.type === '8x8' ? 8 : 16,
+            height: part.type === '8x8' ? 8 : 16,
+          },
+          centerOffset,
+        ),
+      );
     }
   };
 
@@ -109,7 +134,7 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
     return () => {
       canvasController.unregisterDrawHandler(drawSpriteImage);
     };
-  }, [spriteImage]);
+  }, [spriteImage, selectedSpriteParts]);
 
   return children({
     top: {
@@ -159,6 +184,21 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
       middle: (
         <>{error && <div className="notification is-danger">{error}</div>}</>
       ),
+      right: sprite ? (
+        <OverlaySlotsContainer className="is-align-items-end">
+          <CollapsiblePanel title="Sprite Parts">
+            <SpritePartSelector
+              spriteParts={sprite.parts}
+              onSelectedPartsChange={setSelectedSpriteParts}
+            />
+          </CollapsiblePanel>
+          {selectedSpriteParts.length === 1 && (
+            <CollapsiblePanel title="Selected Part">
+              <SpritePartInfo spritePart={selectedSpriteParts[0]} />
+            </CollapsiblePanel>
+          )}
+        </OverlaySlotsContainer>
+      ) : null,
     },
   });
 };

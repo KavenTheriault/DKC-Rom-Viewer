@@ -28,6 +28,31 @@ export const drawImage = (
   context.drawImage(offscreenCanvas, offset?.width ?? 0, offset?.height ?? 0);
 };
 
+export const drawRectangle = (
+  context: CanvasRenderingContext2D,
+  rectangle: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    lineWidth: number;
+    strokeStyle: string;
+  },
+  offset?: Size,
+) => {
+  context.lineWidth = rectangle.lineWidth;
+  context.strokeStyle = rectangle.strokeStyle;
+
+  context.beginPath();
+  context.rect(
+    rectangle.x + (offset?.width ?? 0),
+    rectangle.y + (offset?.height ?? 0),
+    rectangle.width,
+    rectangle.height,
+  );
+  context.stroke();
+};
+
 export const getDrawCenterOffset = (
   canvas: HTMLCanvasElement,
   contentSize: Size,

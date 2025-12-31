@@ -1,6 +1,6 @@
 import { SpriteHeader } from '../../../../../rom-io/common/sprites/header';
 import { toHexString } from '../../../../utils/hex';
-import { SpriteHeaderTable } from './styles';
+import { InfoTable } from './styles';
 
 interface SpriteHeaderTableProps {
   spriteHeader: SpriteHeader;
@@ -8,7 +8,7 @@ interface SpriteHeaderTableProps {
 
 export const SpriteHeaderInfo = ({ spriteHeader }: SpriteHeaderTableProps) => {
   return (
-    <SpriteHeaderTable>
+    <InfoTable>
       <tbody>
         <tr key="header1">
           <th>Tiles</th>
@@ -140,6 +140,6 @@ export const SpriteHeaderInfo = ({ spriteHeader }: SpriteHeaderTableProps) => {
           </td>
         </tr>
       </tbody>
-    </SpriteHeaderTable>
+    </InfoTable>
   );
 };
