@@ -17,6 +17,17 @@ export type Sprite = {
   parts: SpritePart[];
 };
 
+export const getAddressFromSpritePointerIndex = (
+  romData: Buffer,
+  spritePointerTableSnesAddress: number,
+  spritePointerIndex: number,
+): RomAddress => {
+  const address: RomAddress = RomAddress.fromSnesAddress(
+    spritePointerTableSnesAddress + spritePointerIndex,
+  );
+  return readSpritePointer(romData, address);
+};
+
 export const readSpritePointer = (
   romData: Buffer,
   address: RomAddress,

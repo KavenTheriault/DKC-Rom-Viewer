@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react';
 import { buildImageFromPixelsAndPalette } from '../../../../../rom-io/common/images';
 import { readPalette } from '../../../../../rom-io/common/palettes';
-import { readSprite, Sprite } from '../../../../../rom-io/common/sprites';
+import {
+  getAddressFromSpritePointerIndex,
+  readSprite,
+  Sprite,
+} from '../../../../../rom-io/common/sprites';
+import { scanSprites } from '../../../../../rom-io/common/sprites/scan';
 import { assembleSprite } from '../../../../../rom-io/common/sprites/sprite-part';
 import { SpritePart } from '../../../../../rom-io/common/sprites/types';
 import { validateSpriteHeader } from '../../../../../rom-io/common/sprites/validation';
-import { SpritePointerTable } from '../../../../../rom-io/dkc1/constants';
-import { getAddressFromSpritePointerIndex } from '../../../../../rom-io/dkc1/utils';
+import { Dkc1SpritePointerTable } from '../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../rom-io/rom/address';
 import { ImageMatrix } from '../../../../../rom-io/types/image-matrix';
 import { CollapsiblePanel } from '../../../../components/collapsible-panel';
 import { LoadHexadecimalInput } from '../../../../components/hexadecimal-input/with-load-button';
+import { ScanControls } from '../../../../components/scan-controls';
 import { OverlaySlotsContainer } from '../../../../pages/explorer/styles';
 import { useAppSelector } from '../../../../state';
 import { MainMenuItemComponent } from '../../../../types/layout';
@@ -57,6 +62,7 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
   const loadSpritePointer = (spritePointer: number) => {
     const spriteAddress = getAddressFromSpritePointerIndex(
       rom.data,
+      Dkc1SpritePointerTable,
       spritePointer,
     );
     setSnesAddress(spriteAddress.snesAddress);
@@ -154,7 +160,7 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
                     Sprite Pointer{' '}
                     <span className="tag is-light">
                       from{' '}
-                      {toHexString(SpritePointerTable, { addPrefix: true })}
+                      {toHexString(Dkc1SpritePointerTable, { addPrefix: true })}
                     </span>
                   </>
                 }
@@ -199,6 +205,20 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
           )}
         </OverlaySlotsContainer>
       ) : null,
+    },
+    bottom: {
+      middle: (
+        <CollapsiblePanel title="Scan Sprites">
+          <ScanControls
+            rom={rom}
+            scanFn={scanSprites}
+            onSelectedAddressChange={(spriteAddress) => {
+              setSnesAddress(spriteAddress.snesAddress);
+              loadSprite(spriteAddress);
+            }}
+          />
+        </CollapsiblePanel>
+      ),
     },
   });
 };
