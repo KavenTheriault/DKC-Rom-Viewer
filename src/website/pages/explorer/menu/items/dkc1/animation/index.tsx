@@ -25,6 +25,7 @@ import { drawImage, getDrawCenterOffset } from '../../../../../../utils/draw';
 import { toHexString } from '../../../../../../utils/hex';
 import { DEFAULT_ANIMATION_INDEX, DEFAULT_PALETTE } from '../defaults';
 import { AddressesDiv } from '../styles';
+import { AnimationEntries } from './entries';
 import { AnimationIndexInput } from './index-input';
 
 export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
@@ -198,6 +199,11 @@ export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
       middle: (
         <>{error && <div className="notification is-danger">{error}</div>}</>
       ),
+      right: animationInfo ? (
+        <CollapsiblePanel title="Animation Entries">
+          <AnimationEntries animationInfo={animationInfo} />
+        </CollapsiblePanel>
+      ) : null,
     },
   });
 };

@@ -59,6 +59,18 @@ export type EntrySprite = {
   spriteIndex: number;
 };
 
+export const isEntryCommand = (
+  entry: EntryCommand | EntrySprite,
+): entry is EntryCommand => {
+  return 'command' in entry;
+};
+
+export const isEntrySprite = (
+  entry: EntryCommand | EntrySprite,
+): entry is EntrySprite => {
+  return 'spriteIndex' in entry;
+};
+
 export type AnimationStep = { time: number; image: ImageMatrix };
 
 export type Animation = AnimationStep[];
