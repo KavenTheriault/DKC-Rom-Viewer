@@ -1,5 +1,5 @@
-import { SpriteHeader } from '../../../../../rom-io/common/sprites/header';
-import { toHexString } from '../../../../utils/hex';
+import { SpriteHeader } from '../../../../../../../rom-io/common/sprites/header';
+import { toHexString } from '../../../../../../utils/hex';
 import { InfoTable } from './styles';
 
 interface SpriteHeaderTableProps {

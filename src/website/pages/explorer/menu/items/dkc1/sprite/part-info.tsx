@@ -1,5 +1,5 @@
-import { SpritePart } from '../../../../../rom-io/common/sprites/types';
-import { toHexString } from '../../../../utils/hex';
+import { SpritePart } from '../../../../../../../rom-io/common/sprites/types';
+import { toHexString } from '../../../../../../utils/hex';
 import { InfoTable } from './styles';
 
 interface SpritePartInfoProps {

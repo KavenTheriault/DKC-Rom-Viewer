@@ -1,5 +1,5 @@
 import { CanvasController } from '../components/canvas/canvas-controller';
-import { menuGroups, loadRomMenuItem } from '../menu';
+import { loadRomMenuItem, menuGroups } from '../pages/explorer/menu';
 import { AppState } from './types';
 
 export const defaultAppState: AppState = {

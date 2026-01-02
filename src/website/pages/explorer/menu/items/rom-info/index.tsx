@@ -1,7 +1,7 @@
-import { RomHeader } from '../../../../rom-io/rom/header';
-import { CollapsiblePanel } from '../../../components/collapsible-panel';
-import { useAppSelector } from '../../../state';
-import { MainMenuItemComponent } from '../../../types/layout';
+import { RomHeader } from '../../../../../../rom-io/rom/header';
+import { CollapsiblePanel } from '../../../../../components/collapsible-panel';
+import { useAppSelector } from '../../../../../state';
+import { MainMenuItemComponent } from '../../../../../types/layout';
 import { useDrawAppName } from '../../common/draw-app-name';
 import { RomInfoTable } from './styles';
 

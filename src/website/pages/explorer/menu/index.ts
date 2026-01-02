@@ -1,8 +1,8 @@
-import { MainMenuGroup, MainMenuItem } from '../types/layout';
-import { About } from './components/about';
-import { Dkc1Sprite } from './components/dkc1/sprite';
-import { LoadRom } from './components/load-rom';
-import { RomInfo } from './components/rom-info';
+import { MainMenuGroup, MainMenuItem } from '../../../types/layout';
+import { About } from './items/about';
+import { Dkc1Sprite } from './items/dkc1/sprite';
+import { LoadRom } from './items/load-rom';
+import { RomInfo } from './items/rom-info';
 
 // General
 export const loadRomMenuItem: MainMenuItem = {

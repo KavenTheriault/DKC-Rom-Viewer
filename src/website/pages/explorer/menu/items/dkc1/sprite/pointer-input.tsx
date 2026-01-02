@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { HexadecimalInput } from '../../../../components/hexadecimal-input';
+import { HexadecimalInput } from '../../../../../../components/hexadecimal-input';
 
 interface SpritePointerInputProps {
   label: ReactNode;

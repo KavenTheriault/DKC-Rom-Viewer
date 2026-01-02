@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
-import { SpritePart } from '../../../../../rom-io/common/sprites/types';
-import { toHexString } from '../../../../utils/hex';
+import { SpritePart } from '../../../../../../../rom-io/common/sprites/types';
+import { toHexString } from '../../../../../../utils/hex';
 
 interface SpritePartSelectorProps {
   spriteParts: SpritePart[];

@@ -1,6 +1,6 @@
-import { MainMenuItemComponent } from '../../types/layout';
 import React from 'react';
-import { CollapsiblePanel } from '../../components/collapsible-panel';
+import { CollapsiblePanel } from '../../../../components/collapsible-panel';
+import { MainMenuItemComponent } from '../../../../types/layout';
 import { useDrawAppName } from '../common/draw-app-name';
 
 export const About: MainMenuItemComponent = ({ children }) => {

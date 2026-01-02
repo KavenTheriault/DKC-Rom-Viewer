@@ -1,30 +1,30 @@
 import { useEffect, useState } from 'react';
-import { buildImageFromPixelsAndPalette } from '../../../../../rom-io/common/images';
-import { readPalette } from '../../../../../rom-io/common/palettes';
+import { buildImageFromPixelsAndPalette } from '../../../../../../../rom-io/common/images';
+import { readPalette } from '../../../../../../../rom-io/common/palettes';
 import {
   getAddressFromSpritePointerIndex,
   readSprite,
   Sprite,
-} from '../../../../../rom-io/common/sprites';
-import { scanSprites } from '../../../../../rom-io/common/sprites/scan';
-import { assembleSprite } from '../../../../../rom-io/common/sprites/sprite-part';
-import { SpritePart } from '../../../../../rom-io/common/sprites/types';
-import { validateSpriteHeader } from '../../../../../rom-io/common/sprites/validation';
-import { Dkc1SpritePointerTable } from '../../../../../rom-io/dkc1/constants';
-import { RomAddress } from '../../../../../rom-io/rom/address';
-import { ImageMatrix } from '../../../../../rom-io/types/image-matrix';
-import { CollapsiblePanel } from '../../../../components/collapsible-panel';
-import { LoadHexadecimalInput } from '../../../../components/hexadecimal-input/with-load-button';
-import { ScanControls } from '../../../../components/scan-controls';
-import { OverlaySlotsContainer } from '../../../../pages/explorer/styles';
-import { useAppSelector } from '../../../../state';
-import { MainMenuItemComponent } from '../../../../types/layout';
+} from '../../../../../../../rom-io/common/sprites';
+import { scanSprites } from '../../../../../../../rom-io/common/sprites/scan';
+import { assembleSprite } from '../../../../../../../rom-io/common/sprites/sprite-part';
+import { SpritePart } from '../../../../../../../rom-io/common/sprites/types';
+import { validateSpriteHeader } from '../../../../../../../rom-io/common/sprites/validation';
+import { Dkc1SpritePointerTable } from '../../../../../../../rom-io/dkc1/constants';
+import { RomAddress } from '../../../../../../../rom-io/rom/address';
+import { ImageMatrix } from '../../../../../../../rom-io/types/image-matrix';
+import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
+import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
+import { ScanControls } from '../../../../../../components/scan-controls';
+import { useAppSelector } from '../../../../../../state';
+import { MainMenuItemComponent } from '../../../../../../types/layout';
 import {
   drawImage,
   drawRectangle,
   getDrawCenterOffset,
-} from '../../../../utils/draw';
-import { toHexString } from '../../../../utils/hex';
+} from '../../../../../../utils/draw';
+import { toHexString } from '../../../../../../utils/hex';
+import { OverlaySlotsContainer } from '../../../../styles';
 import { DEFAULT_PALETTE, DEFAULT_SPRITE_POINTER } from '../defaults';
 import { SpriteHeaderInfo } from './header';
 import { SpritePartInfo } from './part-info';
