@@ -30,7 +30,7 @@ import { SpriteHeaderInfo } from './header';
 import { SpritePartInfo } from './part-info';
 import { SpritePartSelector } from './part-selector';
 import { SpritePointerInput } from './pointer-input';
-import { AddressesDiv } from './styles';
+import { AddressesDiv } from '../styles';
 
 export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
   const rom = useAppSelector((s) => s.rom);
