@@ -2,13 +2,15 @@ import { Buffer as WebBuffer } from 'buffer';
 import React, { ChangeEvent, useState } from 'react';
 import { readRomFile } from '../../../../../rom-io/rom';
 import { CollapsiblePanel } from '../../../../components/collapsible-panel';
-import { setState, useAppSelector } from '../../../../state';
+import { stateSelector, useAppStore } from '../../../../state/selector';
 import { MainMenuItemComponent } from '../../../../types/layout';
 import { useDrawAppName } from '../common/draw-app-name';
 
 export const LoadRom: MainMenuItemComponent = ({ children }) => {
   useDrawAppName();
-  const rom = useAppSelector((s) => s.rom);
+
+  const appStore = useAppStore();
+  const rom = stateSelector((s) => s.rom);
 
   const [filePath, setFilePath] = useState('');
 
@@ -26,7 +28,9 @@ export const LoadRom: MainMenuItemComponent = ({ children }) => {
       const buffer: Buffer = WebBuffer.from(bytes);
 
       const rom = await readRomFile(buffer);
-      setState(() => ({ rom }));
+      appStore.set((s) => {
+        s.rom = rom;
+      });
     }
   };
 
@@ -46,7 +50,9 @@ export const LoadRom: MainMenuItemComponent = ({ children }) => {
               <button
                 className="button is-primary"
                 onClick={() => {
-                  setState(() => ({ rom: null }));
+                  appStore.set((s) => {
+                    s.rom = null;
+                  });
                 }}
               >
                 Select another Rom

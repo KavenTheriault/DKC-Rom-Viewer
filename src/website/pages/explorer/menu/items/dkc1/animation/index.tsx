@@ -19,25 +19,41 @@ import { RomAddress } from '../../../../../../../rom-io/rom/address';
 import { ImageMatrix } from '../../../../../../../rom-io/types/image-matrix';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
 import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
-import { useAppSelector } from '../../../../../../state';
+import { stateSelector, useAppStore } from '../../../../../../state/selector';
 import { MainMenuItemComponent } from '../../../../../../types/layout';
 import { drawImage, getDrawCenterOffset } from '../../../../../../utils/draw';
 import { toHexString } from '../../../../../../utils/hex';
-import { DEFAULT_ANIMATION_INDEX, DEFAULT_PALETTE } from '../defaults';
 import { AddressesDiv } from '../styles';
 import { AnimationEntries } from './entries';
 import { AnimationIndexInput } from './index-input';
 
 export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
-  const rom = useAppSelector((s) => s.rom);
-  const canvasController = useAppSelector((s) => s.canvasController);
+  const appStore = useAppStore();
+
+  const rom = stateSelector((s) => s.rom);
+  const canvasController = stateSelector((s) => s.canvasController);
   if (!rom) return null;
 
-  const [snesAddress, setSnesAddress] = useState<number>();
-  const [paletteAddress, setPaletteAddress] = useState<number>(DEFAULT_PALETTE);
-  const [animationIndex, setAnimationIndex] = useState<number>(
-    DEFAULT_ANIMATION_INDEX,
-  );
+  const snesAddress = stateSelector((s) => s.dkc1.animationAddress);
+  const setSnesAddress = (address: number | undefined) => {
+    appStore.set((s) => {
+      s.dkc1.animationAddress = address;
+    });
+  };
+
+  const paletteAddress = stateSelector((s) => s.dkc1.paletteAddress);
+  const setPaletteAddress = (address: number) => {
+    appStore.set((s) => {
+      s.dkc1.paletteAddress = address;
+    });
+  };
+
+  const animationIndex = stateSelector((s) => s.dkc1.animationIndex);
+  const setAnimationIndex = (index: number) => {
+    appStore.set((s) => {
+      s.dkc1.animationIndex = index;
+    });
+  };
 
   const [animationInfo, setAnimationInfo] = useState<AnimationInfo>();
   const [animation, setAnimation] = useState<Animation>();
@@ -153,7 +169,8 @@ export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
   }, [animation]);
 
   useEffect(() => {
-    loadAnimationIndex(animationIndex);
+    if (snesAddress) loadAnimation(RomAddress.fromSnesAddress(snesAddress));
+    else loadAnimationIndex(animationIndex);
   }, []);
 
   return children({

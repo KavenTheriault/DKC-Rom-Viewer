@@ -1,36 +1,33 @@
-import React, { useEffect, useState } from 'react';
-import { setState, useAppSelector } from '../../state';
+import React, { useState } from 'react';
+import { stateSelector, useAppStore } from '../../state/selector';
 import { MainMenuGroup, MainMenuItem } from '../../types/layout';
 import { MenuDiv, MenuItemA } from './styles';
 
 export const MainMenu = () => {
+  const appStore = useAppStore();
   const [isOpen, setIsOpen] = useState(false);
-  const [availableMenu, setAvailableMenu] = useState<MainMenuGroup[]>([]);
 
-  const appState = useAppSelector((s) => s);
-  const selectedItem = useAppSelector((s) => s.mainMenu.selectedItem);
+  const appState = stateSelector((s) => s);
+  const selectedItem = stateSelector((s) => s.mainMenu.selectedItem);
 
-  useEffect(() => {
-    const availableGroups: MainMenuGroup[] = [];
-    for (const group of appState.mainMenu.groups) {
-      const availableItems = group.items.filter(
-        (i) => !i.isAvailable || i.isAvailable(appState),
-      );
-      if (availableItems.length > 0) {
-        availableGroups.push({ ...group, items: availableItems });
-      }
+  const availableGroups: MainMenuGroup[] = [];
+  for (const group of appState.mainMenu.groups) {
+    const availableItems = group.items.filter(
+      (i) => !i.isAvailable || i.isAvailable(appState),
+    );
+    if (availableItems.length > 0) {
+      availableGroups.push({ ...group, items: availableItems });
     }
-    setAvailableMenu(availableGroups);
-  }, [appState]);
+  }
 
   const renderItem = (item: MainMenuItem) => (
     <li key={item.label.toLowerCase()}>
       <MenuItemA
         className={selectedItem === item ? 'is-active' : ''}
         onClick={() => {
-          setState(() => ({
-            mainMenu: { selectedItem: item },
-          }));
+          appStore.set((s) => {
+            s.mainMenu.selectedItem = item;
+          });
           setIsOpen(false);
         }}
       >
@@ -80,7 +77,7 @@ export const MainMenu = () => {
       <div className="dropdown-menu" id="dropdown-menu" role="menu">
         <div className="dropdown-content">
           <MenuDiv>
-            <aside className="menu">{availableMenu.map(renderGroup)}</aside>
+            <aside className="menu">{availableGroups.map(renderGroup)}</aside>
           </MenuDiv>
         </div>
       </div>

@@ -16,7 +16,7 @@ import { ImageMatrix } from '../../../../../../../rom-io/types/image-matrix';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
 import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
 import { ScanControls } from '../../../../../../components/scan-controls';
-import { useAppSelector } from '../../../../../../state';
+import { stateSelector, useAppStore } from '../../../../../../state/selector';
 import { MainMenuItemComponent } from '../../../../../../types/layout';
 import {
   drawImage,
@@ -25,23 +25,39 @@ import {
 } from '../../../../../../utils/draw';
 import { toHexString } from '../../../../../../utils/hex';
 import { OverlaySlotsContainer } from '../../../../styles';
-import { DEFAULT_PALETTE, DEFAULT_SPRITE_POINTER } from '../defaults';
+import { AddressesDiv } from '../styles';
 import { SpriteHeaderInfo } from './header';
 import { SpritePartInfo } from './part-info';
 import { SpritePartSelector } from './part-selector';
 import { SpritePointerInput } from './pointer-input';
-import { AddressesDiv } from '../styles';
 
 export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
-  const rom = useAppSelector((s) => s.rom);
-  const canvasController = useAppSelector((s) => s.canvasController);
+  const appStore = useAppStore();
+
+  const rom = stateSelector((s) => s.rom);
+  const canvasController = stateSelector((s) => s.canvasController);
   if (!rom) return null;
 
-  const [snesAddress, setSnesAddress] = useState<number>();
-  const [paletteAddress, setPaletteAddress] = useState<number>(DEFAULT_PALETTE);
-  const [spritePointer, setSpritePointer] = useState<number>(
-    DEFAULT_SPRITE_POINTER,
-  );
+  const snesAddress = stateSelector((s) => s.dkc1.spriteAddress);
+  const setSnesAddress = (address: number | undefined) => {
+    appStore.set((s) => {
+      s.dkc1.spriteAddress = address;
+    });
+  };
+
+  const paletteAddress = stateSelector((s) => s.dkc1.paletteAddress);
+  const setPaletteAddress = (address: number) => {
+    appStore.set((s) => {
+      s.dkc1.paletteAddress = address;
+    });
+  };
+
+  const spritePointer = stateSelector((s) => s.dkc1.spritePointer);
+  const setSpritePointer = (pointer: number) => {
+    appStore.set((s) => {
+      s.dkc1.spritePointer = pointer;
+    });
+  };
 
   const [sprite, setSprite] = useState<Sprite>();
   const [spriteImage, setSpriteImage] = useState<ImageMatrix>();
@@ -130,7 +146,8 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
   };
 
   useEffect(() => {
-    loadSpritePointer(spritePointer);
+    if (snesAddress) loadSprite(RomAddress.fromSnesAddress(snesAddress));
+    else loadSpritePointer(spritePointer);
   }, []);
 
   useEffect(() => {

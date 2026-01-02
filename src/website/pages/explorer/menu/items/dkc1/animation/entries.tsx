@@ -7,7 +7,7 @@ import {
 } from '../../../../../../../rom-io/common/animations/types';
 import { getAddressFromSpritePointerIndex } from '../../../../../../../rom-io/common/sprites';
 import { Dkc1SpritePointerTable } from '../../../../../../../rom-io/dkc1/constants';
-import { setAppState, useAppSelector } from '../../../../../../state';
+import { stateSelector, useAppStore } from '../../../../../../state/selector';
 import { toHexString } from '../../../../../../utils/hex';
 import { spriteMenuItem } from '../../../index';
 
@@ -16,7 +16,8 @@ interface AnimationEntriesProps {
 }
 
 export const AnimationEntries = ({ animationInfo }: AnimationEntriesProps) => {
-  const rom = useAppSelector((s) => s.rom);
+  const appStore = useAppStore();
+  const rom = stateSelector((s) => s.rom);
   if (!rom) return null;
 
   const [selectedAnimationEntryIndex, setSelectedAnimationEntryIndex] =
@@ -35,14 +36,10 @@ export const AnimationEntries = ({ animationInfo }: AnimationEntriesProps) => {
             Dkc1SpritePointerTable,
             entry.spriteIndex,
           );
-          console.log('spriteAddress', spriteAddress);
-          //saveViewerModeAddress(ViewerMode.Sprite, spriteAddress);
-          //navigateToMode(ViewerMode.Sprite);
-          setAppState(() => ({
-            mainMenu: {
-              selectedItem: spriteMenuItem,
-            },
-          }));
+          appStore.set((s) => {
+            s.dkc1.spriteAddress = spriteAddress.snesAddress;
+            s.mainMenu.selectedItem = spriteMenuItem;
+          });
         }}
       >
         Go to Sprite {`${toHexString(entry.spriteIndex, { addPrefix: true })}`}

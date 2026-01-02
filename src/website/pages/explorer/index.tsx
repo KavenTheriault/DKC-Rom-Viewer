@@ -1,13 +1,13 @@
 import React from 'react';
-import { useAppSelector } from '../../state';
 import { Overlay } from '../../components/overlay';
+import { stateSelector } from '../../state/selector';
 import { OverlaySlotsContainer } from './styles';
 import { MainMenu } from '../../components/main-menu';
 import { CanvasWithControl } from '../../components/canvas-with-controls';
 
 export const Explorer = () => {
-  const selectedItem = useAppSelector((s) => s.mainMenu.selectedItem);
-  const canvasController = useAppSelector((s) => s.canvasController);
+  const selectedItem = stateSelector((s) => s.mainMenu.selectedItem);
+  const canvasController = stateSelector((s) => s.canvasController);
 
   const ItemComponent = selectedItem.component;
   return (

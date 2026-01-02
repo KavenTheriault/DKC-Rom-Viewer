@@ -9,4 +9,11 @@ export interface AppState {
     selectedItem: MainMenuItem;
   };
   rom: Rom | null;
+  dkc1: {
+    animationAddress?: number;
+    animationIndex: number;
+    paletteAddress: number;
+    spriteAddress?: number;
+    spritePointer: number;
+  };
 }

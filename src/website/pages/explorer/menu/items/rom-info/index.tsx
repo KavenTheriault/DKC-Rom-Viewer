@@ -1,6 +1,6 @@
 import { RomHeader } from '../../../../../../rom-io/rom/header';
 import { CollapsiblePanel } from '../../../../../components/collapsible-panel';
-import { useAppSelector } from '../../../../../state';
+import { stateSelector } from '../../../../../state/selector';
 import { MainMenuItemComponent } from '../../../../../types/layout';
 import { useDrawAppName } from '../../common/draw-app-name';
 import { RomInfoTable } from './styles';
@@ -8,7 +8,7 @@ import { RomInfoTable } from './styles';
 export const RomInfo: MainMenuItemComponent = ({ children }) => {
   useDrawAppName();
 
-  const rom = useAppSelector((s) => s.rom);
+  const rom = stateSelector((s) => s.rom);
   if (!rom) return null;
 
   return children({

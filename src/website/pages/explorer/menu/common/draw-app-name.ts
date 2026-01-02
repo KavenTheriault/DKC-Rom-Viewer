@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { useAppSelector } from '../../../../state';
+import { stateSelector } from '../../../../state/selector';
 
 export const useDrawAppName = () => {
-  const canvasController = useAppSelector((s) => s.canvasController);
+  const canvasController = stateSelector((s) => s.canvasController);
 
   useEffect(() => {
     canvasController.registerDrawHandler(drawAppName);
