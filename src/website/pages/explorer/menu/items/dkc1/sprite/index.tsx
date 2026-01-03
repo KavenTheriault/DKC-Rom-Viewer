@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { buildImageFromPixelsAndPalette } from '../../../../../../../rom-io/common/images';
 import { readPalette } from '../../../../../../../rom-io/common/palettes';
+import { scanSprites } from '../../../../../../../rom-io/common/scan/sprites';
 import {
   getAddressFromSpritePointerIndex,
   readSprite,
   Sprite,
 } from '../../../../../../../rom-io/common/sprites';
-import { scanSprites } from '../../../../../../../rom-io/common/sprites/scan';
 import { assembleSprite } from '../../../../../../../rom-io/common/sprites/sprite-part';
 import { SpritePart } from '../../../../../../../rom-io/common/sprites/types';
 import { validateSpriteHeader } from '../../../../../../../rom-io/common/sprites/validation';

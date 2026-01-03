@@ -9,14 +9,19 @@ import {
   AnimationInfo,
 } from '../../../../../../../rom-io/common/animations/types';
 import { readPalette } from '../../../../../../../rom-io/common/palettes';
+import { scanAnimations } from '../../../../../../../rom-io/common/scan/animations';
 import {
   Dkc1AnimationScriptBank,
   Dkc1AnimationScriptTable,
+  Dkc1EntitiesEndReference,
+  Dkc1EntitiesStartReference,
+  Dkc1EntityBank,
   Dkc1SpritePointerTable,
 } from '../../../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../../../rom-io/rom/address';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
 import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
+import { ScanControls } from '../../../../../../components/scan-controls';
 import { stateSelector, useAppStore } from '../../../../../../state/selector';
 import { MainMenuItemComponent } from '../../../../../../types/layout';
 import { toHexString } from '../../../../../../utils/hex';
@@ -161,6 +166,29 @@ export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
           <AnimationEntries animationInfo={animationInfo} />
         </CollapsiblePanel>
       ) : null,
+    },
+    bottom: {
+      middle: (
+        <CollapsiblePanel title="Scan Animations">
+          <ScanControls
+            rom={rom}
+            scanFn={(romData: Buffer) => {
+              return scanAnimations(
+                romData,
+                Dkc1EntityBank,
+                Dkc1EntitiesStartReference,
+                Dkc1EntitiesEndReference,
+                Dkc1AnimationScriptBank,
+                Dkc1AnimationScriptTable,
+              );
+            }}
+            onSelectedAddressChange={(address) => {
+              setSnesAddress(address.snesAddress);
+              loadAnimation(address);
+            }}
+          />
+        </CollapsiblePanel>
+      ),
     },
   });
 };

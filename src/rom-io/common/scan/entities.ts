@@ -1,6 +1,6 @@
 import { read16 } from '../../buffer';
-import { readEntityFromReference } from './index';
-import { Entity } from './types';
+import { readEntityFromReference } from '../entities';
+import { Entity } from '../entities/types';
 
 export const scanEntities = (
   romData: Buffer,

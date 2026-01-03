@@ -1,9 +1,9 @@
 import { RomAddress } from '../../rom/address';
-import { getSpriteCoordinates } from './coordinate';
-import { getSpriteHeader } from './header';
-import { getSpriteTotalLength, readSpritePointer } from './index';
-import { Coordinate } from './types';
-import { validateSpriteHeader } from './validation';
+import { getSpriteTotalLength } from '../sprites';
+import { getSpriteCoordinates } from '../sprites/coordinate';
+import { getSpriteHeader } from '../sprites/header';
+import { Coordinate } from '../sprites/types';
+import { validateSpriteHeader } from '../sprites/validation';
 
 export const scanSprites = (romData: Buffer) => {
   const spriteAddresses: RomAddress[] = [];
@@ -34,28 +34,4 @@ const validateCoordinates = (coordinates: Coordinate[]): boolean => {
     if (coordinate.y === 0 || coordinate.y === 255) return false;
   }
   return true;
-};
-
-export const scanSpritesUsingPointers = (
-  romData: Buffer,
-  increment = 1,
-): RomAddress[] => {
-  const spriteAddresses: RomAddress[] = [];
-  const visitedAddresses: Set<number> = new Set<number>();
-
-  for (let i = 0; i < romData.length; i += increment) {
-    const romAddress: RomAddress = readSpritePointer(
-      romData,
-      RomAddress.fromSnesAddress(i),
-    );
-    if (visitedAddresses.has(romAddress.snesAddress)) continue;
-    visitedAddresses.add(romAddress.snesAddress);
-
-    const spriteHeader = getSpriteHeader(romData, romAddress);
-    if (spriteHeader && validateSpriteHeader(spriteHeader)) {
-      spriteAddresses.push(romAddress);
-    }
-  }
-
-  return spriteAddresses;
 };

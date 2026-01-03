@@ -8,9 +8,9 @@ import {
   readEntityPalette,
   snesAddressToEntityReference,
 } from '../../../../../../../rom-io/common/entities';
-import { scanEntityAddresses } from '../../../../../../../rom-io/common/entities/scan';
 import { Entity } from '../../../../../../../rom-io/common/entities/types';
 import { grayscalePalette } from '../../../../../../../rom-io/common/palettes';
+import { scanEntityAddresses } from '../../../../../../../rom-io/common/scan/entities';
 import {
   Dkc1AnimationScriptBank,
   Dkc1AnimationScriptTable,
