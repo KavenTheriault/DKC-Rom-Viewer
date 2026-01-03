@@ -3,6 +3,7 @@ import { MainMenuGroup, MainMenuItem } from '../../../types/layout';
 import { About } from './items/about';
 import { Dkc1Animation } from './items/dkc1/animation';
 import { Dkc1Entity } from './items/dkc1/entity';
+import { Dkc1Palette } from './items/dkc1/palette';
 import { Dkc1Sprite } from './items/dkc1/sprite';
 import { LoadRom } from './items/load-rom';
 import { RomInfo } from './items/rom-info';
@@ -39,9 +40,15 @@ export const entityMenuItem: MainMenuItem = {
   component: Dkc1Entity,
   isAvailable: isDkc1,
 };
+export const paletteMenuItem: MainMenuItem = {
+  label: 'Palette',
+  fasIcon: 'fa-palette',
+  component: Dkc1Palette,
+  isAvailable: isDkc1,
+};
 export const dkc1MenuGroup: MainMenuGroup = {
   label: 'Donkey Kong Country',
-  items: [spriteMenuItem, animationMenuItem, entityMenuItem],
+  items: [spriteMenuItem, animationMenuItem, entityMenuItem, paletteMenuItem],
 };
 
 // Other

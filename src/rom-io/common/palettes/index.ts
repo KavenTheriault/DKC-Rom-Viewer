@@ -14,6 +14,10 @@ export const paletteReferenceToSnesAddress = (
   );
 };
 
+export const snesAddressToPaletteReference = (romAddress: RomAddress) => {
+  return romAddress.snesAddress & 0x00ffff;
+};
+
 export const colorToSnes = (color: Color): number => {
   let r: number = color.r;
   let g: number = color.g;

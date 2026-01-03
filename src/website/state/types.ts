@@ -15,6 +15,7 @@ export interface AppState {
     entityAddress?: number;
     entityReference?: number;
     paletteAddress: number;
+    paletteReference?: number;
     spriteAddress?: number;
     spritePointer: number;
   };

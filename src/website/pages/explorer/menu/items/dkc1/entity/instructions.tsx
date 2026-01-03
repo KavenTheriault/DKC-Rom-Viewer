@@ -8,7 +8,7 @@ import { paletteReferenceToSnesAddress } from '../../../../../../../rom-io/commo
 import { Dkc1EntityPaletteBank } from '../../../../../../../rom-io/dkc1/constants';
 import { stateSelector, useAppStore } from '../../../../../../state/selector';
 import { toHexString } from '../../../../../../utils/hex';
-import { animationMenuItem } from '../../../index';
+import { animationMenuItem, paletteMenuItem } from '../../../index';
 
 interface EntityInstructionsProps {
   entity: Entity;
@@ -46,20 +46,22 @@ export const EntityInstructions = ({
       );
     }
     if (instruction.command === EntityCommand.PALETTE) {
-      const palettePointer = instruction.parameters[0];
+      const paletteReference = instruction.parameters[0];
       return (
         <button
           className="mt-2 button is-primary"
           onClick={() => {
-            const paletteAddress = paletteReferenceToSnesAddress(
-              Dkc1EntityPaletteBank,
-              palettePointer,
-            );
-            console.log(paletteAddress);
-            // TODO: Navigate to palette
+            appStore.set((s) => {
+              s.dkc1.paletteAddress = paletteReferenceToSnesAddress(
+                Dkc1EntityPaletteBank,
+                paletteReference,
+              ).snesAddress;
+              s.mainMenu.selectedItem = paletteMenuItem;
+            });
           }}
         >
-          Go to Palette {`${toHexString(palettePointer, { addPrefix: true })}`}
+          Go to Palette{' '}
+          {`${toHexString(paletteReference, { addPrefix: true })}`}
         </button>
       );
     }
