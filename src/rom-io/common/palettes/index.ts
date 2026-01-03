@@ -5,6 +5,15 @@ import { Palette } from './types';
 
 const SPRITE_PALETTE_LENGTH = 15;
 
+export const paletteReferenceToSnesAddress = (
+  entityPaletteBankSnesAddress: number,
+  paletteReference: number,
+): RomAddress => {
+  return RomAddress.fromSnesAddress(
+    entityPaletteBankSnesAddress | paletteReference,
+  );
+};
+
 export const colorToSnes = (color: Color): number => {
   let r: number = color.r;
   let g: number = color.g;

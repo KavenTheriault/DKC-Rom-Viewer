@@ -1,7 +1,8 @@
+import { ReactNode } from 'react';
 import { HexadecimalInput } from './index';
 
 interface LoadHexadecimalInputProps {
-  label: string;
+  label: ReactNode;
   hexadecimalValue: number | undefined;
   onValueChange: (value: number | undefined) => void;
   onValueLoad: () => void;

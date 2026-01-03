@@ -12,6 +12,8 @@ export interface AppState {
   dkc1: {
     animationAddress?: number;
     animationIndex: number;
+    entityAddress?: number;
+    entityReference?: number;
     paletteAddress: number;
     spriteAddress?: number;
     spritePointer: number;

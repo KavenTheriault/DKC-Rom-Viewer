@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   buildAnimation,
   readAnimationInfo,
@@ -7,31 +7,27 @@ import {
 import {
   Animation,
   AnimationInfo,
-  AnimationStep,
 } from '../../../../../../../rom-io/common/animations/types';
 import { readPalette } from '../../../../../../../rom-io/common/palettes';
 import {
-  AnimationScriptBank,
-  AnimationScriptTable,
+  Dkc1AnimationScriptBank,
+  Dkc1AnimationScriptTable,
   Dkc1SpritePointerTable,
 } from '../../../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../../../rom-io/rom/address';
-import { ImageMatrix } from '../../../../../../../rom-io/types/image-matrix';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
 import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
 import { stateSelector, useAppStore } from '../../../../../../state/selector';
 import { MainMenuItemComponent } from '../../../../../../types/layout';
-import { drawImage, getDrawCenterOffset } from '../../../../../../utils/draw';
 import { toHexString } from '../../../../../../utils/hex';
+import { useDrawAnimation } from '../../../common/draw-animation';
 import { AddressesDiv } from '../styles';
 import { AnimationEntries } from './entries';
 import { AnimationIndexInput } from './index-input';
 
 export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
   const appStore = useAppStore();
-
   const rom = stateSelector((s) => s.rom);
-  const canvasController = stateSelector((s) => s.canvasController);
   if (!rom) return null;
 
   const snesAddress = stateSelector((s) => s.dkc1.animationAddress);
@@ -59,8 +55,6 @@ export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
   const [animation, setAnimation] = useState<Animation>();
   const [error, setError] = useState('');
 
-  const animationInterval = useRef<NodeJS.Timeout | undefined>(undefined);
-
   const loadAnimationFromSnesAddressInput = () => {
     if (snesAddress) {
       loadAnimationAndPalette(
@@ -75,8 +69,8 @@ export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
   const loadAnimationIndex = (index: number) => {
     const address = readAnimationPointer(
       rom.data,
-      AnimationScriptBank,
-      AnimationScriptTable,
+      Dkc1AnimationScriptBank,
+      Dkc1AnimationScriptTable,
       index,
     );
     loadAnimation(address);
@@ -111,67 +105,12 @@ export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
     }
   };
 
-  const buildDrawFnAndStartAnimation = () => {
-    if (!animation) return;
-
-    const frames: ImageMatrix[] = animation.reduce(
-      (acc: ImageMatrix[], step: AnimationStep) => {
-        for (let i = 0; i < step.time; i++) {
-          acc.push(step.image);
-        }
-        return acc;
-      },
-      [],
-    );
-
-    let currentFrame = 0;
-    const drawAnimationFrame = (
-      canvas: HTMLCanvasElement,
-      context: CanvasRenderingContext2D,
-    ) => {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-
-      const spriteImage = frames[currentFrame];
-      const centerOffset = getDrawCenterOffset(canvas, spriteImage.size);
-      drawImage(context, spriteImage, centerOffset);
-    };
-
-    const drawNextFrame = () => {
-      if (currentFrame >= frames.length - 1) currentFrame = 0;
-      else currentFrame++;
-
-      canvasController.draw();
-    };
-
-    // noinspection TypeScriptValidateTypes
-    animationInterval.current = setInterval(drawNextFrame, 15);
-    return drawAnimationFrame;
-  };
-
-  const stopAnimation = () => {
-    if (animationInterval.current) {
-      clearInterval(animationInterval.current);
-      animationInterval.current = undefined;
-    }
-  };
-
-  useEffect(() => {
-    const drawFn = buildDrawFnAndStartAnimation();
-    if (!drawFn) return;
-
-    canvasController.registerDrawHandler(drawFn);
-    canvasController.draw();
-
-    return () => {
-      stopAnimation();
-      canvasController.unregisterDrawHandler(drawFn);
-    };
-  }, [animation]);
-
   useEffect(() => {
     if (snesAddress) loadAnimation(RomAddress.fromSnesAddress(snesAddress));
     else loadAnimationIndex(animationIndex);
   }, []);
+
+  useDrawAnimation(animation);
 
   return children({
     top: {
@@ -190,9 +129,10 @@ export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
                   Animation Index{' '}
                   <span className="tag is-light">
                     from{' '}
-                    {toHexString(AnimationScriptBank | AnimationScriptTable, {
-                      addPrefix: true,
-                    })}
+                    {toHexString(
+                      Dkc1AnimationScriptBank | Dkc1AnimationScriptTable,
+                      { addPrefix: true },
+                    )}
                   </span>
                 </>
               }

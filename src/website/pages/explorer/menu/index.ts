@@ -2,6 +2,7 @@ import { AppState } from '../../../state/types';
 import { MainMenuGroup, MainMenuItem } from '../../../types/layout';
 import { About } from './items/about';
 import { Dkc1Animation } from './items/dkc1/animation';
+import { Dkc1Entity } from './items/dkc1/entity';
 import { Dkc1Sprite } from './items/dkc1/sprite';
 import { LoadRom } from './items/load-rom';
 import { RomInfo } from './items/rom-info';
@@ -32,9 +33,15 @@ export const animationMenuItem: MainMenuItem = {
   component: Dkc1Animation,
   isAvailable: isDkc1,
 };
+export const entityMenuItem: MainMenuItem = {
+  label: 'Entity',
+  fasIcon: 'fa-object-group',
+  component: Dkc1Entity,
+  isAvailable: isDkc1,
+};
 export const dkc1MenuGroup: MainMenuGroup = {
   label: 'Donkey Kong Country',
-  items: [spriteMenuItem, animationMenuItem],
+  items: [spriteMenuItem, animationMenuItem, entityMenuItem],
 };
 
 // Other
