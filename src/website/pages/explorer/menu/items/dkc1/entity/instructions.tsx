@@ -31,7 +31,7 @@ export const EntityInstructions = ({
       const animationIndex = instruction.parameters[0];
       return (
         <button
-          className="mt-2 button is-primary"
+          className="mt-2 button is-primary is-small"
           onClick={() => {
             appStore.set((s) => {
               s.dkc1.animationIndex = animationIndex;
@@ -49,7 +49,7 @@ export const EntityInstructions = ({
       const paletteReference = instruction.parameters[0];
       return (
         <button
-          className="mt-2 button is-primary"
+          className="mt-2 button is-primary is-small"
           onClick={() => {
             appStore.set((s) => {
               s.dkc1.paletteAddress = paletteReferenceToSnesAddress(
@@ -69,7 +69,7 @@ export const EntityInstructions = ({
       const entityReference = instruction.parameters[0];
       return (
         <button
-          className="mt-2 button is-primary"
+          className="mt-2 button is-primary is-small"
           onClick={() => {
             loadEntityReference(entityReference);
           }}
@@ -93,7 +93,7 @@ export const EntityInstructions = ({
         >
           {entity.instructions.map((instruction, index) => (
             <option
-              className={getInstructionClassName(instruction)}
+              className={`is-size-7 ${getInstructionClassName(instruction)}`}
               key={`entityInstruction${index}`}
               value={index}
             >

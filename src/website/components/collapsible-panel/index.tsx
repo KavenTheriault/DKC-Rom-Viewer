@@ -4,13 +4,15 @@ import { Box, HeaderHr } from './styles';
 interface CollapsiblePanelProps {
   children: ReactNode;
   title: string;
+  startCollapsed?: boolean;
 }
 
 export const CollapsiblePanel = ({
   children,
   title,
+  startCollapsed,
 }: CollapsiblePanelProps) => {
-  const [isOpen, setIsOpen] = React.useState(true);
+  const [isOpen, setIsOpen] = React.useState(!startCollapsed);
 
   const renderShowHideButton = ({ isHidden }: { isHidden: boolean }) => (
     <button

@@ -121,7 +121,7 @@ export const Dkc1Palette: MainMenuItemComponent = ({ children }) => {
     },
     bottom: {
       middle: (
-        <CollapsiblePanel title="Scan Palettes">
+        <CollapsiblePanel title="Scan Palettes" startCollapsed>
           <ScanControls
             rom={rom}
             scanFn={(romData: Buffer) => {

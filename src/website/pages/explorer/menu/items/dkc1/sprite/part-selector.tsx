@@ -45,7 +45,11 @@ export const SpritePartSelector = ({
           value={selectedIndexes.map((p) => p.toString())}
         >
           {spriteParts?.map((spritePart, index) => (
-            <option key={`spritePart${index}`} value={index}>
+            <option
+              className="is-size-7"
+              key={`spritePart${index}`}
+              value={index}
+            >
               {spritePartString(spritePart)}
             </option>
           ))}
@@ -53,14 +57,14 @@ export const SpritePartSelector = ({
       </div>
       <div className="is-flex is-flex-direction-row is-justify-content-space-between m-1">
         <button
-          className="button is-light"
+          className="button is-light is-small"
           onClick={() => setSelectedIndexes(spriteParts.map((_, i) => i))}
         >
           <i className="fas fa-border-all"></i>
           <span className="ml-1">All</span>
         </button>
         <button
-          className="button is-light"
+          className="button is-light is-small"
           onClick={() => setSelectedIndexes([])}
         >
           <i className="fas fa-border-none"></i>

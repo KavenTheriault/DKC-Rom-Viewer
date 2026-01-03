@@ -225,7 +225,7 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
     },
     bottom: {
       middle: (
-        <CollapsiblePanel title="Scan Sprites">
+        <CollapsiblePanel title="Scan Sprites" startCollapsed>
           <ScanControls
             rom={rom}
             scanFn={scanSprites}

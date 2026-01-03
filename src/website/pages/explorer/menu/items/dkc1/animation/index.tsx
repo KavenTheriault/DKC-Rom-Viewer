@@ -169,7 +169,7 @@ export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
     },
     bottom: {
       middle: (
-        <CollapsiblePanel title="Scan Animations">
+        <CollapsiblePanel title="Scan Animations" startCollapsed>
           <ScanControls
             rom={rom}
             scanFn={(romData: Buffer) => {

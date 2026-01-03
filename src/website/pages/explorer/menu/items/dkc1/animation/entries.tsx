@@ -27,7 +27,7 @@ export const AnimationEntries = ({ animationInfo }: AnimationEntriesProps) => {
     if (!entry || !isEntrySprite(entry)) return null;
     return (
       <button
-        className="mt-2 button is-primary"
+        className="mt-2 button is-primary is-small"
         onClick={() => {
           if (!rom || !entry || !isEntrySprite(entry)) return null;
 
@@ -58,7 +58,11 @@ export const AnimationEntries = ({ animationInfo }: AnimationEntriesProps) => {
           }
         >
           {animationInfo.entries.map((entry, index) => (
-            <option key={`animationEntry${index}`} value={index}>
+            <option
+              className="is-size-7"
+              key={`animationEntry${index}`}
+              value={index}
+            >
               {buildAnimationEntryString(entry)}
             </option>
           ))}

@@ -10,23 +10,21 @@ export const PaletteColorsTable = ({ palette }: PaletteColorsTableProps) => {
     <table className="table is-hoverable">
       <thead>
         <tr>
-          <th>Index</th>
-          <th>RBG Hex</th>
-          <th>Preview</th>
+          <th className="is-size-7">Index</th>
+          <th className="is-size-7">RBG Hex</th>
+          <th className="is-size-7">Preview</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <th>0</th>
-          <td>-</td>
-          <td>
-            <span className="tag">Transparent</span>
-          </td>
+          <th className="is-size-7">0</th>
+          <td className="is-size-7">-</td>
+          <td className="is-size-7">Transparent</td>
         </tr>
         {palette.colors.map((color, index) => (
           <tr key={`color-${index}`}>
-            <th>{index + 1}</th>
-            <td>
+            <th className="is-size-7">{index + 1}</th>
+            <td className="is-size-7">
               <code>{rgbToHex(color.r, color.g, color.b).toUpperCase()}</code>
             </td>
             <td

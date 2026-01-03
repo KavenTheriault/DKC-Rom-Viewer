@@ -15,7 +15,7 @@ export const SpritePointerInput = ({
   onValueLoad,
 }: SpritePointerInputProps) => {
   return (
-    <div className="block">
+    <div>
       <label className="label is-small">{label}</label>
       <div className="field has-addons">
         <p className="control">

@@ -15,7 +15,7 @@ export const LoadHexadecimalInput = ({
   onValueLoad,
 }: LoadHexadecimalInputProps) => {
   return (
-    <div className="block">
+    <div>
       <label className="label is-small">{label}</label>
       <div className="field has-addons">
         <p className="control">
