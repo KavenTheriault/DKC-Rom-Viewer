@@ -4,18 +4,18 @@ import { Dkc1Animation } from './items/dkc1/animation';
 import { Dkc1Entity } from './items/dkc1/entity';
 import { Dkc1Palette } from './items/dkc1/palette';
 import { Dkc1Sprite } from './items/dkc1/sprite';
-import { LoadRom } from './items/load-rom';
+import { RomSelection } from './items/rom-selection';
 import { RomInfo } from './items/rom-info';
 
 // General
-export const loadRomMenuItem: MainMenuItem = {
-  label: 'Load Rom',
+export const romSelectionMenuItem: MainMenuItem = {
+  label: 'Rom Selection',
   fasIcon: 'fa-upload',
-  component: LoadRom,
+  component: RomSelection,
 };
 export const generalMenuGroup: MainMenuGroup = {
   label: 'General',
-  items: [loadRomMenuItem],
+  items: [romSelectionMenuItem],
 };
 
 // Dkc1

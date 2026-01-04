@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash';
 import { CanvasController } from '../components/canvas/canvas-controller';
-import { loadRomMenuItem, menuGroups } from '../pages/explorer/menu';
+import { romSelectionMenuItem, menuGroups } from '../pages/explorer/menu';
 import {
   DEFAULT_ANIMATION_INDEX,
   DEFAULT_ENTITY,
@@ -13,7 +13,7 @@ export const defaultAppState: AppState = {
   canvasController: new CanvasController(),
   mainMenu: {
     groups: cloneDeep(menuGroups),
-    selectedItem: loadRomMenuItem,
+    selectedItem: romSelectionMenuItem,
   },
   rom: null,
   dkc1: {
