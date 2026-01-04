@@ -1,13 +1,15 @@
+import { AppState } from './types';
+
 type Listener = () => void;
 
-export const createStore = <T>(initialState: T) => {
+export const createAppStateStore = (initialState: AppState) => {
   const state = initialState;
   const listeners = new Set<Listener>();
 
   return {
     get: () => state,
 
-    set: (stateUpdater: (state: T) => void) => {
+    set: (stateUpdater: (state: AppState) => void) => {
       stateUpdater(state);
       listeners.forEach((l) => l());
     },
@@ -19,4 +21,4 @@ export const createStore = <T>(initialState: T) => {
   };
 };
 
-export type Store<T> = ReturnType<typeof createStore<T>>;
+export type AppStateStore = ReturnType<typeof createAppStateStore>;

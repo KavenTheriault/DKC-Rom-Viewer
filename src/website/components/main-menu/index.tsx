@@ -7,18 +7,8 @@ export const MainMenu = () => {
   const appStore = useAppStore();
   const [isOpen, setIsOpen] = useState(false);
 
-  const appState = stateSelector((s) => s);
+  const groups = stateSelector((s) => s.mainMenu.groups);
   const selectedItem = stateSelector((s) => s.mainMenu.selectedItem);
-
-  const availableGroups: MainMenuGroup[] = [];
-  for (const group of appState.mainMenu.groups) {
-    const availableItems = group.items.filter(
-      (i) => !i.isAvailable || i.isAvailable(appState),
-    );
-    if (availableItems.length > 0) {
-      availableGroups.push({ ...group, items: availableItems });
-    }
-  }
 
   const renderItem = (item: MainMenuItem) => (
     <li key={item.label.toLowerCase()}>
@@ -77,7 +67,7 @@ export const MainMenu = () => {
       <div className="dropdown-menu" id="dropdown-menu" role="menu">
         <div className="dropdown-content">
           <MenuDiv>
-            <aside className="menu">{availableGroups.map(renderGroup)}</aside>
+            <aside className="menu">{groups.map(renderGroup)}</aside>
           </MenuDiv>
         </div>
       </div>

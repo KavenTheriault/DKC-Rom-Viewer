@@ -56,6 +56,30 @@ export class CanvasController {
     this._translatePosition = value;
   }
 
+  get center(): Position {
+    if (!this._canvas || !this._context) {
+      throw new Error('No canvas attached to this controller.');
+    }
+
+    return {
+      x: this._canvas.width / 2,
+      y: this._canvas.height / 2,
+    };
+  }
+
+  resetTransform() {
+    this.scale = 1;
+    this.translatePosition = { x: 0, y: 0 };
+  }
+
+  clear() {
+    if (!this._canvas || !this._context) {
+      throw new Error('No canvas attached to this controller.');
+    }
+
+    this._context.clearRect(0, 0, this._canvas.width, this._canvas.height);
+  }
+
   draw() {
     if (!this._canvas || !this._context) {
       throw new Error('No canvas attached to this controller.');
@@ -94,15 +118,20 @@ export class CanvasController {
     this._onScaleChangeHandlers.delete(handler);
   }
 
-  zoom(direction: 'in' | 'out', x: number, y: number) {
+  zoom(
+    direction: 'in' | 'out',
+    position: Position,
+    factor: number = ZOOM_SPEED_PERCENTAGE,
+  ) {
     const currentPosition = this.translatePosition;
-    const factor =
-      direction === 'in' ? ZOOM_SPEED_PERCENTAGE : 1 / ZOOM_SPEED_PERCENTAGE;
+    const scaleChange = direction === 'in' ? factor : 1 / factor;
 
-    this.scale *= factor;
+    this.scale *= scaleChange;
     this.translatePosition = {
-      x: (currentPosition.x -= (x - currentPosition.x) * (factor - 1)),
-      y: (currentPosition.y -= (y - currentPosition.y) * (factor - 1)),
+      x: (currentPosition.x -=
+        (position.x - currentPosition.x) * (scaleChange - 1)),
+      y: (currentPosition.y -=
+        (position.y - currentPosition.y) * (scaleChange - 1)),
     };
 
     this.draw();

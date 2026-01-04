@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CustomCanvas } from './styles';
-import { CanvasController } from './canvas-controller';
 import { Size } from '../../types/spatial';
+import { CanvasController } from './canvas-controller';
+import { CustomCanvas } from './styles';
 
 const BACKGROUND_COLOR = '#1e1f22';
 
@@ -47,7 +47,7 @@ export const Canvas = React.memo(({ canvasController }: CanvasProps) => {
 
   const onWheel = (event: WheelEvent) => {
     const direction = event.deltaY < 0 ? 'in' : 'out';
-    canvasController.zoom(direction, event.clientX, event.clientY);
+    canvasController.zoom(direction, { x: event.clientX, y: event.clientY });
   };
 
   const onMouseDown = (mouseDownEvent: MouseEvent) => {

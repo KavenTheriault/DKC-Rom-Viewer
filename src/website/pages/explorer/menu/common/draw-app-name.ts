@@ -5,6 +5,7 @@ export const useDrawAppName = () => {
   const canvasController = stateSelector((s) => s.canvasController);
 
   useEffect(() => {
+    canvasController.resetTransform();
     canvasController.registerDrawHandler(drawAppName);
     canvasController.draw();
 

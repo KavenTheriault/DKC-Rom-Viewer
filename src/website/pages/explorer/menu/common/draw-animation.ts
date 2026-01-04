@@ -59,7 +59,10 @@ export const useDrawAnimation = (animation: Animation | undefined) => {
 
   useEffect(() => {
     const drawFn = buildDrawFnAndStartAnimation();
-    if (!drawFn) return;
+    if (!drawFn) {
+      canvasController.clear();
+      return;
+    }
 
     canvasController.registerDrawHandler(drawFn);
     canvasController.draw();

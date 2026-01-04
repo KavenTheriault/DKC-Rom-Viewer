@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
+import { readEntityPalette } from '../../../../../../../rom-io/common/entities';
 import {
   Entity,
   EntityCommand,
@@ -33,10 +34,19 @@ export const EntityInstructions = ({
         <button
           className="mt-2 button is-primary is-small"
           onClick={() => {
+            if (!rom) return null;
+            const palette = readEntityPalette(
+              rom.data,
+              Dkc1EntityPaletteBank,
+              entity,
+            );
+
             appStore.set((s) => {
               s.dkc1.animationIndex = animationIndex;
               s.dkc1.animationAddress = undefined;
               s.mainMenu.selectedItem = animationMenuItem;
+
+              if (palette) s.dkc1.paletteAddress = palette.address.snesAddress;
             });
           }}
         >
@@ -110,15 +120,22 @@ export const EntityInstructions = ({
   );
 };
 
-const displayEntityInstruction = (instruction: EntityInstruction) => {
+const displayEntityInstruction = (
+  instruction: EntityInstruction,
+): ReactNode => {
   const parameters = [];
   for (const parameter of instruction.parameters) {
     parameters.push(toHexString(parameter, { addPrefix: true }));
   }
-  return `Command: ${toHexString(instruction.command, { addPrefix: true })} Params: ${parameters.join(' ')}`;
+  return (
+    <>
+      {getInstructionIcon(instruction)}{' '}
+      {`Command: ${toHexString(instruction.command, { addPrefix: true })} Params: ${parameters.join(' ')}`}
+    </>
+  );
 };
 
-const getInstructionClassName = (instruction: EntityInstruction) => {
+const getInstructionClassName = (instruction: EntityInstruction): string => {
   if (instruction.command === EntityCommand.PALETTE)
     return 'has-background-primary';
   if (instruction.command === EntityCommand.ANIMATION)
@@ -126,4 +143,14 @@ const getInstructionClassName = (instruction: EntityInstruction) => {
   if (instruction.command === EntityCommand.INHERIT)
     return 'has-background-warning';
   return '';
+};
+
+const getInstructionIcon = (instruction: EntityInstruction): ReactNode => {
+  if (instruction.command === EntityCommand.PALETTE)
+    return <i className={`fas fa-palette`} aria-hidden="true" />;
+  if (instruction.command === EntityCommand.ANIMATION)
+    return <i className={`fas fa-panorama`} aria-hidden="true" />;
+  if (instruction.command === EntityCommand.INHERIT)
+    return <i className={`fas fa-object-group`} aria-hidden="true" />;
+  return null;
 };

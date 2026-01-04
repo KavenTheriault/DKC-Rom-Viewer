@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { ClickableDiv } from './styles';
 import {
   CanvasController,
   OnScaleChangeHandler,
 } from '../canvas/canvas-controller';
+import { ClickableDiv } from './styles';
 
 type ZoomControlsProps = {
   canvasController: CanvasController;
@@ -22,24 +22,15 @@ export const ZoomControls = ({ canvasController }: ZoomControlsProps) => {
   }, []);
 
   const onZoomOutClick = () => {
-    const center = {
-      x: canvasController.canvas.width / 2,
-      y: canvasController.canvas.height / 2,
-    };
-    canvasController.zoom('out', center.x, center.y);
+    canvasController.zoom('out', canvasController.center);
   };
 
   const onZoomInClick = () => {
-    const center = {
-      x: canvasController.canvas.width / 2,
-      y: canvasController.canvas.height / 2,
-    };
-    canvasController.zoom('in', center.x, center.y);
+    canvasController.zoom('in', canvasController.center);
   };
 
   const onResetZoomClick = () => {
-    canvasController.scale = 1;
-    canvasController.translatePosition = { x: 0, y: 0 };
+    canvasController.resetTransform();
     canvasController.draw();
   };
 

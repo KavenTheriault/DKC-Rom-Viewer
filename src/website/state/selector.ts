@@ -1,9 +1,9 @@
 import { useContext, useRef, useSyncExternalStore } from 'react';
 import { AppState } from './types';
 import { AppStateContext } from './state-provider';
-import { Store } from './store';
+import { AppStateStore } from './store';
 
-export const useAppStore = (): Store<AppState> => {
+export const useAppStore = (): AppStateStore => {
   const store = useContext(AppStateContext);
   if (!store) {
     throw new Error('stateSelector must be used inside AppStateProvider');

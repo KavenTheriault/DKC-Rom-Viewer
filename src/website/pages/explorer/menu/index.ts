@@ -1,4 +1,3 @@
-import { AppState } from '../../../state/types';
 import { MainMenuGroup, MainMenuItem } from '../../../types/layout';
 import { About } from './items/about';
 import { Dkc1Animation } from './items/dkc1/animation';
@@ -20,35 +19,29 @@ export const generalMenuGroup: MainMenuGroup = {
 };
 
 // Dkc1
-const isDkc1 = (appState: AppState) =>
-  appState.rom?.header.title.toUpperCase().trim() === 'DONKEY KONG COUNTRY';
-export const spriteMenuItem: MainMenuItem = {
-  label: 'Sprite',
-  fasIcon: 'fa-image',
-  component: Dkc1Sprite,
-  isAvailable: isDkc1,
+export const entityMenuItem: MainMenuItem = {
+  label: 'Entity',
+  fasIcon: 'fa-object-group',
+  component: Dkc1Entity,
 };
 export const animationMenuItem: MainMenuItem = {
   label: 'Animation',
   fasIcon: 'fa-panorama',
   component: Dkc1Animation,
-  isAvailable: isDkc1,
 };
-export const entityMenuItem: MainMenuItem = {
-  label: 'Entity',
-  fasIcon: 'fa-object-group',
-  component: Dkc1Entity,
-  isAvailable: isDkc1,
+export const spriteMenuItem: MainMenuItem = {
+  label: 'Sprite',
+  fasIcon: 'fa-image',
+  component: Dkc1Sprite,
 };
 export const paletteMenuItem: MainMenuItem = {
   label: 'Palette',
   fasIcon: 'fa-palette',
   component: Dkc1Palette,
-  isAvailable: isDkc1,
 };
 export const dkc1MenuGroup: MainMenuGroup = {
   label: 'Donkey Kong Country',
-  items: [spriteMenuItem, animationMenuItem, entityMenuItem, paletteMenuItem],
+  items: [entityMenuItem, animationMenuItem, spriteMenuItem, paletteMenuItem],
 };
 
 // Other
@@ -56,7 +49,6 @@ export const romInfoMenuItem: MainMenuItem = {
   label: 'Rom Info',
   fasIcon: 'fa-file',
   component: RomInfo,
-  isAvailable: (s) => !!s.rom,
 };
 export const aboutMenuItem: MainMenuItem = {
   label: 'About this project',
@@ -65,11 +57,7 @@ export const aboutMenuItem: MainMenuItem = {
 };
 export const otherMenuGroup: MainMenuGroup = {
   label: 'Other',
-  items: [romInfoMenuItem, aboutMenuItem],
+  items: [aboutMenuItem],
 };
 
-export const menuGroups: MainMenuGroup[] = [
-  generalMenuGroup,
-  dkc1MenuGroup,
-  otherMenuGroup,
-];
+export const menuGroups: MainMenuGroup[] = [generalMenuGroup, otherMenuGroup];

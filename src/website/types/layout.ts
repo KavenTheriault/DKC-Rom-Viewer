@@ -1,5 +1,4 @@
 import React from 'react';
-import { AppState } from '../state/types';
 
 export type OverlaySlots = {
   top?: {
@@ -26,7 +25,6 @@ export type MainMenuItemComponent = React.FC<{
 export interface MainMenuItem {
   component: MainMenuItemComponent;
   fasIcon?: string;
-  isAvailable?: (appState: AppState) => boolean;
   label: string;
 }
 

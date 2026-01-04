@@ -1,10 +1,17 @@
 import { Buffer as WebBuffer } from 'buffer';
 import React, { ChangeEvent, useState } from 'react';
 import { readRomFile } from '../../../../../rom-io/rom';
+import { Rom } from '../../../../../rom-io/rom/types';
 import { CollapsiblePanel } from '../../../../components/collapsible-panel';
 import { stateSelector, useAppStore } from '../../../../state/selector';
 import { MainMenuItemComponent } from '../../../../types/layout';
 import { useDrawAppName } from '../common/draw-app-name';
+import {
+  dkc1MenuGroup,
+  entityMenuItem,
+  menuGroups,
+  romInfoMenuItem,
+} from '../index';
 
 export const LoadRom: MainMenuItemComponent = ({ children }) => {
   useDrawAppName();
@@ -28,10 +35,34 @@ export const LoadRom: MainMenuItemComponent = ({ children }) => {
       const buffer: Buffer = WebBuffer.from(bytes);
 
       const rom = await readRomFile(buffer);
+      onSelectedRom(rom);
+    }
+  };
+
+  const onSelectedRom = (selectedRom: Rom) => {
+    appStore.set((s) => {
+      s.rom = selectedRom;
+      s.canvasController.zoom('in', s.canvasController.center, 2.5);
+
+      const otherGroup = s.mainMenu.groups.find((g) => g.label == 'Other');
+      if (otherGroup) otherGroup.items.splice(0, 0, romInfoMenuItem);
+    });
+
+    const isDkc1 =
+      selectedRom.header.title.toUpperCase().trim() === 'DONKEY KONG COUNTRY';
+    if (isDkc1) {
       appStore.set((s) => {
-        s.rom = rom;
+        s.mainMenu.groups.splice(1, 0, dkc1MenuGroup);
+        s.mainMenu.selectedItem = entityMenuItem;
       });
     }
+  };
+
+  const onClearSelectedRom = () => {
+    appStore.set((s) => {
+      s.rom = null;
+      s.mainMenu.groups = menuGroups;
+    });
   };
 
   return children({
@@ -49,11 +80,7 @@ export const LoadRom: MainMenuItemComponent = ({ children }) => {
               </div>
               <button
                 className="button is-primary"
-                onClick={() => {
-                  appStore.set((s) => {
-                    s.rom = null;
-                  });
-                }}
+                onClick={onClearSelectedRom}
               >
                 Select another Rom
               </button>
