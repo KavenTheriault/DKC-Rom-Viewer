@@ -146,11 +146,8 @@ const getInstructionClassName = (instruction: EntityInstruction): string => {
 };
 
 const getInstructionIcon = (instruction: EntityInstruction): ReactNode => {
-  if (instruction.command === EntityCommand.PALETTE)
-    return <i className={`fas fa-palette`} aria-hidden="true" />;
-  if (instruction.command === EntityCommand.ANIMATION)
-    return <i className={`fas fa-panorama`} aria-hidden="true" />;
-  if (instruction.command === EntityCommand.INHERIT)
-    return <i className={`fas fa-object-group`} aria-hidden="true" />;
+  if (instruction.command === EntityCommand.PALETTE) return '🎨';
+  if (instruction.command === EntityCommand.ANIMATION) return '🎥';
+  if (instruction.command === EntityCommand.INHERIT) return '👆';
   return null;
 };

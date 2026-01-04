@@ -30,10 +30,10 @@ export const MainMenu = () => {
   );
 
   const renderGroup = (item: MainMenuGroup) => (
-    <>
+    <React.Fragment key={item.label.toLowerCase()}>
       <p className="menu-label">{item.label}</p>
       <ul className="menu-list">{item.items.map(renderItem)}</ul>
-    </>
+    </React.Fragment>
   );
 
   return (
