@@ -28,6 +28,15 @@ export const drawImage = (
   context.drawImage(offscreenCanvas, offset?.width ?? 0, offset?.height ?? 0);
 };
 
+export const drawImageBitmap = (
+  context: CanvasRenderingContext2D,
+  imageBitmap: ImageBitmap,
+  offset?: Size,
+) => {
+  context.imageSmoothingEnabled = false;
+  context.drawImage(imageBitmap, offset?.width ?? 0, offset?.height ?? 0);
+};
+
 export const drawRectangle = (
   context: CanvasRenderingContext2D,
   rectangle: {

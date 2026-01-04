@@ -76,7 +76,6 @@ export const RomSelection: MainMenuItemComponent = ({ children }) => {
   const onSelectedRom = (selectedRom: Rom) => {
     appStore.set((s) => {
       s.rom = selectedRom;
-      s.canvasController.zoom('in', s.canvasController.center, 2.5);
 
       const otherGroup = s.mainMenu.groups.find((g) => g.label == 'Other');
       if (otherGroup) otherGroup.items.splice(0, 0, romInfoMenuItem);
@@ -145,11 +144,9 @@ export const RomSelection: MainMenuItemComponent = ({ children }) => {
                   onClick={loadRomFromWeb}
                 >
                   Download{' '}
-                  {!isDownloading && (
-                    <code className="ml-2">
-                      Donkey Kong Country (U) (V1.0) [!].smc
-                    </code>
-                  )}
+                  <strong className="ml-2">
+                    Donkey Kong Country (U) (V1.0) [!].smc
+                  </strong>
                 </button>
               </>
             )}

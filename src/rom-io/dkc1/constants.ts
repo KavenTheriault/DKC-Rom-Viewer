@@ -11,6 +11,11 @@ export const Dkc1EntityPaletteBank = 0x3c0000;
 export const Dkc1EntitiesStartReference = 0x856d;
 export const Dkc1EntitiesEndReference = 0xfff7;
 
+export const Dkc1SlipslideRideEntrances = [
+  0x6d, 0x62, 0xab, 0xc5, 0xc6, 0xc7, 0xc8, 0xca, 0xcb,
+];
+export const Dkc1SlipslideTileMapLength = 0x3a00;
+
 export const Dkc1LevelConstant: GameLevelConstant = {
   address: {
     mainGraphic: RomAddress.fromSnesAddress(0x7e79fc),
@@ -40,8 +45,11 @@ export const Dkc1LevelConstant: GameLevelConstant = {
   entrances: {
     correctedTileMapLength: {
       0xde: 0xc380,
-      0x6d: 0x3a00,
+      ...Dkc1SlipslideRideEntrances.reduce<Record<number, number>>((acc, e) => {
+        acc[e] = Dkc1SlipslideTileMapLength;
+        return acc;
+      }, {}),
     },
-    isVertical: [],
+    isVertical: [0xde, ...Dkc1SlipslideRideEntrances],
   },
 };

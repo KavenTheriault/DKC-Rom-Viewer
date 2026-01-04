@@ -18,5 +18,6 @@ export interface AppState {
     paletteReference?: number;
     spriteAddress?: number;
     spritePointer: number;
+    levelEntranceIndex: number;
   };
 }

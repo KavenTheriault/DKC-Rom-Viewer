@@ -4,6 +4,7 @@ import { romSelectionMenuItem, menuGroups } from '../pages/explorer/menu';
 import {
   DEFAULT_ANIMATION_INDEX,
   DEFAULT_ENTITY,
+  DEFAULT_LEVEL_ENTRANCE_INDEX,
   DEFAULT_PALETTE,
   DEFAULT_SPRITE_POINTER,
 } from '../pages/explorer/menu/items/dkc1/defaults';
@@ -21,5 +22,6 @@ export const defaultAppState: AppState = {
     entityAddress: DEFAULT_ENTITY,
     paletteAddress: DEFAULT_PALETTE,
     spritePointer: DEFAULT_SPRITE_POINTER,
+    levelEntranceIndex: DEFAULT_LEVEL_ENTRANCE_INDEX,
   },
 };

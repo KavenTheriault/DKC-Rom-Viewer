@@ -33,6 +33,7 @@ import { AnimationIndexInput } from './index-input';
 export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
   const appStore = useAppStore();
   const rom = stateSelector((s) => s.rom);
+  const canvasController = stateSelector((s) => s.canvasController);
   if (!rom) return null;
 
   const snesAddress = stateSelector((s) => s.dkc1.animationAddress);
@@ -111,6 +112,10 @@ export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
   };
 
   useEffect(() => {
+    if (canvasController.scale === 1) {
+      canvasController.zoom('in', canvasController.center, 2.5);
+    }
+
     if (snesAddress) loadAnimation(RomAddress.fromSnesAddress(snesAddress));
     else loadAnimationIndex(animationIndex);
   }, []);

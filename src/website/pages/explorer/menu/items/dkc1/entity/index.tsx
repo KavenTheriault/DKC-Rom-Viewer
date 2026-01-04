@@ -34,6 +34,7 @@ import { EntityInstructions } from './instructions';
 export const Dkc1Entity: MainMenuItemComponent = ({ children }) => {
   const appStore = useAppStore();
   const rom = stateSelector((s) => s.rom);
+  const canvasController = stateSelector((s) => s.canvasController);
   if (!rom) return null;
 
   const snesAddress = stateSelector((s) => s.dkc1.entityAddress);
@@ -121,6 +122,10 @@ export const Dkc1Entity: MainMenuItemComponent = ({ children }) => {
   };
 
   useEffect(() => {
+    if (canvasController.scale === 1) {
+      canvasController.zoom('in', canvasController.center, 2.5);
+    }
+
     if (snesAddress) onSnesAddressLoad(RomAddress.fromSnesAddress(snesAddress));
   }, []);
 

@@ -86,7 +86,10 @@ export class CanvasController {
     }
 
     /* The entire canvas is cleared and redrawn on every draw call */
+    this._context.save();
+    this._context.setTransform(1, 0, 0, 1, 0, 0);
     this._context.clearRect(0, 0, this._canvas.width, this._canvas.height);
+    this._context.restore();
 
     this._context.setTransform(
       this._scale,

@@ -146,11 +146,6 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
   };
 
   useEffect(() => {
-    if (snesAddress) loadSprite(RomAddress.fromSnesAddress(snesAddress));
-    else loadSpritePointer(spritePointer);
-  }, []);
-
-  useEffect(() => {
     canvasController.registerDrawHandler(drawSpriteImage);
     canvasController.draw();
 
@@ -158,6 +153,15 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
       canvasController.unregisterDrawHandler(drawSpriteImage);
     };
   }, [spriteImage, selectedSpriteParts]);
+
+  useEffect(() => {
+    if (canvasController.scale === 1) {
+      canvasController.zoom('in', canvasController.center, 2.5);
+    }
+
+    if (snesAddress) loadSprite(RomAddress.fromSnesAddress(snesAddress));
+    else loadSpritePointer(spritePointer);
+  }, []);
 
   return children({
     top: {
