@@ -1,0 +1,87 @@
+import { useState } from 'react';
+import {
+  AnimationInfo,
+  EntryCommand,
+  EntrySprite,
+  isEntrySprite,
+} from '../../../../../../../rom-io/common/animations/types';
+import { getAddressFromSpritePointerIndex } from '../../../../../../../rom-io/common/sprites';
+import { Dkc1SpritePointerTable } from '../../../../../../../rom-io/dkc1/constants';
+import { stateSelector, useAppStore } from '../../../../../../state/selector';
+import { toHexString } from '../../../../../../utils/hex';
+import { spriteMenuItem } from '../../../index';
+
+interface AnimationEntriesProps {
+  animationInfo: AnimationInfo;
+}
+
+export const AnimationEntries = ({ animationInfo }: AnimationEntriesProps) => {
+  const appStore = useAppStore();
+  const rom = stateSelector((s) => s.rom);
+  if (!rom) return null;
+
+  const [selectedAnimationEntryIndex, setSelectedAnimationEntryIndex] =
+    useState<number>(0);
+
+  const renderGoToSpriteButton = (entry?: EntryCommand | EntrySprite) => {
+    if (!entry || !isEntrySprite(entry)) return null;
+    return (
+      <button
+        className="mt-2 button is-primary is-small"
+        onClick={() => {
+          if (!rom || !entry || !isEntrySprite(entry)) return null;
+
+          const spriteAddress = getAddressFromSpritePointerIndex(
+            rom.data,
+            Dkc1SpritePointerTable,
+            entry.spriteIndex,
+          );
+          appStore.set((s) => {
+            s.dkc1.spriteAddress = spriteAddress.snesAddress;
+            s.mainMenu.selectedItem = spriteMenuItem;
+          });
+        }}
+      >
+        Go to Sprite {`${toHexString(entry.spriteIndex, { addPrefix: true })}`}
+      </button>
+    );
+  };
+
+  return (
+    <div className="is-flex is-flex-direction-column is-align-items-center">
+      <div className="select is-multiple">
+        <select
+          multiple
+          size={8}
+          onChange={(e) =>
+            setSelectedAnimationEntryIndex(parseInt(e.target.value))
+          }
+        >
+          {animationInfo.entries.map((entry, index) => (
+            <option
+              className="is-size-7"
+              key={`animationEntry${index}`}
+              value={index}
+            >
+              {buildAnimationEntryString(entry)}
+            </option>
+          ))}
+        </select>
+      </div>
+      {renderGoToSpriteButton(
+        animationInfo.entries[selectedAnimationEntryIndex],
+      )}
+    </div>
+  );
+};
+
+const buildAnimationEntryString = (entry: EntryCommand | EntrySprite) => {
+  if ('time' in entry) {
+    return `Time: ${entry.time} Sprite: ${toHexString(entry.spriteIndex, { addPrefix: true })}`;
+  }
+  const parameters = [];
+  for (const parameter of entry.parameters) {
+    parameters.push(toHexString(parameter));
+  }
+  return `Command: ${toHexString(entry.command, { addPrefix: true })} Params: ${parameters.join(' ')}`;
+};
