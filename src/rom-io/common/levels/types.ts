@@ -19,6 +19,7 @@ export type EntranceInfo = {
 
   // Level
   levelTileMapAddress: RomAddress;
+  levelTileMapOffset: number;
   levelTileMapLength: number;
   isVertical: boolean;
 };
@@ -50,6 +51,7 @@ export interface GameLevelConstant {
     terrainGraphicsInfo: RomAddress;
   };
   entrances: {
+    correctedTileMapOffset: Record<number, number>;
     correctedTileMapLength: Record<number, number>;
     isVertical: number[];
   };

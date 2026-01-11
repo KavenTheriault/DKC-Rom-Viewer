@@ -52,6 +52,8 @@ export const loadEntranceInfo = (
     terrainPalettesAddress: terrainPalettesAddress,
     terrainGraphicsInfo: graphicsInfo,
     levelTileMapAddress: levelTileMapAddress,
+    levelTileMapOffset:
+      levelConstant.entrances.correctedTileMapOffset[entranceId] ?? 0,
     levelTileMapLength:
       levelConstant.entrances.correctedTileMapLength[entranceId] ??
       levelTileMapLength,

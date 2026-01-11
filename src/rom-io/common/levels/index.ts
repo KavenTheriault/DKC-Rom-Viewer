@@ -49,6 +49,7 @@ const readLevel = (romData: Buffer, entranceInfo: EntranceInfo) => {
   const levelTileMap = readLevelTileMap(
     romData,
     entranceInfo.levelTileMapAddress,
+    entranceInfo.levelTileMapOffset,
     entranceInfo.levelTileMapLength,
     entranceInfo.isVertical,
   );
@@ -167,11 +168,16 @@ const buildLevelTileImage = (
 const readLevelTileMap = (
   romData: Buffer,
   tileMapAddress: RomAddress,
+  tileMapOffset: number,
   levelSize: number,
   isVertical: boolean,
 ) => {
   let levelWidth, levelHeight;
-  const rawTileMap = extract(romData, tileMapAddress.pcAddress, levelSize);
+  const rawTileMap = extract(
+    romData,
+    tileMapAddress.pcAddress + tileMapOffset,
+    levelSize,
+  );
 
   if (isVertical) {
     levelWidth = 64;
