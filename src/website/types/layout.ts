@@ -1,4 +1,5 @@
 import React from 'react';
+import { MenuGroup, MenuItem } from '../components/menu/types';
 
 export type OverlaySlots = {
   top?: {
@@ -22,13 +23,5 @@ export type MainMenuItemComponent = React.FC<{
   children: (slots: OverlaySlots) => React.ReactNode;
 }>;
 
-export interface MainMenuItem {
-  component: MainMenuItemComponent;
-  fasIcon?: string;
-  label: string;
-}
-
-export interface MainMenuGroup {
-  label: string;
-  items: MainMenuItem[];
-}
+export type MainMenuItem = MenuItem<MainMenuItemComponent>;
+export type MainMenuGroup = MenuGroup<MainMenuItemComponent>;

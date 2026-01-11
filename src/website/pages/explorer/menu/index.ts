@@ -12,7 +12,7 @@ import { RomInfo } from './items/rom-info';
 export const romSelectionMenuItem: MainMenuItem = {
   label: 'Rom Selection',
   fasIcon: 'fa-upload',
-  component: RomSelection,
+  value: RomSelection,
 };
 export const generalMenuGroup: MainMenuGroup = {
   label: 'General',
@@ -23,27 +23,27 @@ export const generalMenuGroup: MainMenuGroup = {
 export const entityMenuItem: MainMenuItem = {
   label: 'Entity',
   fasIcon: 'fa-object-group',
-  component: Dkc1Entity,
+  value: Dkc1Entity,
 };
 export const animationMenuItem: MainMenuItem = {
   label: 'Animation',
   fasIcon: 'fa-panorama',
-  component: Dkc1Animation,
+  value: Dkc1Animation,
 };
 export const spriteMenuItem: MainMenuItem = {
   label: 'Sprite',
   fasIcon: 'fa-image',
-  component: Dkc1Sprite,
+  value: Dkc1Sprite,
 };
 export const paletteMenuItem: MainMenuItem = {
   label: 'Palette',
   fasIcon: 'fa-palette',
-  component: Dkc1Palette,
+  value: Dkc1Palette,
 };
 export const levelMenuItem: MainMenuItem = {
   label: 'Level',
   fasIcon: 'fa-scroll',
-  component: Dkc1Level,
+  value: Dkc1Level,
 };
 export const dkc1MenuGroup: MainMenuGroup = {
   label: 'Donkey Kong Country',
@@ -60,12 +60,12 @@ export const dkc1MenuGroup: MainMenuGroup = {
 export const romInfoMenuItem: MainMenuItem = {
   label: 'Rom Info',
   fasIcon: 'fa-file',
-  component: RomInfo,
+  value: RomInfo,
 };
 export const aboutMenuItem: MainMenuItem = {
   label: 'About this project',
   fasIcon: 'fa-circle-info',
-  component: About,
+  value: About,
 };
 export const otherMenuGroup: MainMenuGroup = {
   label: 'Other',

@@ -10,8 +10,10 @@ import {
   getDrawCenterOffset,
 } from '../../../../../../utils/draw';
 import { convertToImageBitmap } from '../../../../../../utils/image-bitmap';
+import { OverlaySlotsContainer } from '../../../../styles';
 import { AddressesDiv } from '../styles';
 import { EntranceIndexInput } from './index-input';
+import { LevelSelector } from './level-selector';
 
 export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   const appStore = useAppStore();
@@ -79,18 +81,29 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   return children({
     top: {
       left: (
-        <CollapsiblePanel title="Addresses">
-          <AddressesDiv>
-            <EntranceIndexInput
-              label="Entrance Index"
-              value={entranceIndex}
-              onValueChange={(value) => {
-                if (value) setEntranceIndex(value);
-              }}
-              onValueLoad={(index) => loadLevel(index)}
-            />
-          </AddressesDiv>
-        </CollapsiblePanel>
+        <OverlaySlotsContainer>
+          <CollapsiblePanel title="Level selection">
+            <AddressesDiv>
+              <div className="is-flex is-flex-direction-column is-align-items-stretch">
+                <label className="label is-small">Level</label>
+                <LevelSelector
+                  onSelectLevel={async (level) => {
+                    setEntranceIndex(level.entranceIndex);
+                    await loadLevel(level.entranceIndex);
+                  }}
+                />
+              </div>
+              <EntranceIndexInput
+                label="Entrance Index"
+                value={entranceIndex}
+                onValueChange={(value) => {
+                  if (value) setEntranceIndex(value);
+                }}
+                onValueLoad={(index) => loadLevel(index)}
+              />
+            </AddressesDiv>
+          </CollapsiblePanel>
+        </OverlaySlotsContainer>
       ),
       middle: (
         <>{error && <div className="notification is-danger">{error}</div>}</>
