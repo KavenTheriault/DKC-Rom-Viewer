@@ -3,12 +3,14 @@ import { MenuDiv, MenuItemA } from './styles';
 import { MenuGroup, MenuItem } from './types';
 
 interface MenuProps<ValueType> {
+  title: string;
   groups: MenuGroup<ValueType>[];
   onSelectItem: (item: MenuItem<ValueType>) => void;
   selectedItem: MenuItem<ValueType> | null;
 }
 
 export const Menu = <ValueType,>({
+  title,
   groups,
   selectedItem,
   onSelectItem,
@@ -60,7 +62,7 @@ export const Menu = <ValueType,>({
               ></i>
             </span>
           )}
-          <span>{selectedItem ? selectedItem.label : 'Menu'}</span>
+          <span>{selectedItem ? selectedItem.label : title}</span>
           <span className="icon is-small">
             <i
               className={isOpen ? 'fas fa-angle-up' : 'fas fa-angle-down'}

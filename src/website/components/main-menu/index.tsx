@@ -10,6 +10,7 @@ export const MainMenu = () => {
 
   return (
     <Menu<MainMenuItemComponent>
+      title="Select page"
       groups={groups}
       selectedItem={selectedItem}
       onSelectItem={(item) => {

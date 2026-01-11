@@ -1,8 +1,9 @@
 import { noop } from 'lodash';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { buildLevelImageByEntranceId } from '../../../../../../../rom-io/common/levels';
 import { Dkc1LevelConstant } from '../../../../../../../rom-io/dkc1/constants';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
+import { Menu } from '../../../../../../components/menu';
 import { stateSelector, useAppStore } from '../../../../../../state/selector';
 import { MainMenuItemComponent } from '../../../../../../types/layout';
 import {
@@ -13,7 +14,8 @@ import { convertToImageBitmap } from '../../../../../../utils/image-bitmap';
 import { OverlaySlotsContainer } from '../../../../styles';
 import { AddressesDiv } from '../styles';
 import { EntranceIndexInput } from './index-input';
-import { LevelSelector } from './level-selector';
+import { DKC1_LEVELS } from './level-list';
+import { Level, LevelItem } from './types';
 
 export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   const appStore = useAppStore();
@@ -28,6 +30,9 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
     });
   };
 
+  const [selectedLevelItem, setSelectedLevelItem] = useState<LevelItem | null>(
+    null,
+  );
   const [levelBitmap, setLevelBitmap] = useState<ImageBitmap>();
   const [error, setError] = useState('');
 
@@ -74,6 +79,13 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   }, [levelBitmap]);
 
   useEffect(() => {
+    if (selectedLevelItem) {
+      setEntranceIndex(selectedLevelItem.value.entranceIndex);
+      loadLevel(selectedLevelItem.value.entranceIndex).then(noop);
+    }
+  }, [selectedLevelItem]);
+
+  useEffect(() => {
     canvasController.resetTransform();
     loadLevel(entranceIndex).then(noop);
   }, []);
@@ -86,10 +98,12 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
             <AddressesDiv>
               <div className="is-flex is-flex-direction-column is-align-items-stretch">
                 <label className="label is-small">Level</label>
-                <LevelSelector
-                  onSelectLevel={async (level) => {
-                    setEntranceIndex(level.entranceIndex);
-                    await loadLevel(level.entranceIndex);
+                <Menu<Level>
+                  title="Select level"
+                  groups={DKC1_LEVELS}
+                  selectedItem={selectedLevelItem}
+                  onSelectItem={(item) => {
+                    setSelectedLevelItem(item);
                   }}
                 />
               </div>
@@ -99,7 +113,10 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
                 onValueChange={(value) => {
                   if (value) setEntranceIndex(value);
                 }}
-                onValueLoad={(index) => loadLevel(index)}
+                onValueLoad={async (index) => {
+                  setSelectedLevelItem(null);
+                  await loadLevel(index);
+                }}
               />
             </AddressesDiv>
           </CollapsiblePanel>
