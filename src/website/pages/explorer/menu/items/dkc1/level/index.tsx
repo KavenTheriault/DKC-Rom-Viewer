@@ -31,7 +31,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   };
 
   const [selectedLevelItem, setSelectedLevelItem] = useState<LevelItem | null>(
-    null,
+    DKC1_LEVELS[0].items[0],
   );
   const [levelBitmap, setLevelBitmap] = useState<ImageBitmap>();
   const [error, setError] = useState('');
