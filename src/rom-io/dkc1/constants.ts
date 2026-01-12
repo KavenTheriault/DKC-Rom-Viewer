@@ -11,10 +11,40 @@ export const Dkc1EntityPaletteBank = 0x3c0000;
 export const Dkc1EntitiesStartReference = 0x856d;
 export const Dkc1EntitiesEndReference = 0xfff7;
 
-export const Dkc1SlipslideRideEntrances = [
-  0x6d, 0x62, 0xab, 0xc5, 0xc6, 0xc7, 0xc8, 0xca, 0xcb,
-];
-export const Dkc1SlipslideTileMapLength = 0x3a00;
+const CoralCapers = {
+  entranceIndex: 0xbf,
+  tileMapOffset: 0x8c00,
+  tileMapLength: 0x1e00,
+};
+const ClamCity = {
+  entranceIndex: 0xde,
+  tileMapOffset: 0xaa00,
+  tileMapLength: 0x1900,
+};
+const PoisonPond = {
+  entranceIndex: 0x22,
+  tileMapOffset: 0,
+  tileMapLength: 0x3080,
+};
+const CroctopusChase = {
+  entranceIndex: 0x3e,
+  tileMapOffset: 0x3080,
+  tileMapLength: 0x4400,
+};
+const SlipslideRide = {
+  entranceIndex: 0x6d,
+  tileMapOffset: 0x0400,
+  tileMapLength: 0x2e00,
+};
+
+const IceCaves = {
+  entrancesIndex: [0x62, 0xab, 0xc5, 0xc6, 0xc7, 0xc8, 0xca, 0xcb],
+  tileMapLength: 0x3a00,
+};
+const Underwater = {
+  entrancesIndex: [0x2a, 0x3f, 0xc0, 0xdf],
+  tileMapLength: 0xc380,
+};
 
 export const Dkc1LevelConstant: GameLevelConstant = {
   address: {
@@ -43,13 +73,36 @@ export const Dkc1LevelConstant: GameLevelConstant = {
     terrainGraphicsInfo: RomAddress.fromSnesAddress(0xb9a994),
   },
   entrances: {
+    correctedTileMapOffset: {
+      [CoralCapers.entranceIndex]: CoralCapers.tileMapOffset,
+      [ClamCity.entranceIndex]: ClamCity.tileMapOffset,
+      [PoisonPond.entranceIndex]: PoisonPond.tileMapOffset,
+      [CroctopusChase.entranceIndex]: CroctopusChase.tileMapOffset,
+      [SlipslideRide.entranceIndex]: SlipslideRide.tileMapOffset,
+    },
     correctedTileMapLength: {
-      0xde: 0xc380,
-      ...Dkc1SlipslideRideEntrances.reduce<Record<number, number>>((acc, e) => {
-        acc[e] = Dkc1SlipslideTileMapLength;
+      [CoralCapers.entranceIndex]: CoralCapers.tileMapLength,
+      [ClamCity.entranceIndex]: ClamCity.tileMapLength,
+      [PoisonPond.entranceIndex]: PoisonPond.tileMapLength,
+      [CroctopusChase.entranceIndex]: CroctopusChase.tileMapLength,
+      [SlipslideRide.entranceIndex]: SlipslideRide.tileMapLength,
+      ...IceCaves.entrancesIndex.reduce<Record<number, number>>((acc, e) => {
+        acc[e] = IceCaves.tileMapLength;
+        return acc;
+      }, {}),
+      ...Underwater.entrancesIndex.reduce<Record<number, number>>((acc, e) => {
+        acc[e] = Underwater.tileMapLength;
         return acc;
       }, {}),
     },
-    isVertical: [0xde, ...Dkc1SlipslideRideEntrances],
+    isVertical: [
+      CoralCapers.entranceIndex,
+      ClamCity.entranceIndex,
+      PoisonPond.entranceIndex,
+      CroctopusChase.entranceIndex,
+      SlipslideRide.entranceIndex,
+      ...IceCaves.entrancesIndex,
+      ...Underwater.entrancesIndex,
+    ],
   },
 };

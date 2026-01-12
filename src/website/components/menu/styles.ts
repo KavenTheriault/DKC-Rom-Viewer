@@ -3,6 +3,9 @@ import styled from 'styled-components';
 export const MenuDiv = styled.div`
   margin: 0 8px;
   min-width: 12rem;
+
+  max-height: 24rem;
+  overflow-y: auto;
 `;
 
 export const MenuItemA = styled.a`

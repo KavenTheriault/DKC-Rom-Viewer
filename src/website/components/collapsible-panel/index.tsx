@@ -42,7 +42,7 @@ export const CollapsiblePanel = ({
         <div className="is-flex is-flex-direction-column">
           <div className="pt-1 is-flex is-flex-direction-row is-align-items-center">
             {renderShowHideButton({ isHidden: !isOpen })}
-            <span className="pl-2 is-size-6 has-text-weight-bold">{title}</span>
+            <span className="pl-2 has-text-weight-bold">{title}</span>
           </div>
           <HeaderHr className="has-background-grey-lighter" />
         </div>

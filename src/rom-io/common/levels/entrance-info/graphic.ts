@@ -37,23 +37,20 @@ export const readGraphicsInfo = (
       opcodeEntries,
       levelConstant.subroutines.loadGraphicsWithAddress,
     );
-    if (!loadTerrainDataSubroutine) {
-      throw new Error(
-        `Subroutine not found (${levelConstant.subroutines.loadGraphicsWithAddress.toString()})`,
+    if (loadTerrainDataSubroutine) {
+      const subroutineIndex = opcodeEntries.indexOf(loadTerrainDataSubroutine);
+      const bank = readOpcodeEntryArgument(opcodeEntries[subroutineIndex - 2]);
+      const absolute = readOpcodeEntryArgument(
+        opcodeEntries[subroutineIndex - 3],
       );
+
+      mainGraphicAddress = RomAddress.fromBankAndAbsolute(bank, absolute);
     }
-
-    const subroutineIndex = opcodeEntries.indexOf(loadTerrainDataSubroutine);
-    const bank = readOpcodeEntryArgument(opcodeEntries[subroutineIndex - 2]);
-    const absolute = readOpcodeEntryArgument(
-      opcodeEntries[subroutineIndex - 3],
-    );
-
-    mainGraphicAddress = RomAddress.fromBankAndAbsolute(bank, absolute);
   }
 
   return readDmaTransfersResult.dmaTransfers.map((dmaTransfer) => {
     const isMainGraphic =
+      !!mainGraphicAddress &&
       dmaTransfer.origin.bank === levelConstant.address.mainGraphic.bank;
     const offset = isMainGraphic
       ? dmaTransfer.origin.snesAddress -

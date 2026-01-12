@@ -9,7 +9,7 @@ export const Explorer = () => {
   const selectedItem = stateSelector((s) => s.mainMenu.selectedItem);
   const canvasController = stateSelector((s) => s.canvasController);
 
-  const ItemComponent = selectedItem.component;
+  const ItemComponent = selectedItem.value;
   return (
     <ItemComponent>
       {(slots) => (
