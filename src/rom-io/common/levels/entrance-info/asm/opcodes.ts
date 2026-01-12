@@ -645,7 +645,7 @@ const OPCODES: Opcode[] = [
     description: 'Load Index Register X from Memory',
     hex: 0xa2,
     bytesCount: 2,
-    addOneIfMemory16Bits: true,
+    addOneIfIndex16Bits: true,
   },
   {
     name: 'LDX dp',
