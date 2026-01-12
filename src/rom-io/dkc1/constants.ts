@@ -31,6 +31,11 @@ const CroctopusChase = {
   tileMapOffset: 0x3080,
   tileMapLength: 0x4400,
 };
+const EnguardedBonus = {
+  entranceIndex: 0xa6,
+  tileMapOffset: 0x7500,
+  tileMapLength: 0x1700,
+};
 const SlipslideRide = {
   entranceIndex: 0x6d,
   tileMapOffset: 0x0400,
@@ -78,6 +83,7 @@ export const Dkc1LevelConstant: GameLevelConstant = {
       [ClamCity.entranceIndex]: ClamCity.tileMapOffset,
       [PoisonPond.entranceIndex]: PoisonPond.tileMapOffset,
       [CroctopusChase.entranceIndex]: CroctopusChase.tileMapOffset,
+      [EnguardedBonus.entranceIndex]: EnguardedBonus.tileMapOffset,
       [SlipslideRide.entranceIndex]: SlipslideRide.tileMapOffset,
     },
     correctedTileMapLength: {
@@ -85,6 +91,7 @@ export const Dkc1LevelConstant: GameLevelConstant = {
       [ClamCity.entranceIndex]: ClamCity.tileMapLength,
       [PoisonPond.entranceIndex]: PoisonPond.tileMapLength,
       [CroctopusChase.entranceIndex]: CroctopusChase.tileMapLength,
+      [EnguardedBonus.entranceIndex]: EnguardedBonus.tileMapLength,
       [SlipslideRide.entranceIndex]: SlipslideRide.tileMapLength,
       ...IceCaves.entrancesIndex.reduce<Record<number, number>>((acc, e) => {
         acc[e] = IceCaves.tileMapLength;
@@ -100,6 +107,7 @@ export const Dkc1LevelConstant: GameLevelConstant = {
       ClamCity.entranceIndex,
       PoisonPond.entranceIndex,
       CroctopusChase.entranceIndex,
+      EnguardedBonus.entranceIndex,
       SlipslideRide.entranceIndex,
       ...IceCaves.entrancesIndex,
       ...Underwater.entrancesIndex,

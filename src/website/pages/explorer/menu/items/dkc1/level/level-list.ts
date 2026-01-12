@@ -76,4 +76,13 @@ export const DKC1_LEVELS: LevelGroup[] = [
       { label: '7-B Gang-Plank Galleon', value: { entranceIndex: 0x68 } },
     ],
   },
+  {
+    label: 'Animal Token Bonus',
+    items: [
+      { label: 'Rambi', value: { entranceIndex: 0xd2 } },
+      { label: 'Enguarde', value: { entranceIndex: 0xa6 } },
+      { label: 'Expresso', value: { entranceIndex: 0x6c } },
+      { label: 'Winky', value: { entranceIndex: 0xd3 } },
+    ],
+  },
 ];
