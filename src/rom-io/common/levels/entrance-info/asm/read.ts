@@ -83,7 +83,8 @@ export const readOpcodeUntil = (
         const longAddress = read24(opcodeEntry.bytes, 0);
         jumpAddress = RomAddress.fromSnesAddress(longAddress);
       } else {
-        throw new Error(`Opcode not implemented (${opcodeEntry.opcode.name})`);
+        // Unsupported JSR/JMP variant — stop reading further opcodes
+        break;
       }
 
       const jumpEntries = readOpcodeUntil(
