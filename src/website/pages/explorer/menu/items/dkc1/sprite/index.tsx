@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { buildImageFromPixelsAndPalette } from '../../../../../../../rom-io/common/images';
 import { readPalette } from '../../../../../../../rom-io/common/palettes';
 import { scanSprites } from '../../../../../../../rom-io/common/scan/sprites';
@@ -15,6 +15,7 @@ import { RomAddress } from '../../../../../../../rom-io/rom/address';
 import { ImageMatrix } from '../../../../../../../rom-io/types/image-matrix';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
 import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
+import { Menu } from '../../../../../../components/menu';
 import { ScanControls } from '../../../../../../components/scan-controls';
 import { stateSelector, useAppStore } from '../../../../../../state/selector';
 import { MainMenuItemComponent } from '../../../../../../types/layout';
@@ -30,6 +31,8 @@ import { SpriteHeaderInfo } from './header';
 import { SpritePartInfo } from './part-info';
 import { SpritePartSelector } from './part-selector';
 import { SpritePointerInput } from './pointer-input';
+import { DKC1_SPRITES } from './sprite-list';
+import { SpriteAndPalette, SpriteItem } from './types';
 
 export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
   const appStore = useAppStore();
@@ -59,6 +62,8 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
     });
   };
 
+  const [selectedSpriteItem, setSelectedSpriteItem] =
+    useState<SpriteItem | null>(DKC1_SPRITES[0].items[0]);
   const [sprite, setSprite] = useState<Sprite>();
   const [spriteImage, setSpriteImage] = useState<ImageMatrix>();
   const [selectedSpriteParts, setSelectedSpriteParts] = useState<SpritePart[]>(
@@ -75,13 +80,17 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
     }
   };
 
-  const loadSpritePointer = (spritePointer: number) => {
-    const spriteAddress = getAddressFromSpritePointerIndex(
+  const getSnesAddressFromPointer = (spritePointer: number) =>
+    getAddressFromSpritePointerIndex(
       rom.data,
       Dkc1SpritePointerTable,
       spritePointer,
     );
+
+  const loadSpritePointer = (spritePointer: number) => {
+    const spriteAddress = getSnesAddressFromPointer(spritePointer);
     setSnesAddress(spriteAddress.snesAddress);
+    setSelectedSpriteItem(null);
     loadSprite(spriteAddress);
   };
 
@@ -155,6 +164,22 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
   }, [spriteImage, selectedSpriteParts]);
 
   useEffect(() => {
+    if (selectedSpriteItem) {
+      setSpritePointer(selectedSpriteItem.value.spritePointer);
+      setPaletteAddress(selectedSpriteItem.value.paletteAddress);
+
+      const spriteAddress = getSnesAddressFromPointer(
+        selectedSpriteItem.value.spritePointer,
+      );
+      setSnesAddress(spriteAddress.snesAddress);
+      const palette = RomAddress.fromSnesAddress(
+        selectedSpriteItem.value.paletteAddress,
+      );
+      loadSpriteAndPalette(spriteAddress, palette);
+    }
+  }, [selectedSpriteItem]);
+
+  useEffect(() => {
     if (canvasController.scale === 1) {
       canvasController.zoom('in', canvasController.center, 2.5);
     }
@@ -169,6 +194,17 @@ export const Dkc1Sprite: MainMenuItemComponent = ({ children }) => {
         <>
           <CollapsiblePanel title="Addresses">
             <AddressesDiv>
+              <div className="is-flex is-flex-direction-column is-align-items-stretch">
+                <label className="label is-small">Sprite</label>
+                <Menu<SpriteAndPalette>
+                  title="Select Sprite"
+                  groups={DKC1_SPRITES}
+                  selectedItem={selectedSpriteItem}
+                  onSelectItem={(item) => {
+                    setSelectedSpriteItem(item);
+                  }}
+                />
+              </div>
               <LoadHexadecimalInput
                 label="SNES Address"
                 hexadecimalValue={snesAddress}
