@@ -1,8 +1,12 @@
 import { noop } from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { buildLevelImageByEntranceId } from '../../../../../../../rom-io/common/levels';
+import { buildLevelImageFromEntranceInfo } from '../../../../../../../rom-io/common/levels';
+import { loadEntranceInfo } from '../../../../../../../rom-io/common/levels/entrance-info';
+import { EntranceInfo } from '../../../../../../../rom-io/common/levels/types';
 import { Dkc1LevelConstant } from '../../../../../../../rom-io/dkc1/constants';
+import { RomAddress } from '../../../../../../../rom-io/rom/address';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
+import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
 import { Menu } from '../../../../../../components/menu';
 import { stateSelector, useAppStore } from '../../../../../../state/selector';
 import { MainMenuItemComponent } from '../../../../../../types/layout';
@@ -33,27 +37,53 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   const [selectedLevelItem, setSelectedLevelItem] = useState<LevelItem | null>(
     DKC1_LEVELS[0].items[0],
   );
+  const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
   const [levelBitmap, setLevelBitmap] = useState<ImageBitmap>();
   const [error, setError] = useState('');
 
-  const loadLevel = async (entrance: number) => {
+  const loadLevelFromEntranceId = async (entrance: number) => {
     setError('');
 
+    let info: EntranceInfo | null = null;
     try {
-      const levelImage = buildLevelImageByEntranceId(
-        rom.data,
-        Dkc1LevelConstant,
-        entrance,
-      );
-
-      const bitmap = await convertToImageBitmap(levelImage);
-      setLevelBitmap(bitmap);
+      info = loadEntranceInfo(rom.data, Dkc1LevelConstant, entrance);
+      setEntranceInfo(info);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : 'Invalid entrance index',
       );
       setLevelBitmap(undefined);
     }
+
+    if (info) await loadLevelFromEntranceInfo(info);
+  };
+
+  const loadLevelFromEntranceInfo = async (info: EntranceInfo) => {
+    setError('');
+
+    try {
+      const levelImage = buildLevelImageFromEntranceInfo(rom.data, info);
+      const bitmap = await convertToImageBitmap(levelImage);
+      setLevelBitmap(bitmap);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Invalid entrance info',
+      );
+      setLevelBitmap(undefined);
+    }
+  };
+
+  const updateEntranceInfo = (partial: Partial<EntranceInfo>) => {
+    if (!entranceInfo) return;
+    setEntranceInfo({
+      ...entranceInfo,
+      ...partial,
+    });
+  };
+
+  const loadLevel = async () => {
+    if (!entranceInfo) return;
+    await loadLevelFromEntranceInfo(entranceInfo);
   };
 
   const drawLevelImage = (
@@ -81,13 +111,13 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   useEffect(() => {
     if (selectedLevelItem) {
       setEntranceIndex(selectedLevelItem.value.entranceIndex);
-      loadLevel(selectedLevelItem.value.entranceIndex).then(noop);
+      loadLevelFromEntranceId(selectedLevelItem.value.entranceIndex).then(noop);
     }
   }, [selectedLevelItem]);
 
   useEffect(() => {
     canvasController.resetTransform();
-    loadLevel(entranceIndex).then(noop);
+    loadLevelFromEntranceId(entranceIndex).then(noop);
   }, []);
 
   return children({
@@ -115,7 +145,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
                 }}
                 onValueLoad={async (index) => {
                   setSelectedLevelItem(null);
-                  await loadLevel(index);
+                  await loadLevelFromEntranceId(index);
                 }}
               />
             </AddressesDiv>
@@ -124,6 +154,73 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
       ),
       middle: (
         <>{error && <div className="notification is-danger">{error}</div>}</>
+      ),
+      right: entranceInfo && (
+        <OverlaySlotsContainer>
+          <CollapsiblePanel title="Entrance info">
+            <AddressesDiv>
+              <LoadHexadecimalInput
+                label="Terrain Type Address"
+                hexadecimalValue={
+                  entranceInfo.terrainTypeMetaAddress.snesAddress
+                }
+                onValueChange={(value) => {
+                  if (value === undefined) return;
+                  updateEntranceInfo({
+                    terrainTypeMetaAddress: RomAddress.fromSnesAddress(value),
+                  });
+                }}
+                onValueLoad={loadLevel}
+              />
+              <LoadHexadecimalInput
+                label="Palettes Address"
+                hexadecimalValue={
+                  entranceInfo.terrainPalettesAddress.snesAddress
+                }
+                onValueChange={(value) => {
+                  if (value === undefined) return;
+                  updateEntranceInfo({
+                    terrainPalettesAddress: RomAddress.fromSnesAddress(value),
+                  });
+                }}
+                onValueLoad={loadLevel}
+              />
+              <LoadHexadecimalInput
+                label="Level Tilemap Address"
+                hexadecimalValue={entranceInfo.levelTileMapAddress.snesAddress}
+                onValueChange={(value) => {
+                  if (value === undefined) return;
+                  updateEntranceInfo({
+                    levelTileMapAddress: RomAddress.fromSnesAddress(value),
+                  });
+                }}
+                onValueLoad={loadLevel}
+              />
+              <LoadHexadecimalInput
+                label="Level Tilemap Offset"
+                hexadecimalValue={entranceInfo.levelTileMapOffset}
+                onValueChange={(value) => {
+                  if (value === undefined) return;
+                  updateEntranceInfo({
+                    levelTileMapOffset: value,
+                  });
+                }}
+                onValueLoad={loadLevel}
+              />
+              <LoadHexadecimalInput
+                label="Level Tilemap Length"
+                hexadecimalValue={entranceInfo.levelTileMapLength}
+                onValueChange={(value) => {
+                  if (value === undefined) return;
+                  updateEntranceInfo({
+                    levelTileMapLength: value,
+                  });
+                }}
+                onValueLoad={loadLevel}
+              />
+            </AddressesDiv>
+          </CollapsiblePanel>
+        </OverlaySlotsContainer>
       ),
     },
   });

@@ -9,8 +9,7 @@ import { readPalettes } from '../palettes';
 import { Palette } from '../palettes/types';
 import { parseTilePixels } from '../sprites/tile';
 import { decompress } from './compression';
-import { loadEntranceInfo } from './entrance-info';
-import { EntranceInfo, GameLevelConstant, GraphicInfo } from './types';
+import { EntranceInfo, GraphicInfo } from './types';
 
 /*
 TilePart = 8x8 Image - 1/16 part of a Tile
@@ -24,16 +23,10 @@ const TILE_HEIGHT = 32;
 const TILE_PART_WIDTH = TILE_WIDTH / 4;
 const TILE_PART_HEIGHT = TILE_HEIGHT / 4;
 
-export const buildLevelImageByEntranceId = (
+export const buildLevelImageFromEntranceInfo = (
   romData: Buffer,
-  levelConstant: GameLevelConstant,
-  entranceId: number,
+  entranceInfo: EntranceInfo,
 ) => {
-  const entranceInfo = loadEntranceInfo(romData, levelConstant, entranceId);
-  return readLevel(romData, entranceInfo);
-};
-
-const readLevel = (romData: Buffer, entranceInfo: EntranceInfo) => {
   const graphicsData = buildGraphicsData(
     romData,
     entranceInfo.terrainGraphicsInfo,

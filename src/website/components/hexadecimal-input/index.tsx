@@ -6,16 +6,16 @@ interface HexadecimalInputProps extends Omit<
   'value' | 'type' | 'onChange'
 > {
   value: number | undefined;
-  onChange: (value: number | undefined) => void;
+  onChange?: (value: number | undefined) => void;
 }
 
 export const HexadecimalInput = (props: HexadecimalInputProps) => {
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value.toUpperCase();
     if (input === '') {
-      props.onChange(undefined);
+      props.onChange?.(undefined);
     } else if (isHexadecimal(input)) {
-      props.onChange(parseInt(input, 16));
+      props.onChange?.(parseInt(input, 16));
     }
   };
 
@@ -23,7 +23,7 @@ export const HexadecimalInput = (props: HexadecimalInputProps) => {
     <input
       {...props}
       type="text"
-      value={props.value ? toHexString(props.value) : ''}
+      value={props.value !== undefined ? toHexString(props.value) : ''}
       onChange={onChange}
     />
   );
