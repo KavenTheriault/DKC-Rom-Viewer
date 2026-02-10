@@ -9,8 +9,7 @@ import { readPalettes } from '../palettes';
 import { Palette } from '../palettes/types';
 import { parseTilePixels } from '../sprites/tile';
 import { decompress } from './compression';
-import { loadEntranceInfo } from './entrance-info';
-import { EntranceInfo, GameLevelConstant, GraphicInfo } from './types';
+import { EntranceInfo, GraphicInfo } from './types';
 
 /*
 TilePart = 8x8 Image - 1/16 part of a Tile
@@ -23,17 +22,12 @@ const TILE_WIDTH = 32;
 const TILE_HEIGHT = 32;
 const TILE_PART_WIDTH = TILE_WIDTH / 4;
 const TILE_PART_HEIGHT = TILE_HEIGHT / 4;
+const TILEMAP_IMAGE_TILE_PER_ROW = 16;
 
-export const buildLevelImageByEntranceId = (
+export const buildLevelImageFromEntranceInfo = (
   romData: Buffer,
-  levelConstant: GameLevelConstant,
-  entranceId: number,
+  entranceInfo: EntranceInfo,
 ) => {
-  const entranceInfo = loadEntranceInfo(romData, levelConstant, entranceId);
-  return readLevel(romData, entranceInfo);
-};
-
-const readLevel = (romData: Buffer, entranceInfo: EntranceInfo) => {
   const graphicsData = buildGraphicsData(
     romData,
     entranceInfo.terrainGraphicsInfo,
@@ -67,8 +61,46 @@ const readLevel = (romData: Buffer, entranceInfo: EntranceInfo) => {
   );
 };
 
+export const buildTilemapImageFromEntranceInfo = (
+  romData: Buffer,
+  entranceInfo: EntranceInfo,
+) => {
+  const graphicsData = buildGraphicsData(
+    romData,
+    entranceInfo.terrainGraphicsInfo,
+  );
+  const tilePartsData = chunk(graphicsData, TILE_DATA_LENGTH);
+  const palettes = readPalettes(
+    romData,
+    entranceInfo.terrainPalettesAddress,
+    8,
+    16,
+  );
+
+  const rows = chunk(tilePartsData, TILEMAP_IMAGE_TILE_PER_ROW);
+  const tilemapImage = new Matrix<Color | null>(
+    TILEMAP_IMAGE_TILE_PER_ROW * TILE_WIDTH,
+    rows.length * TILE_HEIGHT,
+    null,
+  );
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      const tilePartImage = readTerrainTypeTile(
+        romData,
+        tilePartsData,
+        entranceInfo.terrainTypeMetaAddress,
+        x + y * TILEMAP_IMAGE_TILE_PER_ROW,
+        palettes,
+      );
+      tilemapImage.setMatrixAt(x * TILE_WIDTH, y * TILE_HEIGHT, tilePartImage);
+    }
+  }
+  return tilemapImage;
+};
+
 const buildGraphicsData = (romData: Buffer, graphicsInfo: GraphicInfo[]) => {
-  const result: number[] = new Array(0xffff).fill(0);
+  const result: number[] = [];
 
   let decompressedData: number[] | undefined = undefined;
   for (const graphicInfo of graphicsInfo) {
@@ -85,10 +117,12 @@ const buildGraphicsData = (romData: Buffer, graphicsInfo: GraphicInfo[]) => {
       );
     }
 
-    const dataLengthToAdd = Math.min(
-      graphicInfo.length,
-      dataToAdd.length - graphicInfo.offset,
-    );
+    const dataLengthToAdd = graphicInfo.length - graphicInfo.offset;
+    if (result.length < graphicInfo.placeAt + dataLengthToAdd) {
+      result.push(
+        ...new Array(graphicInfo.placeAt + dataLengthToAdd - result.length),
+      );
+    }
     result.splice(
       graphicInfo.placeAt,
       dataLengthToAdd,

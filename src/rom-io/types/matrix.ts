@@ -52,7 +52,7 @@ export class Matrix<T> {
   }
 
   clone() {
-    const newMatrix = new Matrix<T>(this.width, this.height, this._fill);
+    const newMatrix = new Matrix(this.width, this.height, this._fill);
     for (let x = 0; x < newMatrix.width; x++) {
       for (let y = 0; y < newMatrix.height; y++) {
         newMatrix.set(x, y, this.get(x, y));
