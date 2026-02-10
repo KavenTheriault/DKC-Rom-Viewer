@@ -78,7 +78,7 @@ export const buildTilemapImageFromEntranceInfo = (
   );
 
   const rows = chunk(tilePartsData, TILEMAP_IMAGE_TILE_PER_ROW);
-  const tilemapImage = Matrix.ofSize<Color | null>(
+  const tilemapImage = new Matrix<Color | null>(
     TILEMAP_IMAGE_TILE_PER_ROW * TILE_WIDTH,
     rows.length * TILE_HEIGHT,
     null,
@@ -154,7 +154,7 @@ const buildLevelTileImage = (
   tileMeta: Buffer,
   palette: Palette[],
 ): ImageMatrix => {
-  const tileImage = Matrix.ofSize<Color | null>(TILE_WIDTH, TILE_HEIGHT, null);
+  const tileImage = new Matrix<Color | null>(TILE_WIDTH, TILE_HEIGHT, null);
 
   let partIndex = 0;
   for (let y = 0; y < 4; y++) {
@@ -221,7 +221,7 @@ const readLevelTileMap = (
     levelWidth = Math.ceil(rawTileMap.length / levelHeight / 2);
   }
 
-  const levelTileMap = Matrix.ofSize<number>(levelWidth, levelHeight, 0);
+  const levelTileMap = new Matrix<number>(levelWidth, levelHeight, 0);
 
   let offset = 0;
 
@@ -252,7 +252,7 @@ const buildLevelImage = (
   levelTileMap: Matrix<number>,
   getTileImage: (tileMetaIndex: number) => ImageMatrix,
 ) => {
-  const result = Matrix.ofSize<Color | null>(
+  const result = new Matrix<Color | null>(
     levelTileMap.width * TILE_WIDTH,
     levelTileMap.height * TILE_HEIGHT,
     null,

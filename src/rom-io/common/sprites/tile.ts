@@ -38,7 +38,7 @@ export const getSmallTiles = (
 };
 
 export const parseTilePixels = (pixelData: number[]): Matrix<number> => {
-  const pixels = Matrix.ofSize(8, 8, 0);
+  const pixels = new Matrix(8, 8, 0);
 
   for (let row = 0; row < 8; row++) {
     const offset: number = row * 2;
