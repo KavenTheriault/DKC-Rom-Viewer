@@ -117,7 +117,9 @@ const buildGraphicsData = (romData: Buffer, graphicsInfo: GraphicInfo[]) => {
       );
     }
 
-    const dataLengthToAdd = graphicInfo.length - graphicInfo.offset;
+    const dataLengthToAdd =
+      (graphicInfo.isCompressed ? dataToAdd.length : graphicInfo.length) -
+      graphicInfo.offset;
     if (result.length < graphicInfo.placeAt + dataLengthToAdd) {
       result.push(
         ...new Array(graphicInfo.placeAt + dataLengthToAdd - result.length),
