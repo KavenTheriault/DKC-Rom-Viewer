@@ -82,7 +82,7 @@ export const getLargeTilePixels = (tiles: SmallTile[]): Matrix<number> => {
   if (tiles.length !== 4) throw new Error('INVALID_TILE_QUANTITY');
 
   const pixels: Matrix<number>[] = tiles.map((t) => t.pixels);
-  const largeTilePixels: Matrix<number> = new Matrix<number>(16, 16, 0);
+  const largeTilePixels: Matrix<number> = Matrix.ofSize<number>(16, 16, 0);
   for (let x = 0; x < 16; x++) {
     for (let y = 0; y < 16; y++) {
       if (x < 8) {
@@ -104,7 +104,7 @@ export const getLargeTilePixels = (tiles: SmallTile[]): Matrix<number> => {
 };
 
 export const assembleSprite = (spriteParts: SpritePart[]) => {
-  const spritePixels = new Matrix<number>(256, 256, 0);
+  const spritePixels = Matrix.ofSize<number>(256, 256, 0);
 
   for (const spritePart of spriteParts) {
     const partPixels = spritePart.tile.pixels;

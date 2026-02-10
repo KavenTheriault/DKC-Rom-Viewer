@@ -22,6 +22,7 @@ const TILE_WIDTH = 32;
 const TILE_HEIGHT = 32;
 const TILE_PART_WIDTH = TILE_WIDTH / 4;
 const TILE_PART_HEIGHT = TILE_HEIGHT / 4;
+const TILEMAP_IMAGE_TILE_PER_ROW = 16;
 
 export const buildLevelImageFromEntranceInfo = (
   romData: Buffer,
@@ -60,8 +61,46 @@ export const buildLevelImageFromEntranceInfo = (
   );
 };
 
+export const buildTilemapImageFromEntranceInfo = (
+  romData: Buffer,
+  entranceInfo: EntranceInfo,
+) => {
+  const graphicsData = buildGraphicsData(
+    romData,
+    entranceInfo.terrainGraphicsInfo,
+  );
+  const tilePartsData = chunk(graphicsData, TILE_DATA_LENGTH);
+  const palettes = readPalettes(
+    romData,
+    entranceInfo.terrainPalettesAddress,
+    8,
+    16,
+  );
+
+  const rows = chunk(tilePartsData, TILEMAP_IMAGE_TILE_PER_ROW);
+  const tilemapImage = Matrix.ofSize<Color | null>(
+    TILEMAP_IMAGE_TILE_PER_ROW * TILE_WIDTH,
+    rows.length * TILE_HEIGHT,
+    null,
+  );
+
+  for (let y = 0; y < rows.length; y++) {
+    for (let x = 0; x < rows[y].length; x++) {
+      const tilePartImage = readTerrainTypeTile(
+        romData,
+        tilePartsData,
+        entranceInfo.terrainTypeMetaAddress,
+        x + y * TILEMAP_IMAGE_TILE_PER_ROW,
+        palettes,
+      );
+      tilemapImage.setMatrixAt(x * TILE_WIDTH, y * TILE_HEIGHT, tilePartImage);
+    }
+  }
+  return tilemapImage;
+};
+
 const buildGraphicsData = (romData: Buffer, graphicsInfo: GraphicInfo[]) => {
-  const result: number[] = new Array(0xffff).fill(0);
+  const result: number[] = [];
 
   let decompressedData: number[] | undefined = undefined;
   for (const graphicInfo of graphicsInfo) {
@@ -78,10 +117,12 @@ const buildGraphicsData = (romData: Buffer, graphicsInfo: GraphicInfo[]) => {
       );
     }
 
-    const dataLengthToAdd = Math.min(
-      graphicInfo.length,
-      dataToAdd.length - graphicInfo.offset,
-    );
+    const dataLengthToAdd = graphicInfo.length - graphicInfo.offset;
+    if (result.length < graphicInfo.placeAt + dataLengthToAdd) {
+      result.push(
+        ...new Array(graphicInfo.placeAt + dataLengthToAdd - result.length),
+      );
+    }
     result.splice(
       graphicInfo.placeAt,
       dataLengthToAdd,
@@ -113,7 +154,7 @@ const buildLevelTileImage = (
   tileMeta: Buffer,
   palette: Palette[],
 ): ImageMatrix => {
-  const tileImage = new Matrix<Color | null>(TILE_WIDTH, TILE_HEIGHT, null);
+  const tileImage = Matrix.ofSize<Color | null>(TILE_WIDTH, TILE_HEIGHT, null);
 
   let partIndex = 0;
   for (let y = 0; y < 4; y++) {
@@ -180,7 +221,7 @@ const readLevelTileMap = (
     levelWidth = Math.ceil(rawTileMap.length / levelHeight / 2);
   }
 
-  const levelTileMap = new Matrix<number>(levelWidth, levelHeight, 0);
+  const levelTileMap = Matrix.ofSize<number>(levelWidth, levelHeight, 0);
 
   let offset = 0;
 
@@ -211,7 +252,7 @@ const buildLevelImage = (
   levelTileMap: Matrix<number>,
   getTileImage: (tileMetaIndex: number) => ImageMatrix,
 ) => {
-  const result = new Matrix<Color | null>(
+  const result = Matrix.ofSize<Color | null>(
     levelTileMap.width * TILE_WIDTH,
     levelTileMap.height * TILE_HEIGHT,
     null,

@@ -9,7 +9,7 @@ export const buildImageFromPixelsAndPalette = (
 ): ImageMatrix => {
   const width: number = pixels.width;
   const height: number = pixels.height;
-  const coloredPixels = new Matrix<Color | null>(width, height, null);
+  const coloredPixels = Matrix.ofSize<Color | null>(width, height, null);
 
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {

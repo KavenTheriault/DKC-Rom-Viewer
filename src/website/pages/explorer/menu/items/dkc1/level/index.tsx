@@ -1,6 +1,9 @@
 import { noop } from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { buildLevelImageFromEntranceInfo } from '../../../../../../../rom-io/common/levels';
+import {
+  buildLevelImageFromEntranceInfo,
+  buildTilemapImageFromEntranceInfo,
+} from '../../../../../../../rom-io/common/levels';
 import { loadEntranceInfo } from '../../../../../../../rom-io/common/levels/entrance-info';
 import { EntranceInfo } from '../../../../../../../rom-io/common/levels/types';
 import { Dkc1LevelConstant } from '../../../../../../../rom-io/dkc1/constants';
@@ -37,6 +40,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   const [selectedLevelItem, setSelectedLevelItem] = useState<LevelItem | null>(
     DKC1_LEVELS[0].items[0],
   );
+  const [showTilemapOnly, setShowTilemapOnly] = useState<boolean>(false);
   const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
   const [levelBitmap, setLevelBitmap] = useState<ImageBitmap>();
   const [error, setError] = useState('');
@@ -62,7 +66,9 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
     setError('');
 
     try {
-      const levelImage = buildLevelImageFromEntranceInfo(rom.data, info);
+      const levelImage = showTilemapOnly
+        ? buildTilemapImageFromEntranceInfo(rom.data, info)
+        : buildLevelImageFromEntranceInfo(rom.data, info);
       const bitmap = await convertToImageBitmap(levelImage);
       setLevelBitmap(bitmap);
     } catch (error) {
@@ -116,6 +122,10 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   }, [selectedLevelItem]);
 
   useEffect(() => {
+    loadLevel().then(noop);
+  }, [showTilemapOnly]);
+
+  useEffect(() => {
     canvasController.resetTransform();
     loadLevelFromEntranceId(entranceIndex).then(noop);
   }, []);
@@ -156,7 +166,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
         <>{error && <div className="notification is-danger">{error}</div>}</>
       ),
       right: entranceInfo && (
-        <OverlaySlotsContainer>
+        <OverlaySlotsContainer className="is-align-items-end">
           <CollapsiblePanel title="Entrance info">
             <AddressesDiv>
               <LoadHexadecimalInput
@@ -219,6 +229,17 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
                 onValueLoad={loadLevel}
               />
             </AddressesDiv>
+          </CollapsiblePanel>
+          <CollapsiblePanel title="Options">
+            <label className="checkbox">
+              <input
+                className="mr-1"
+                type="checkbox"
+                value={showTilemapOnly.toString()}
+                onChange={() => setShowTilemapOnly(!showTilemapOnly)}
+              />
+              Show Tilemap Only
+            </label>
           </CollapsiblePanel>
         </OverlaySlotsContainer>
       ),

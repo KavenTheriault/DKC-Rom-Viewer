@@ -1,18 +1,28 @@
 import { Size } from '../../website/types/spatial';
 
 export class Matrix<T> {
-  private readonly _width: number;
-  private readonly _height: number;
-  private readonly _data: T[][];
-  private readonly _fill: T;
+  private _width!: number;
+  private _height!: number;
+  private _data!: T[][];
+  private _fill!: T;
 
-  constructor(width: number, height: number, fill: T) {
-    this._width = width;
-    this._height = height;
-    this._fill = fill;
-    this._data = new Array(width)
+  static ofSize<T>(width: number, height: number, fill: T) {
+    const matrix = new Matrix<T>();
+    matrix._width = width;
+    matrix._height = height;
+    matrix._fill = fill;
+    matrix._data = new Array(width)
       .fill(fill)
       .map(() => new Array(height).fill(fill));
+    return matrix;
+  }
+
+  static withData<T>(data: T[][]) {
+    const matrix = new Matrix<T>();
+    matrix._width = data.length;
+    matrix._height = data[0].length;
+    matrix._data = data;
+    return matrix;
   }
 
   get width() {
@@ -52,7 +62,7 @@ export class Matrix<T> {
   }
 
   clone() {
-    const newMatrix = new Matrix<T>(this.width, this.height, this._fill);
+    const newMatrix = Matrix.ofSize(this.width, this.height, this._fill);
     for (let x = 0; x < newMatrix.width; x++) {
       for (let y = 0; y < newMatrix.height; y++) {
         newMatrix.set(x, y, this.get(x, y));
@@ -77,7 +87,7 @@ export const combineMatrixIntoGrid = <T extends object>(
 
   const totalHeight = totalGridRows * unitHeight;
   const totalWidth = matricesPerRow * unitWidth;
-  const combinedMatrix = new Matrix<T | null>(totalWidth, totalHeight, null);
+  const combinedMatrix = Matrix.ofSize<T | null>(totalWidth, totalHeight, null);
 
   for (let matrixIndex = 0; matrixIndex < matrices.length; matrixIndex++) {
     const currentMatrix = matrices[matrixIndex];
