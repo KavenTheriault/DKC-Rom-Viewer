@@ -18,10 +18,8 @@ LevelTileMap = Tile information to build a level
 */
 
 const TILE_DATA_LENGTH = 0x20;
-const TILE_WIDTH = 32;
-const TILE_HEIGHT = 32;
-const TILE_PART_WIDTH = TILE_WIDTH / 4;
-const TILE_PART_HEIGHT = TILE_HEIGHT / 4;
+const TILE_SIZE = 32;
+const TILE_PART_SIZE = TILE_SIZE / 4;
 const TILEMAP_IMAGE_TILE_PER_ROW = 16;
 
 export const buildLevelImageFromEntranceInfo = (
@@ -77,23 +75,34 @@ export const buildTilemapImageFromEntranceInfo = (
     16,
   );
 
-  const rows = chunk(tilePartsData, TILEMAP_IMAGE_TILE_PER_ROW);
+  let tilePartIndex = 0;
+  const tilePartImages: ImageMatrix[] = [];
+
+  while (tilePartIndex < tilePartsData.length) {
+    const tilePartImage = readTerrainTypeTile(
+      romData,
+      tilePartsData,
+      entranceInfo.terrainTypeMetaAddress,
+      tilePartIndex,
+      palettes,
+    );
+    if (!tilePartImage) break;
+
+    tilePartImages.push(tilePartImage);
+    tilePartIndex++;
+  }
+
+  const rows = chunk(tilePartImages, TILEMAP_IMAGE_TILE_PER_ROW);
   const tilemapImage = new Matrix<Color | null>(
-    TILEMAP_IMAGE_TILE_PER_ROW * TILE_WIDTH,
-    rows.length * TILE_HEIGHT,
+    TILEMAP_IMAGE_TILE_PER_ROW * TILE_SIZE,
+    rows.length * TILE_SIZE,
     null,
   );
 
   for (let y = 0; y < rows.length; y++) {
     for (let x = 0; x < rows[y].length; x++) {
-      const tilePartImage = readTerrainTypeTile(
-        romData,
-        tilePartsData,
-        entranceInfo.terrainTypeMetaAddress,
-        x + y * TILEMAP_IMAGE_TILE_PER_ROW,
-        palettes,
-      );
-      tilemapImage.setMatrixAt(x * TILE_WIDTH, y * TILE_HEIGHT, tilePartImage);
+      const tilePartImage = tilePartImages[x + y * TILEMAP_IMAGE_TILE_PER_ROW];
+      tilemapImage.setMatrixAt(x * TILE_SIZE, y * TILE_SIZE, tilePartImage);
     }
   }
   return tilemapImage;
@@ -141,7 +150,7 @@ const readTerrainTypeTile = (
   tilesMetaAddress: RomAddress,
   tileMetaIndex: number,
   palettes: Palette[],
-): ImageMatrix => {
+): ImageMatrix | null => {
   const tileMeta = extract(
     romData,
     tilesMetaAddress.getOffsetAddress(tileMetaIndex * TILE_DATA_LENGTH)
@@ -154,9 +163,9 @@ const readTerrainTypeTile = (
 const buildLevelTileImage = (
   tilePartsData: number[][],
   tileMeta: Buffer,
-  palette: Palette[],
-): ImageMatrix => {
-  const tileImage = new Matrix<Color | null>(TILE_WIDTH, TILE_HEIGHT, null);
+  palettes: Palette[],
+): ImageMatrix | null => {
+  const tileImage = new Matrix<Color | null>(TILE_SIZE, TILE_SIZE, null);
 
   let partIndex = 0;
   for (let y = 0; y < 4; y++) {
@@ -174,12 +183,12 @@ const buildLevelTileImage = (
       const tilePartIndex = tilePartMeta & 0x3ff;
 
       // Skip tile part index outside of available data
-      if (tilePartIndex >= tilePartsData.length) continue;
+      if (tilePartIndex >= tilePartsData.length) return null;
 
       const pixels = parseTilePixels(tilePartsData[tilePartIndex]);
       const tilePartImage = buildImageFromPixelsAndPalette(
         pixels,
-        palette[paletteIndex].colors,
+        palettes[paletteIndex].colors,
         0,
       );
 
@@ -191,8 +200,8 @@ const buildLevelTileImage = (
       }
 
       tileImage.setMatrixAt(
-        x * TILE_PART_WIDTH,
-        y * TILE_PART_HEIGHT,
+        x * TILE_PART_SIZE,
+        y * TILE_PART_SIZE,
         tilePartImage,
       );
     }
@@ -252,11 +261,11 @@ const readLevelTileMap = (
 
 const buildLevelImage = (
   levelTileMap: Matrix<number>,
-  getTileImage: (tileMetaIndex: number) => ImageMatrix,
+  getTileImage: (tileMetaIndex: number) => ImageMatrix | null,
 ) => {
   const result = new Matrix<Color | null>(
-    levelTileMap.width * TILE_WIDTH,
-    levelTileMap.height * TILE_HEIGHT,
+    levelTileMap.width * TILE_SIZE,
+    levelTileMap.height * TILE_SIZE,
     null,
   );
 
@@ -269,16 +278,17 @@ const buildLevelImage = (
 
       // Tile Index = 0000001111111111
       const tileMetaIndex = tileInfo & 0x3ff;
-      const tileImage = getTileImage(tileMetaIndex).clone();
+      const tileImage = getTileImage(tileMetaIndex);
+      if (!tileImage) continue;
 
+      const tileClone = tileImage.clone();
       if ((flips & 0b01) > 0) {
-        tileImage.flip('horizontal');
+        tileClone.flip('horizontal');
       }
       if ((flips & 0b10) > 0) {
-        tileImage.flip('vertical');
+        tileClone.flip('vertical');
       }
-
-      result.setMatrixAt(x * TILE_WIDTH, y * TILE_HEIGHT, tileImage);
+      result.setMatrixAt(x * TILE_SIZE, y * TILE_SIZE, tileClone);
     }
   }
 
