@@ -15,6 +15,7 @@ export type EntranceInfo = {
   // Terrain
   terrainTypeMetaAddress: RomAddress;
   terrainPalettesAddress: RomAddress;
+  terrainTileMapAddress: RomAddress;
   terrainGraphicsInfo: GraphicInfo[];
 
   // Level

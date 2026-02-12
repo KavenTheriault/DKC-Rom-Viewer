@@ -1,3 +1,4 @@
+import { toHexString } from '../../../../website/utils/hex';
 import { RomAddress } from '../../../rom/address';
 import { OpcodeEntry } from './asm/read';
 import { readDmaTransfers } from './dma-transfers';
@@ -28,6 +29,22 @@ export const readGraphicsInfo = (
     levelConstant,
     terrainDataIndex,
   );
+
+  for (const test of readDmaTransfersResult.dmaTransfers) {
+    console.log('dmaTransfers:', test.origin.toString());
+    console.log('dmaTransfers length', toHexString(test.length));
+    console.log('dmaTransfers destination', toHexString(test.destination));
+  }
+  for (const test of readDmaTransfersResult.otherDmaTransfers) {
+    console.log(
+      'otherDmaTransfers:',
+      test.origin.toString(),
+      toHexString(test.origin.pcAddress),
+    );
+    console.log('otherDmaTransfers length', toHexString(test.length));
+    console.log('otherDmaTransfers destination', toHexString(test.destination));
+  }
+
   let mainGraphicAddress = readDmaTransfersResult.compressedGraphicAddress;
 
   /* Some level use this subroutine with bank and address as "argument"

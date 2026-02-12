@@ -1,3 +1,4 @@
+import { toHexString } from '../../../../website/utils/hex';
 import { read16, read24 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
 import { EntranceInfo, GameLevelConstant } from '../types';
@@ -32,6 +33,15 @@ export const loadEntranceInfo = (
     terrainTileMapBank,
   } = readTerrainTypeMeta(romData, levelConstant, opcodeEntries);
 
+  const terrainTileMapAddress = RomAddress.fromBankAndAbsolute(
+    terrainTileMapBank,
+    terrainTileOffset,
+  );
+  console.log(
+    'terrainTileMapAddress:',
+    toHexString(terrainTileMapAddress.snesAddress),
+  );
+
   const graphicsInfo = readGraphicsInfo(romData, levelConstant, opcodeEntries);
 
   const { levelTileMapAddress, levelTileMapLength } = readLevelTileMapInfo(
@@ -52,6 +62,7 @@ export const loadEntranceInfo = (
     terrainTypeMetaAddress: terrainTypeMetaAddress,
     terrainPalettesAddress: terrainPalettesAddress,
     terrainGraphicsInfo: graphicsInfo,
+    terrainTileMapAddress,
     levelTileMapAddress: levelTileMapAddress,
     levelTileMapOffset:
       levelConstant.entrances.correctedTileMapOffset[entranceId] ?? 0,

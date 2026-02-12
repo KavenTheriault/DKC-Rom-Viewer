@@ -1,3 +1,4 @@
+import { toHexString } from '../../../../website/utils/hex';
 import { read16, read8 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
 import { GameLevelConstant } from '../types';
@@ -5,6 +6,7 @@ import { GameLevelConstant } from '../types';
 type ReadDmaTransferResult = {
   compressedGraphicAddress?: RomAddress;
   dmaTransfers: DmaTransfer[];
+  otherDmaTransfers: DmaTransfer[];
 };
 
 type DmaTransfer = {
@@ -25,6 +27,9 @@ export const readDmaTransfers = (
   terrainTypeDataIndex: number,
 ): ReadDmaTransferResult => {
   const dmaTransfers: DmaTransfer[] = [];
+  const otherDmaTransfers: DmaTransfer[] = [];
+
+  console.log('terrainTypeDataIndex:', toHexString(terrainTypeDataIndex));
 
   let currentOffset = read16(
     romData,
@@ -32,15 +37,19 @@ export const readDmaTransfers = (
       terrainTypeDataIndex * 2,
     ).pcAddress,
   );
+  let compressedGraphicsAddress;
 
   // eslint-disable-next-line no-constant-condition
-  while (true) {
+  while (currentOffset < 0x1000) {
     const doneIfZero = read8(
       romData,
       levelConstant.tables.terrainGraphicsInfo.getOffsetAddress(currentOffset)
         .pcAddress,
     );
-    if (doneIfZero == 0) return { dmaTransfers };
+    if (doneIfZero == 0) {
+      console.log('doneIfZero');
+      break;
+    }
 
     const goToDefaultIfNegative = read8(
       romData,
@@ -48,26 +57,34 @@ export const readDmaTransfers = (
         .getOffsetAddress(4)
         .getOffsetAddress(currentOffset).pcAddress,
     );
-    if (goToDefaultIfNegative > 0x7f) break;
 
-    dmaTransfers.push(readDmaTransfer(romData, levelConstant, currentOffset));
+    if (goToDefaultIfNegative > 0x7f) {
+      const mainDmaTransfer = readDmaTransfer(
+        romData,
+        levelConstant,
+        currentOffset,
+      );
+      compressedGraphicsAddress = mainDmaTransfer.origin;
+
+      // DMA transfer for main graphics is stored at $7E79FC
+      mainDmaTransfer.origin = levelConstant.address.mainGraphic;
+      // Force main graphics to 0x2000 for simplicity
+      mainDmaTransfer.destination = 0x2000;
+      dmaTransfers.push(mainDmaTransfer);
+    }
+
+    const dmaTransfer = readDmaTransfer(romData, levelConstant, currentOffset);
+
+    if (compressedGraphicsAddress) otherDmaTransfers.push(dmaTransfer);
+    else dmaTransfers.push(dmaTransfer);
     currentOffset += 7;
   }
 
-  const mainDmaTransfer = readDmaTransfer(
-    romData,
-    levelConstant,
-    currentOffset,
-  );
-  const compressedGraphicsAddress = mainDmaTransfer.origin;
-
-  // DMA transfer for main graphics is stored at $7E79FC
-  mainDmaTransfer.origin = levelConstant.address.mainGraphic;
-  // Force main graphics to 0x2000 for simplicity
-  mainDmaTransfer.destination = 0x2000;
-  dmaTransfers.push(mainDmaTransfer);
-
-  return { compressedGraphicAddress: compressedGraphicsAddress, dmaTransfers };
+  return {
+    compressedGraphicAddress: compressedGraphicsAddress,
+    dmaTransfers,
+    otherDmaTransfers,
+  };
 };
 
 const readDmaTransfer = (
