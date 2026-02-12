@@ -6,6 +6,7 @@ import {
 } from '../../../../../../../rom-io/common/levels';
 import { loadEntranceInfo } from '../../../../../../../rom-io/common/levels/entrance-info';
 import { EntranceInfo } from '../../../../../../../rom-io/common/levels/types';
+import { testStripper } from '../../../../../../../rom-io/common/stripper';
 import { Dkc1LevelConstant } from '../../../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../../../rom-io/rom/address';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
@@ -241,6 +242,17 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
               Show Tilemap Only
             </label>
           </CollapsiblePanel>
+          <button
+            onClick={async () => {
+              if (rom) {
+                const test = testStripper(rom.data);
+                const bitmap = await convertToImageBitmap(test);
+                setLevelBitmap(bitmap);
+              }
+            }}
+          >
+            Test
+          </button>
         </OverlaySlotsContainer>
       ),
     },
