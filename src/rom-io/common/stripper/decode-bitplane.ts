@@ -1,7 +1,15 @@
 import { RomAddress } from '../../rom/address';
+import { Color } from '../../types/color';
 import { ImageMatrix } from '../../types/image-matrix';
+import { Matrix } from '../../types/matrix';
 import { readPalette } from '../palettes';
 import { BPP, decodeTile, DecodeTileOptions } from './decode-tile';
+
+const BYTES_PER_TILE_META = 2;
+
+interface DecodeBitplaneOptions extends DecodeTileOptions {
+  assembleQuantity?: number;
+}
 
 export function decodeBitplane(
   romData: Buffer,
@@ -9,45 +17,39 @@ export function decodeBitplane(
   tileMetaData: Buffer,
   paletteAddress: RomAddress,
   bpp: BPP,
-  options?: DecodeTileOptions,
-  levelMode = false,
+  options?: DecodeBitplaneOptions,
 ): ImageMatrix[] {
-  const result = [];
+  const tiles = [];
   const palette = readPalette(romData, paletteAddress, 128);
+  const assembleQuantity = options?.assembleQuantity ?? 1;
 
-  if (levelMode) {
-    const tiles = Math.floor(tileMetaData.length / 32);
-    for (let i = 0; i < tiles; i++) {
-      for (let j = 0; j < 4; j++) {
-        for (let k = 0; k < 4; k++) {
-          const rawAddress = i * 32 + j * 2 + k * 8;
-          const tile = decodeTile(
-            bitplaneData,
-            tileMetaData,
-            palette,
-            rawAddress,
-            bpp,
-            options,
-          );
-          result.push(tile);
-        }
+  let tileMetaAddress = 0;
+  const tilesQuantity = Math.floor(
+    tileMetaData.length / (assembleQuantity * BYTES_PER_TILE_META),
+  );
+  for (let tileIndex = 0; tileIndex < tilesQuantity; tileIndex++) {
+    const tilesPerAxis = Math.sqrt(assembleQuantity);
+    const size = tilesPerAxis * 8;
+
+    const tileImage = new Matrix<Color | null>(size, size, null);
+
+    for (let y = 0; y < tilesPerAxis; y++) {
+      for (let x = 0; x < tilesPerAxis; x++) {
+        const tile = decodeTile(
+          bitplaneData,
+          tileMetaData,
+          palette,
+          tileMetaAddress,
+          bpp,
+          options,
+        );
+        tileImage.setMatrixAt(x * tile.width, y * tile.height, tile);
+        tileMetaAddress += BYTES_PER_TILE_META;
       }
     }
-  } else {
-    const tiles = Math.floor(tileMetaData.length / 2);
-    for (let i = 0; i < tiles; i++) {
-      const rawAddress = i * 2;
-      const tile = decodeTile(
-        bitplaneData,
-        tileMetaData,
-        palette,
-        rawAddress,
-        bpp,
-        options,
-      );
-      result.push(tile);
-    }
+
+    tiles.push(tileImage);
   }
 
-  return result;
+  return tiles;
 }

@@ -1,8 +1,9 @@
-import { read8 } from '../../buffer';
+import { read16 } from '../../buffer';
 import { Color } from '../../types/color';
 import { ImageMatrix } from '../../types/image-matrix';
 import { Matrix } from '../../types/matrix';
 import { Palette } from '../palettes/types';
+import { parseTilePixels } from '../sprites/tile';
 
 export enum BPP {
   /** 2 bits per pixel (values 0–3) */
@@ -33,24 +34,18 @@ export const decodeTile = (
     skipBackgroundTiles = false,
     skipForegroundTiles = false,
   } = options ?? {};
+  const tilePartMeta = read16(tileMetaData, tileMetaAddress);
 
-  const low = read8(tileMetaData, tileMetaAddress + 1);
-  const high = read8(tileMetaData, tileMetaAddress);
-
-  let palOfs = 0;
-  let vFlip = 0;
-  let hFlip = 0;
-  let priority = 0;
-  let highOfs = high;
-
-  if (low & 1) highOfs += 256;
-  if (low & 2) highOfs += 512;
-  if (low & 4) palOfs += 1;
-  if (low & 8) palOfs += 2;
-  if (low & 16) palOfs += 4;
-  if (low & 32) priority = 1;
-  if (low & 64) hFlip = 1;
-  if (low & 128) vFlip = 1;
+  // Vertical Flip = 10000000 00000000
+  const vFlip = (tilePartMeta & 0xc000) >> 15;
+  // Horizontal Flips = 01000000 00000000
+  const hFlip = (tilePartMeta & 0x4000) >> 14;
+  // Priority = 0010000000000000
+  const priority = (tilePartMeta & 0x2000) >> 13;
+  // Palette Index = 00011100 00000000
+  const paletteIndex = (tilePartMeta & 0x1c00) >> 10;
+  // Tile Part Index = 00000011 11111111
+  const tilePartIndex = tilePartMeta & 0x3ff;
 
   const tile = new Matrix<Color | null>(8, 8, null);
   if (
@@ -61,29 +56,25 @@ export const decodeTile = (
   }
 
   const is4bpp = bpp === BPP.Four;
-  const imgOfs = highOfs * (is4bpp ? 32 : 16);
-  palOfs *= is4bpp ? 16 : 4;
+  const bitplaneOffset = tilePartIndex * (is4bpp ? 32 : 16);
+  const paletteOffset = paletteIndex * (is4bpp ? 16 : 4);
+
+  const pixelDataLength = 8 * (is4bpp ? 4 : 2);
+  const tileBitplane = bitplaneData.subarray(
+    bitplaneOffset,
+    bitplaneOffset + pixelDataLength,
+  );
+  const pixels = parseTilePixels(Array.from(tileBitplane), bpp);
 
   for (let i = 0; i < 8; i++) {
-    const one = bitplaneData[imgOfs + i * 2];
-    const two = bitplaneData[imgOfs + i * 2 + 1];
-    const three = is4bpp ? bitplaneData[imgOfs + i * 2 + 16] : 0;
-    const four = is4bpp ? bitplaneData[imgOfs + i * 2 + 17] : 0;
-
     for (let j = 0; j < 8; j++) {
-      let value = 0;
-      const mask = 0x80 >> j;
-
-      if (one & mask) value += 1;
-      if (two & mask) value += 2;
-      if (is4bpp) {
-        if (three & mask) value += 4;
-        if (four & mask) value += 8;
+      const value = pixels.get(j, i);
+      if (value === 0 && !opaqueZero) {
+        /** Transparent pixel - Leave it to null */
+        continue;
       }
-
-      if (value === 0 && !opaqueZero) continue;
-      const base = value === 0 ? 0 : palOfs + value;
-      tile.set(j, i, palette.colors[base]);
+      const colorIndex = value === 0 ? 0 : paletteOffset + value;
+      tile.set(j, i, palette.colors[colorIndex]);
     }
   }
 

@@ -11,6 +11,7 @@ import {
   testStripperMode2WithOffset,
   testStripperMode2WithRawOffset,
   testStripperMode3,
+  testStripperMode3_2,
 } from '../../../../../../../rom-io/common/stripper';
 import { Dkc1LevelConstant } from '../../../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../../../rom-io/rom/address';
@@ -257,6 +258,17 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
             }}
           >
             Test Mode 3
+          </button>
+          <button
+            onClick={async () => {
+              if (rom) {
+                const test = testStripperMode3_2(rom.data);
+                const bitmap = await convertToImageBitmap(test);
+                setLevelBitmap(bitmap);
+              }
+            }}
+          >
+            Test Mode 3 - 2
           </button>
           <button
             onClick={async () => {

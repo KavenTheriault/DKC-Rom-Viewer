@@ -34,6 +34,22 @@ export const testStripperMode3 = (rom: Buffer) => {
   return bitplaneOnly(rom, forest);
 };
 
+export const testStripperMode3_2 = (rom: Buffer) => {
+  const temple: GraphicInfo = {
+    bitplane: {
+      address: RomAddress.fromSnesAddress(0x14eb52),
+      length: 0x1300,
+    },
+    tileMeta: {
+      address: RomAddress.fromSnesAddress(0x14df52),
+      length: 0x800,
+    },
+    paletteAddress: RomAddress.fromSnesAddress(0x39b3a3),
+    bpp: BPP.Two,
+  };
+  return bitplaneOnly(rom, temple);
+};
+
 export const testStripperMode2 = (rom: Buffer) => {
   const overworld: GraphicInfo = {
     bitplane: {

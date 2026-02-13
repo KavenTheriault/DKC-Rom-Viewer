@@ -8,6 +8,8 @@ import { buildImageFromPixelsAndPalette } from '../images';
 import { readPalettes } from '../palettes';
 import { Palette } from '../palettes/types';
 import { parseTilePixels } from '../sprites/tile';
+import { decodeBitplane } from '../stripper/decode-bitplane';
+import { BPP } from '../stripper/decode-tile';
 import { assembleTiles } from '../tiles';
 import { decompress } from './compression';
 import { EntranceInfo, GraphicInfo } from './types';
@@ -68,32 +70,24 @@ export const buildTilemapImageFromEntranceInfo = (
     romData,
     entranceInfo.terrainGraphicsInfo,
   );
-  const tilePartsData = chunk(graphicsData, TILE_DATA_LENGTH);
-  const palettes = readPalettes(
+
+  const rawData = extract(
     romData,
-    entranceInfo.terrainPalettesAddress,
-    8,
-    16,
+    entranceInfo.terrainTypeMetaAddress.pcAddress,
+    0x6000,
   );
 
-  let tilePartIndex = 0;
-  const tilePartImages: ImageMatrix[] = [];
-
-  while (tilePartIndex < tilePartsData.length) {
-    const tilePartImage = readTerrainTypeTile(
-      romData,
-      tilePartsData,
-      entranceInfo.terrainTypeMetaAddress,
-      tilePartIndex,
-      palettes,
-    );
-    if (!tilePartImage) break;
-
-    tilePartImages.push(tilePartImage);
-    tilePartIndex++;
-  }
-
-  return assembleTiles(tilePartImages, TILEMAP_IMAGE_TILE_PER_ROW);
+  const tiles = decodeBitplane(
+    romData,
+    Uint8Array.from(graphicsData),
+    rawData,
+    entranceInfo.terrainPalettesAddress,
+    BPP.Four,
+    {
+      assembleQuantity: 16,
+    },
+  );
+  return assembleTiles(tiles, TILEMAP_IMAGE_TILE_PER_ROW);
 };
 
 const buildGraphicsData = (romData: Buffer, graphicsInfo: GraphicInfo[]) => {
