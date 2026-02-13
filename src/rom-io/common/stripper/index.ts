@@ -16,8 +16,8 @@ export interface DKC_LEVEL {
   name: string; // C: char*
 }
 
-export const testStripper = (rom: Buffer) => {
-  const spec: DKC_LEVEL = {
+export const testStripperMode3 = (rom: Buffer) => {
+  const spec3: DKC_LEVEL = {
     bp_len: 0x1800,
     raw_len: 0x800,
     bp_ofs: 0,
@@ -26,18 +26,38 @@ export const testStripper = (rom: Buffer) => {
     raw_addr: 0x2383fb,
     palette: 0x39c623,
     mode: 3,
-    name: 'Forest BG3',
+    name: '',
   };
+  return bitplaneOnly(rom, spec3);
+};
+
+export const testStripperMode2 = (rom: Buffer) => {
   const spec2: DKC_LEVEL = {
-    bp_len: 0x400,
-    raw_len: 0x2000,
+    bp_len: 0x7000,
+    raw_len: 0x700,
     bp_ofs: 0,
     raw_ofs: 0,
-    bp_addr: 0x27fce9,
-    raw_addr: 0x27dce9,
-    palette: 0x39a01c,
-    mode: 3,
-    name: 'Cave FG3',
+    bp_addr: 0x0116f1,
+    raw_addr: 0x010ff0,
+    palette: 0x39be03,
+    mode: 2,
+    name: '',
+  };
+
+  return bitplaneOnly(rom, spec2);
+};
+
+export const testStripperMode2WithOffset = (rom: Buffer) => {
+  const spec2: DKC_LEVEL = {
+    bp_len: 0x21a0,
+    raw_len: 0x800,
+    bp_ofs: 0xe60,
+    raw_ofs: 0,
+    bp_addr: 0xc3bfe,
+    raw_addr: 0xc33fe,
+    palette: 0x39b2a3,
+    mode: 2,
+    name: '',
   };
 
   return bitplaneOnly(rom, spec2);
@@ -76,7 +96,7 @@ const bitplaneOnly = (rom: Buffer, d: DKC_LEVEL) => {
     d.raw_len + d.raw_ofs,
     d.bp_len + d.bp_ofs,
     d.mode,
-    0, // I have no idea what this if for
+    1, // I have no idea what this if for
   );
   const { out, pixelWidth, pixelHeight } = assembleScreen(
     bitplane,
