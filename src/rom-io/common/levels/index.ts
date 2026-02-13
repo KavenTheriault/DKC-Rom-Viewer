@@ -8,6 +8,7 @@ import { buildImageFromPixelsAndPalette } from '../images';
 import { readPalettes } from '../palettes';
 import { Palette } from '../palettes/types';
 import { parseTilePixels } from '../sprites/tile';
+import { assembleTiles } from '../tiles';
 import { decompress } from './compression';
 import { EntranceInfo, GraphicInfo } from './types';
 
@@ -92,20 +93,7 @@ export const buildTilemapImageFromEntranceInfo = (
     tilePartIndex++;
   }
 
-  const rows = chunk(tilePartImages, TILEMAP_IMAGE_TILE_PER_ROW);
-  const tilemapImage = new Matrix<Color | null>(
-    TILEMAP_IMAGE_TILE_PER_ROW * TILE_SIZE,
-    rows.length * TILE_SIZE,
-    null,
-  );
-
-  for (let y = 0; y < rows.length; y++) {
-    for (let x = 0; x < rows[y].length; x++) {
-      const tilePartImage = tilePartImages[x + y * TILEMAP_IMAGE_TILE_PER_ROW];
-      tilemapImage.setMatrixAt(x * TILE_SIZE, y * TILE_SIZE, tilePartImage);
-    }
-  }
-  return tilemapImage;
+  return assembleTiles(tilePartImages, TILEMAP_IMAGE_TILE_PER_ROW);
 };
 
 const buildGraphicsData = (romData: Buffer, graphicsInfo: GraphicInfo[]) => {

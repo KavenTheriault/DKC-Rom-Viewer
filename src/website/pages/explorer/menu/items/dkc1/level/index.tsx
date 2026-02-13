@@ -9,6 +9,7 @@ import { EntranceInfo } from '../../../../../../../rom-io/common/levels/types';
 import {
   testStripperMode2,
   testStripperMode2WithOffset,
+  testStripperMode2WithRawOffset,
   testStripperMode3,
 } from '../../../../../../../rom-io/common/stripper';
 import { Dkc1LevelConstant } from '../../../../../../../rom-io/dkc1/constants';
@@ -278,6 +279,17 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
             }}
           >
             Test Mode 2 With offset
+          </button>
+          <button
+            onClick={async () => {
+              if (rom) {
+                const test = testStripperMode2WithRawOffset(rom.data);
+                const bitmap = await convertToImageBitmap(test);
+                setLevelBitmap(bitmap);
+              }
+            }}
+          >
+            Test Mode 2 With raw offset
           </button>
         </OverlaySlotsContainer>
       ),

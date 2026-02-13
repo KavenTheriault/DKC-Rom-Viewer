@@ -1,140 +1,112 @@
-import { Color } from '../../types/color';
-import { Matrix } from '../../types/matrix';
-import { assembleScreen } from './assemble-screen';
-import { alloc } from './buffer-helper';
+import { extract } from '../../buffer';
+import { RomAddress } from '../../rom/address';
+import { assembleTiles } from '../tiles';
 import { decodeBitplane } from './decode-bitplane';
+import { BPP } from './decode-tile';
 
-export interface DKC_LEVEL {
-  bp_len: number; // uint16
-  raw_len: number; // uint16
-  bp_ofs: number; // uint16
-  raw_ofs: number; // uint16
-  bp_addr: number; // uint32 (C: unsigned)
-  raw_addr: number; // uint32 (C: unsigned)
-  palette: number; // uint32 (C: unsigned)
-  mode: number; // uint8
-  name: string; // C: char*
+export interface GraphicInfo {
+  bitplane: {
+    address: RomAddress;
+    length: number;
+    offset?: number;
+  };
+  tileMeta: {
+    address: RomAddress;
+    length: number;
+  };
+  paletteAddress: RomAddress;
+  bpp: BPP;
 }
 
 export const testStripperMode3 = (rom: Buffer) => {
-  const spec3: DKC_LEVEL = {
-    bp_len: 0x1800,
-    raw_len: 0x800,
-    bp_ofs: 0,
-    raw_ofs: 0,
-    bp_addr: 0x238bfb,
-    raw_addr: 0x2383fb,
-    palette: 0x39c623,
-    mode: 3,
-    name: '',
+  const forest: GraphicInfo = {
+    bitplane: {
+      address: RomAddress.fromSnesAddress(0x238bfb),
+      length: 0x1800,
+    },
+    tileMeta: {
+      address: RomAddress.fromSnesAddress(0x2383fb),
+      length: 0x800,
+    },
+    paletteAddress: RomAddress.fromSnesAddress(0x39c623),
+    bpp: BPP.Two,
   };
-  return bitplaneOnly(rom, spec3);
+  return bitplaneOnly(rom, forest);
 };
 
 export const testStripperMode2 = (rom: Buffer) => {
-  const spec2: DKC_LEVEL = {
-    bp_len: 0x7000,
-    raw_len: 0x700,
-    bp_ofs: 0,
-    raw_ofs: 0,
-    bp_addr: 0x0116f1,
-    raw_addr: 0x010ff0,
-    palette: 0x39be03,
-    mode: 2,
-    name: '',
+  const overworld: GraphicInfo = {
+    bitplane: {
+      address: RomAddress.fromSnesAddress(0x0116f1),
+      length: 0x7000,
+    },
+    tileMeta: {
+      address: RomAddress.fromSnesAddress(0x010ff0),
+      length: 0x700,
+    },
+    paletteAddress: RomAddress.fromSnesAddress(0x39be03),
+    bpp: BPP.Four,
   };
 
-  return bitplaneOnly(rom, spec2);
+  return bitplaneOnly(rom, overworld);
 };
 
 export const testStripperMode2WithOffset = (rom: Buffer) => {
-  const spec2: DKC_LEVEL = {
-    bp_len: 0x21a0,
-    raw_len: 0x800,
-    bp_ofs: 0xe60,
-    raw_ofs: 0,
-    bp_addr: 0xc3bfe,
-    raw_addr: 0xc33fe,
-    palette: 0x39b2a3,
-    mode: 2,
-    name: '',
+  const treeTopTown: GraphicInfo = {
+    bitplane: {
+      address: RomAddress.fromSnesAddress(0xc3bfe),
+      length: 0x21a0,
+      offset: 0xe60,
+    },
+    tileMeta: {
+      address: RomAddress.fromSnesAddress(0xc33fe),
+      length: 0x800,
+    },
+    paletteAddress: RomAddress.fromSnesAddress(0x39b2a3),
+    bpp: BPP.Four,
   };
-
-  return bitplaneOnly(rom, spec2);
+  return bitplaneOnly(rom, treeTopTown);
 };
 
-const bitplaneOnly = (rom: Buffer, d: DKC_LEVEL) => {
-  const bitplane = alloc(0x10a000, 0); // zero-filled like calloc
+export const testStripperMode2WithRawOffset = (rom: Buffer) => {
+  const nintendo: GraphicInfo = {
+    bitplane: {
+      address: RomAddress.fromSnesAddress(0x240690),
+      length: 0x2000,
+    },
+    tileMeta: {
+      address: RomAddress.fromSnesAddress(0x240450),
+      length: 0x280,
+    },
+    paletteAddress: RomAddress.fromSnesAddress(0x39c203),
+    bpp: BPP.Four,
+  };
+  return bitplaneOnly(rom, nintendo);
+};
 
-  // These are "views" into the same underlying memory, like pointer offsets in C.
-  const bpData = bitplane.subarray(0x100000);
-  const rawData = bitplane.subarray(0x108000);
-
-  // If you want them to be capped to the original intended regions, slice lengths explicitly:
-  // const bpDataSized = bitplane.subarray(0x100000, 0x108000); // 0x8000 bytes
-  // const rawDataSized = bitplane.subarray(0x108000, 0x10a000); // 0x2000 bytes
-
-  rom.copy(
-    bpData as unknown as Uint8Array,
-    d.bp_ofs,
-    d.bp_addr,
-    d.bp_addr + d.bp_len,
+const bitplaneOnly = (rom: Buffer, d: GraphicInfo) => {
+  const bitplaneOffset = d.bitplane.offset ?? 0;
+  const bitplaneData = new Uint8Array(bitplaneOffset + d.bitplane.length);
+  bitplaneData.set(
+    extract(rom, d.bitplane.address.pcAddress, d.bitplane.length),
+    bitplaneOffset,
   );
-  rom.copy(
-    rawData as unknown as Uint8Array,
-    d.raw_ofs,
-    d.raw_addr,
-    d.raw_addr + d.raw_len,
-  );
-
-  decodeBitplane(
+  const tileMetaData = extract(
     rom,
-    bpData,
-    rawData,
-    bitplane,
-    d.palette,
-    d.raw_len + d.raw_ofs,
-    d.bp_len + d.bp_ofs,
-    d.mode,
-    1, // I have no idea what this if for
-  );
-  const { out, pixelWidth, pixelHeight } = assembleScreen(
-    bitplane,
-    d.raw_len,
-    32,
+    d.tileMeta.address.pcAddress,
+    d.tileMeta.length,
   );
 
-  const matrix = outToColorMatrix(out, pixelWidth, pixelHeight);
+  const tiles = decodeBitplane(
+    rom,
+    bitplaneData,
+    tileMetaData,
+    d.paletteAddress,
+    d.bpp,
+    {
+      opaqueZero: true,
+    },
+  );
 
-  console.log('DEBUG not crashing');
-  console.log(matrix);
-
-  return matrix;
+  return assembleTiles(tiles, 32);
 };
-
-export function outToColorMatrix(
-  out: Uint8Array,
-  pixelWidth: number,
-  pixelHeight: number,
-): Matrix<Color | null> {
-  // `out` is RGBA, 4 bytes per pixel
-  if (out.length < pixelWidth * pixelHeight * 4) {
-    throw new Error(
-      `out buffer too small: got ${out.length}, need ${pixelWidth * pixelHeight * 4}`,
-    );
-  }
-
-  const m = new Matrix<Color | null>(pixelWidth, pixelHeight, null);
-
-  for (let y = 0; y < pixelHeight; y++) {
-    for (let x = 0; x < pixelWidth; x++) {
-      const idx = (y * pixelWidth + x) * 4;
-      // Ignore alpha; just take RGB
-      if (out[idx + 3] !== 0) {
-        m.set(x, y, { r: out[idx], g: out[idx + 1], b: out[idx + 2] });
-      }
-    }
-  }
-
-  return m;
-}
