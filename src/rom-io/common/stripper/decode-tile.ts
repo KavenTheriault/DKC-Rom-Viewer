@@ -1,4 +1,5 @@
 import { read16 } from '../../buffer';
+import { RomAddress } from '../../rom/address';
 import { Color } from '../../types/color';
 import { ImageMatrix } from '../../types/image-matrix';
 import { Matrix } from '../../types/matrix';
@@ -22,10 +23,11 @@ export interface DecodeTileOptions {
 }
 
 export const decodeTile = (
+  romData: Buffer,
   bitplaneData: Uint8Array,
-  tileMetaData: Buffer,
   palette: Palette,
-  tileMetaAddress: number,
+  tilesMetaAddress: RomAddress,
+  tileMetaOffset: number,
   bpp: BPP,
   options?: DecodeTileOptions,
 ): ImageMatrix => {
@@ -34,13 +36,16 @@ export const decodeTile = (
     skipBackgroundTiles = false,
     skipForegroundTiles = false,
   } = options ?? {};
-  const tilePartMeta = read16(tileMetaData, tileMetaAddress);
+  const tilePartMeta = read16(
+    romData,
+    tilesMetaAddress.getOffsetAddress(tileMetaOffset).pcAddress,
+  );
 
   // Vertical Flip = 10000000 00000000
   const vFlip = (tilePartMeta & 0xc000) >> 15;
   // Horizontal Flips = 01000000 00000000
   const hFlip = (tilePartMeta & 0x4000) >> 14;
-  // Priority = 0010000000000000
+  // Priority = 00100000 00000000
   const priority = (tilePartMeta & 0x2000) >> 13;
   // Palette Index = 00011100 00000000
   const paletteIndex = (tilePartMeta & 0x1c00) >> 10;

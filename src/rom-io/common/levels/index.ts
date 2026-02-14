@@ -1,45 +1,34 @@
-import { chunk, memoize } from 'lodash';
+import { memoize } from 'lodash';
 import { extract, read16 } from '../../buffer';
 import { RomAddress } from '../../rom/address';
 import { Color } from '../../types/color';
 import { ImageMatrix } from '../../types/image-matrix';
 import { Matrix } from '../../types/matrix';
-import { buildImageFromPixelsAndPalette } from '../images';
-import { readPalettes } from '../palettes';
+import { readPalette } from '../palettes';
 import { Palette } from '../palettes/types';
-import { parseTilePixels } from '../sprites/tile';
-import { decodeBitplane } from '../stripper/decode-bitplane';
+import { decodeAndAssembleTiles, decodeTiles } from '../stripper/decode-tiles';
 import { BPP } from '../stripper/decode-tile';
 import { assembleTiles } from '../tiles';
 import { decompress } from './compression';
 import { EntranceInfo, GraphicInfo } from './types';
 
-/*
-TilePart = 8x8 Image - 1/16 part of a Tile
-Tile = 32x32 Image - Unit used to build a level
-LevelTileMap = Tile information to build a level
-*/
-
-const TILE_DATA_LENGTH = 0x20;
 const TILE_SIZE = 32;
-const TILE_PART_SIZE = TILE_SIZE / 4;
 const TILEMAP_IMAGE_TILE_PER_ROW = 16;
+const BYTES_PER_TILE_META = 2;
+const PARTS_IN_TILE = 16;
 
 export const buildLevelImageFromEntranceInfo = (
   romData: Buffer,
   entranceInfo: EntranceInfo,
 ) => {
-  const graphicsData = buildGraphicsData(
+  const bitplaneData = buildGraphicsData(
     romData,
     entranceInfo.terrainGraphicsInfo,
   );
-  const tilePartsData = chunk(graphicsData, TILE_DATA_LENGTH);
-
-  const palettes = readPalettes(
+  const palette = readPalette(
     romData,
     entranceInfo.terrainPalettesAddress,
-    8,
-    16,
+    128,
   );
   const levelTileMap = readLevelTileMap(
     romData,
@@ -53,10 +42,10 @@ export const buildLevelImageFromEntranceInfo = (
     memoize((tileMetaIndex) =>
       readTerrainTypeTile(
         romData,
-        tilePartsData,
+        bitplaneData,
         entranceInfo.terrainTypeMetaAddress,
         tileMetaIndex,
-        palettes,
+        palette,
       ),
     ),
   );
@@ -66,27 +55,30 @@ export const buildTilemapImageFromEntranceInfo = (
   romData: Buffer,
   entranceInfo: EntranceInfo,
 ) => {
-  const graphicsData = buildGraphicsData(
+  const bitplaneData = buildGraphicsData(
     romData,
     entranceInfo.terrainGraphicsInfo,
   );
-
-  const rawData = extract(
+  const palette = readPalette(
     romData,
-    entranceInfo.terrainTypeMetaAddress.pcAddress,
-    0x6000,
-  );
-
-  const tiles = decodeBitplane(
-    romData,
-    Uint8Array.from(graphicsData),
-    rawData,
     entranceInfo.terrainPalettesAddress,
-    BPP.Four,
-    {
-      assembleQuantity: 16,
-    },
+    128,
   );
+
+  /** Tile count is unknown, 0x280 is enough covers all terrain tiles */
+  const tilesQuantity = 0x280;
+  const tiles = decodeTiles({
+    romData,
+    bitplaneData: Uint8Array.from(bitplaneData),
+    palette,
+    tilesMetaAddress: entranceInfo.terrainTypeMetaAddress,
+    tilesMetaLength: { tilesQuantity },
+    bpp: BPP.Four,
+    options: {
+      opaqueZero: true,
+      assembleQuantity: PARTS_IN_TILE,
+    },
+  });
   return assembleTiles(tiles, TILEMAP_IMAGE_TILE_PER_ROW);
 };
 
@@ -128,68 +120,21 @@ const buildGraphicsData = (romData: Buffer, graphicsInfo: GraphicInfo[]) => {
 
 const readTerrainTypeTile = (
   romData: Buffer,
-  tilePartsData: number[][],
+  bitplaneData: number[],
   tilesMetaAddress: RomAddress,
   tileMetaIndex: number,
-  palettes: Palette[],
-): ImageMatrix | null => {
-  const tileMeta = extract(
+  palette: Palette,
+): ImageMatrix => {
+  const tileMetaOffset = tileMetaIndex * BYTES_PER_TILE_META * PARTS_IN_TILE;
+  return decodeAndAssembleTiles({
     romData,
-    tilesMetaAddress.getOffsetAddress(tileMetaIndex * TILE_DATA_LENGTH)
-      .pcAddress,
-    TILE_DATA_LENGTH,
-  );
-  return buildLevelTileImage(tilePartsData, tileMeta, palettes);
-};
-
-const buildLevelTileImage = (
-  tilePartsData: number[][],
-  tileMeta: Buffer,
-  palettes: Palette[],
-): ImageMatrix | null => {
-  const tileImage = new Matrix<Color | null>(TILE_SIZE, TILE_SIZE, null);
-
-  let partIndex = 0;
-  for (let y = 0; y < 4; y++) {
-    for (let x = 0; x < 4; x++) {
-      const tilePartMeta = read16(tileMeta, partIndex);
-      partIndex += 2;
-
-      // Flips = 1100000000000000
-      const flips = (tilePartMeta & 0xc000) >> 14;
-
-      // Palette Index = 0001110000000000
-      const paletteIndex = (tilePartMeta & 0x1c00) >> 10;
-
-      // Tile Part Index = 0000001111111111
-      const tilePartIndex = tilePartMeta & 0x3ff;
-
-      // Skip tile part index outside of available data
-      if (tilePartIndex >= tilePartsData.length) return null;
-
-      const pixels = parseTilePixels(tilePartsData[tilePartIndex]);
-      const tilePartImage = buildImageFromPixelsAndPalette(
-        pixels,
-        palettes[paletteIndex].colors,
-        0,
-      );
-
-      if ((flips & 0b01) > 0) {
-        tilePartImage.flip('horizontal');
-      }
-      if ((flips & 0b10) > 0) {
-        tilePartImage.flip('vertical');
-      }
-
-      tileImage.setMatrixAt(
-        x * TILE_PART_SIZE,
-        y * TILE_PART_SIZE,
-        tilePartImage,
-      );
-    }
-  }
-
-  return tileImage;
+    bitplaneData: Uint8Array.from(bitplaneData),
+    palette,
+    tilesMetaAddress,
+    tileMetaOffset,
+    bpp: BPP.Four,
+    options: { opaqueZero: true, assembleQuantity: PARTS_IN_TILE },
+  });
 };
 
 const readLevelTileMap = (

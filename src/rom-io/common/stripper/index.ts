@@ -1,7 +1,8 @@
 import { extract } from '../../buffer';
 import { RomAddress } from '../../rom/address';
+import { readPalette } from '../palettes';
 import { assembleTiles } from '../tiles';
-import { decodeBitplane } from './decode-bitplane';
+import { decodeTiles } from './decode-tiles';
 import { BPP } from './decode-tile';
 
 export interface GraphicInfo {
@@ -100,29 +101,25 @@ export const testStripperMode2WithRawOffset = (rom: Buffer) => {
   return bitplaneOnly(rom, nintendo);
 };
 
-const bitplaneOnly = (rom: Buffer, d: GraphicInfo) => {
+const bitplaneOnly = (romData: Buffer, d: GraphicInfo) => {
   const bitplaneOffset = d.bitplane.offset ?? 0;
   const bitplaneData = new Uint8Array(bitplaneOffset + d.bitplane.length);
   bitplaneData.set(
-    extract(rom, d.bitplane.address.pcAddress, d.bitplane.length),
+    extract(romData, d.bitplane.address.pcAddress, d.bitplane.length),
     bitplaneOffset,
   );
-  const tileMetaData = extract(
-    rom,
-    d.tileMeta.address.pcAddress,
-    d.tileMeta.length,
-  );
+  const palette = readPalette(romData, d.paletteAddress, 128);
 
-  const tiles = decodeBitplane(
-    rom,
+  const tiles = decodeTiles({
+    romData,
     bitplaneData,
-    tileMetaData,
-    d.paletteAddress,
-    d.bpp,
-    {
+    palette,
+    tilesMetaAddress: d.tileMeta.address,
+    tilesMetaLength: { dataLength: d.tileMeta.length },
+    bpp: d.bpp,
+    options: {
       opaqueZero: true,
     },
-  );
-
+  });
   return assembleTiles(tiles, 32);
 };
