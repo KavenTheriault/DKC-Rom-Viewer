@@ -1,5 +1,6 @@
-import { GameLevelConstant } from '../common/levels/types';
+import { GameLevelConstant, TilesDecodeSpec } from '../common/levels/types';
 import { RomAddress } from '../rom/address';
+import { BPP } from '../types/bpp';
 
 export const Dkc1AnimationScriptBank = 0x3e0000;
 export const Dkc1AnimationScriptTable = 0x8572;
@@ -112,5 +113,69 @@ export const Dkc1LevelConstant: GameLevelConstant = {
       ...IceCaves.entrancesIndex,
       ...Underwater.entrancesIndex,
     ],
+  },
+};
+
+export const DKC1_ASSETS: Record<string, TilesDecodeSpec> = {
+  Forest: {
+    bitplane: {
+      address: RomAddress.fromSnesAddress(0x238bfb),
+      length: 0x1800,
+    },
+    tileMeta: {
+      address: RomAddress.fromSnesAddress(0x2383fb),
+      length: 0x800,
+    },
+    paletteAddress: RomAddress.fromSnesAddress(0x39c623),
+    bpp: BPP.Two,
+  },
+  Temple: {
+    bitplane: {
+      address: RomAddress.fromSnesAddress(0x14eb52),
+      length: 0x1300,
+    },
+    tileMeta: {
+      address: RomAddress.fromSnesAddress(0x14df52),
+      length: 0x800,
+    },
+    paletteAddress: RomAddress.fromSnesAddress(0x39b3a3),
+    bpp: BPP.Two,
+  },
+  Overworld: {
+    bitplane: {
+      address: RomAddress.fromSnesAddress(0x0116f1),
+      length: 0x7000,
+    },
+    tileMeta: {
+      address: RomAddress.fromSnesAddress(0x010ff0),
+      length: 0x700,
+    },
+    paletteAddress: RomAddress.fromSnesAddress(0x39be03),
+    bpp: BPP.Four,
+  },
+  TreeTopTown: {
+    bitplane: {
+      address: RomAddress.fromSnesAddress(0xc3bfe),
+      length: 0x21a0,
+      offset: 0xe60,
+    },
+    tileMeta: {
+      address: RomAddress.fromSnesAddress(0xc33fe),
+      length: 0x800,
+    },
+    paletteAddress: RomAddress.fromSnesAddress(0x39b2a3),
+    bpp: BPP.Four,
+  },
+  Nintendo: {
+    bitplane: {
+      address: RomAddress.fromSnesAddress(0x240690),
+      length: 0x2000,
+    },
+    tileMeta: {
+      address: RomAddress.fromSnesAddress(0x240450),
+      length: 0x280,
+    },
+    paletteAddress: RomAddress.fromSnesAddress(0x39c203),
+    bpp: BPP.Four,
   },
 };

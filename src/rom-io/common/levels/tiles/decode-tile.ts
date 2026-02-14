@@ -1,17 +1,11 @@
-import { read16 } from '../../buffer';
-import { RomAddress } from '../../rom/address';
-import { Color } from '../../types/color';
-import { ImageMatrix } from '../../types/image-matrix';
-import { Matrix } from '../../types/matrix';
-import { Palette } from '../palettes/types';
-import { parseTilePixels } from '../sprites/tile';
-
-export enum BPP {
-  /** 2 bits per pixel (values 0–3) */
-  Two,
-  /** 4 bits per pixel (values 0–15) */
-  Four,
-}
+import { read16 } from '../../../buffer';
+import { RomAddress } from '../../../rom/address';
+import { BPP } from '../../../types/bpp';
+import { Color } from '../../../types/color';
+import { ImageMatrix } from '../../../types/image-matrix';
+import { Matrix } from '../../../types/matrix';
+import { Palette } from '../../palettes/types';
+import { parseTilePixels } from '../../tile-pixels';
 
 export interface DecodeTileOptions {
   /** If true, palette index 0 is opaque (rgb[0..2]) instead of transparent. */
@@ -24,7 +18,7 @@ export interface DecodeTileOptions {
 
 export const decodeTile = (
   romData: Buffer,
-  bitplaneData: Uint8Array,
+  bitplane: Uint8Array,
   palette: Palette,
   tilesMetaAddress: RomAddress,
   tileMetaOffset: number,
@@ -52,33 +46,32 @@ export const decodeTile = (
   // Tile Part Index = 00000011 11111111
   const tilePartIndex = tilePartMeta & 0x3ff;
 
-  const tile = new Matrix<Color | null>(8, 8, null);
-  if (
-    (skipBackgroundTiles && priority === 0) ||
-    (skipForegroundTiles && priority === 1)
-  ) {
-    return tile;
-  }
-
   const is4bpp = bpp === BPP.Four;
   const bitplaneOffset = tilePartIndex * (is4bpp ? 32 : 16);
   const paletteOffset = paletteIndex * (is4bpp ? 16 : 4);
 
   const pixelDataLength = 8 * (is4bpp ? 4 : 2);
-  const tileBitplane = bitplaneData.subarray(
+  const tileBitplane = bitplane.subarray(
     bitplaneOffset,
     bitplaneOffset + pixelDataLength,
   );
   const pixels = parseTilePixels(Array.from(tileBitplane), bpp);
 
+  const tile = new Matrix<Color | null>(8, 8, null);
   for (let i = 0; i < 8; i++) {
     for (let j = 0; j < 8; j++) {
       const value = pixels.get(j, i);
-      if (value === 0 && !opaqueZero) {
+
+      const noPixel = value === 0;
+      const skipBg = skipBackgroundTiles && priority === 0;
+      const skipFg = skipForegroundTiles && priority === 1;
+
+      if ((noPixel || skipBg || skipFg) && !opaqueZero) {
         /** Transparent pixel - Leave it to null */
         continue;
       }
-      const colorIndex = value === 0 ? 0 : paletteOffset + value;
+      const colorIndex =
+        value === 0 || skipBg || skipFg ? 0 : paletteOffset + value;
       tile.set(j, i, palette.colors[colorIndex]);
     }
   }

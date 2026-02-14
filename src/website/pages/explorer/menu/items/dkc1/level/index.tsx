@@ -1,19 +1,18 @@
 import { noop } from 'lodash';
 import React, { useEffect, useState } from 'react';
-import {
-  buildLevelImageFromEntranceInfo,
-  buildTilemapImageFromEntranceInfo,
-} from '../../../../../../../rom-io/common/levels';
+import { buildLevelImageFromEntranceInfo } from '../../../../../../../rom-io/common/levels';
 import { loadEntranceInfo } from '../../../../../../../rom-io/common/levels/entrance-info';
-import { EntranceInfo } from '../../../../../../../rom-io/common/levels/types';
+import { decodeTilesFromSpec } from '../../../../../../../rom-io/common/levels/spec';
+import { buildTerrainTilemapImage } from '../../../../../../../rom-io/common/levels/terrain';
 import {
-  testStripperMode2,
-  testStripperMode2WithOffset,
-  testStripperMode2WithRawOffset,
-  testStripperMode3,
-  testStripperMode3_2,
-} from '../../../../../../../rom-io/common/stripper';
-import { Dkc1LevelConstant } from '../../../../../../../rom-io/dkc1/constants';
+  EntranceInfo,
+  LevelInfo,
+  TerrainInfo,
+} from '../../../../../../../rom-io/common/levels/types';
+import {
+  Dkc1LevelConstant,
+  DKC1_ASSETS,
+} from '../../../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../../../rom-io/rom/address';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
 import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
@@ -74,7 +73,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
 
     try {
       const levelImage = showTilemapOnly
-        ? buildTilemapImageFromEntranceInfo(rom.data, info)
+        ? buildTerrainTilemapImage(rom.data, info.terrain)
         : buildLevelImageFromEntranceInfo(rom.data, info);
       const bitmap = await convertToImageBitmap(levelImage);
       setLevelBitmap(bitmap);
@@ -86,11 +85,25 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
     }
   };
 
-  const updateEntranceInfo = (partial: Partial<EntranceInfo>) => {
+  const updateTerrainInfo = (partial: Partial<TerrainInfo>) => {
     if (!entranceInfo) return;
     setEntranceInfo({
       ...entranceInfo,
-      ...partial,
+      terrain: {
+        ...entranceInfo.terrain,
+        ...partial,
+      },
+    });
+  };
+
+  const updateLevelInfo = (partial: Partial<LevelInfo>) => {
+    if (!entranceInfo) return;
+    setEntranceInfo({
+      ...entranceInfo,
+      level: {
+        ...entranceInfo.level,
+        ...partial,
+      },
     });
   };
 
@@ -178,13 +191,11 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
             <AddressesDiv>
               <LoadHexadecimalInput
                 label="Terrain Type Address"
-                hexadecimalValue={
-                  entranceInfo.terrainTypeMetaAddress.snesAddress
-                }
+                hexadecimalValue={entranceInfo.terrain.metaAddress.snesAddress}
                 onValueChange={(value) => {
                   if (value === undefined) return;
-                  updateEntranceInfo({
-                    terrainTypeMetaAddress: RomAddress.fromSnesAddress(value),
+                  updateTerrainInfo({
+                    metaAddress: RomAddress.fromSnesAddress(value),
                   });
                 }}
                 onValueLoad={loadLevel}
@@ -192,45 +203,45 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
               <LoadHexadecimalInput
                 label="Palettes Address"
                 hexadecimalValue={
-                  entranceInfo.terrainPalettesAddress.snesAddress
+                  entranceInfo.terrain.palettesAddress.snesAddress
                 }
                 onValueChange={(value) => {
                   if (value === undefined) return;
-                  updateEntranceInfo({
-                    terrainPalettesAddress: RomAddress.fromSnesAddress(value),
+                  updateTerrainInfo({
+                    palettesAddress: RomAddress.fromSnesAddress(value),
                   });
                 }}
                 onValueLoad={loadLevel}
               />
               <LoadHexadecimalInput
                 label="Level Tilemap Address"
-                hexadecimalValue={entranceInfo.levelTileMapAddress.snesAddress}
+                hexadecimalValue={entranceInfo.level.tileMapAddress.snesAddress}
                 onValueChange={(value) => {
                   if (value === undefined) return;
-                  updateEntranceInfo({
-                    levelTileMapAddress: RomAddress.fromSnesAddress(value),
+                  updateLevelInfo({
+                    tileMapAddress: RomAddress.fromSnesAddress(value),
                   });
                 }}
                 onValueLoad={loadLevel}
               />
               <LoadHexadecimalInput
                 label="Level Tilemap Offset"
-                hexadecimalValue={entranceInfo.levelTileMapOffset}
+                hexadecimalValue={entranceInfo.level.tileMapOffset}
                 onValueChange={(value) => {
                   if (value === undefined) return;
-                  updateEntranceInfo({
-                    levelTileMapOffset: value,
+                  updateLevelInfo({
+                    tileMapOffset: value,
                   });
                 }}
                 onValueLoad={loadLevel}
               />
               <LoadHexadecimalInput
                 label="Level Tilemap Length"
-                hexadecimalValue={entranceInfo.levelTileMapLength}
+                hexadecimalValue={entranceInfo.level.tileMapLength}
                 onValueChange={(value) => {
                   if (value === undefined) return;
-                  updateEntranceInfo({
-                    levelTileMapLength: value,
+                  updateLevelInfo({
+                    tileMapLength: value,
                   });
                 }}
                 onValueLoad={loadLevel}
@@ -248,61 +259,18 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
               Show Tilemap Only
             </label>
           </CollapsiblePanel>
-          <button
-            onClick={async () => {
-              if (rom) {
-                const test = testStripperMode3(rom.data);
-                const bitmap = await convertToImageBitmap(test);
+          {Object.entries(DKC1_ASSETS).map(([name, spec]) => (
+            <button
+              onClick={async () => {
+                if (!rom) return;
+                const image = decodeTilesFromSpec(rom.data, spec, 32);
+                const bitmap = await convertToImageBitmap(image);
                 setLevelBitmap(bitmap);
-              }
-            }}
-          >
-            Test Mode 3
-          </button>
-          <button
-            onClick={async () => {
-              if (rom) {
-                const test = testStripperMode3_2(rom.data);
-                const bitmap = await convertToImageBitmap(test);
-                setLevelBitmap(bitmap);
-              }
-            }}
-          >
-            Test Mode 3 - 2
-          </button>
-          <button
-            onClick={async () => {
-              if (rom) {
-                const test = testStripperMode2(rom.data);
-                const bitmap = await convertToImageBitmap(test);
-                setLevelBitmap(bitmap);
-              }
-            }}
-          >
-            Test Mode 2
-          </button>
-          <button
-            onClick={async () => {
-              if (rom) {
-                const test = testStripperMode2WithOffset(rom.data);
-                const bitmap = await convertToImageBitmap(test);
-                setLevelBitmap(bitmap);
-              }
-            }}
-          >
-            Test Mode 2 With offset
-          </button>
-          <button
-            onClick={async () => {
-              if (rom) {
-                const test = testStripperMode2WithRawOffset(rom.data);
-                const bitmap = await convertToImageBitmap(test);
-                setLevelBitmap(bitmap);
-              }
-            }}
-          >
-            Test Mode 2 With raw offset
-          </button>
+              }}
+            >
+              {name}
+            </button>
+          ))}
         </OverlaySlotsContainer>
       ),
     },

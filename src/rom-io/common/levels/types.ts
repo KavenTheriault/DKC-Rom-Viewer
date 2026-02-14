@@ -1,4 +1,5 @@
 import { RomAddress } from '../../rom/address';
+import { BPP } from '../../types/bpp';
 
 export type GraphicInfo = {
   address: RomAddress;
@@ -8,22 +9,40 @@ export type GraphicInfo = {
   placeAt: number;
 };
 
-export type EntranceInfo = {
+export type TerrainInfo = {
   // Internal index used to load meta
-  terrainMetaIndex: number;
+  metaIndex: number;
+  metaAddress: RomAddress;
+  palettesAddress: RomAddress;
+  tileMapAddress: RomAddress;
+  graphicsInfo: GraphicInfo[];
+};
 
-  // Terrain
-  terrainTypeMetaAddress: RomAddress;
-  terrainPalettesAddress: RomAddress;
-  terrainTileMapAddress: RomAddress;
-  terrainGraphicsInfo: GraphicInfo[];
-
-  // Level
-  levelTileMapAddress: RomAddress;
-  levelTileMapOffset: number;
-  levelTileMapLength: number;
+export type LevelInfo = {
+  tileMapAddress: RomAddress;
+  tileMapOffset: number;
+  tileMapLength: number;
   isVertical: boolean;
 };
+
+export type EntranceInfo = {
+  terrain: TerrainInfo;
+  level: LevelInfo;
+};
+
+export interface TilesDecodeSpec {
+  bitplane: {
+    address: RomAddress;
+    length: number;
+    offset?: number;
+  };
+  tileMeta: {
+    address: RomAddress;
+    length: number;
+  };
+  paletteAddress: RomAddress;
+  bpp: BPP;
+}
 
 export interface GameLevelConstant {
   address: {

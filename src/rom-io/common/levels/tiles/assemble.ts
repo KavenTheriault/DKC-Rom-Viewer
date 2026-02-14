@@ -1,9 +1,12 @@
 import { chunk } from 'lodash';
-import { Color } from '../types/color';
-import { ImageMatrix } from '../types/image-matrix';
-import { Matrix } from '../types/matrix';
+import { Color } from '../../../types/color';
+import { ImageMatrix } from '../../../types/image-matrix';
+import { Matrix } from '../../../types/matrix';
 
-export const assembleTiles = (tiles: ImageMatrix[], tilesPerRow: number) => {
+export const assembleTiles = (
+  tiles: ImageMatrix[],
+  tilesPerRow: number,
+): ImageMatrix => {
   const tileSize = tiles[0].width;
 
   const rows = chunk(tiles, tilesPerRow);

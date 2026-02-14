@@ -1,154 +1,45 @@
 import { memoize } from 'lodash';
 import { extract, read16 } from '../../buffer';
-import { RomAddress } from '../../rom/address';
 import { Color } from '../../types/color';
 import { ImageMatrix } from '../../types/image-matrix';
 import { Matrix } from '../../types/matrix';
-import { readPalette } from '../palettes';
-import { Palette } from '../palettes/types';
-import { decodeAndAssembleTiles, decodeTiles } from '../stripper/decode-tiles';
-import { BPP } from '../stripper/decode-tile';
-import { assembleTiles } from '../tiles';
-import { decompress } from './compression';
-import { EntranceInfo, GraphicInfo } from './types';
-
-const TILE_SIZE = 32;
-const TILEMAP_IMAGE_TILE_PER_ROW = 16;
-const BYTES_PER_TILE_META = 2;
-const PARTS_IN_TILE = 16;
+import {
+  readTerrainBitplaneAndPalette,
+  readTerrainTypeTile,
+  TILE_SIZE,
+} from './terrain';
+import { EntranceInfo, LevelInfo } from './types';
 
 export const buildLevelImageFromEntranceInfo = (
   romData: Buffer,
   entranceInfo: EntranceInfo,
 ) => {
-  const bitplaneData = buildGraphicsData(
+  const bitplaneAndPalette = readTerrainBitplaneAndPalette(
     romData,
-    entranceInfo.terrainGraphicsInfo,
+    entranceInfo.terrain,
   );
-  const palette = readPalette(
-    romData,
-    entranceInfo.terrainPalettesAddress,
-    128,
-  );
-  const levelTileMap = readLevelTileMap(
-    romData,
-    entranceInfo.levelTileMapAddress,
-    entranceInfo.levelTileMapOffset,
-    entranceInfo.levelTileMapLength,
-    entranceInfo.isVertical,
-  );
+  const levelTileMap = readLevelTileMap(romData, entranceInfo.level);
   return buildLevelImage(
     levelTileMap,
     memoize((tileMetaIndex) =>
       readTerrainTypeTile(
         romData,
-        bitplaneData,
-        entranceInfo.terrainTypeMetaAddress,
+        bitplaneAndPalette,
+        entranceInfo.terrain,
         tileMetaIndex,
-        palette,
       ),
     ),
   );
 };
 
-export const buildTilemapImageFromEntranceInfo = (
-  romData: Buffer,
-  entranceInfo: EntranceInfo,
-) => {
-  const bitplaneData = buildGraphicsData(
-    romData,
-    entranceInfo.terrainGraphicsInfo,
-  );
-  const palette = readPalette(
-    romData,
-    entranceInfo.terrainPalettesAddress,
-    128,
-  );
+const readLevelTileMap = (romData: Buffer, level: LevelInfo) => {
+  const { tileMapAddress, tileMapOffset, tileMapLength, isVertical } = level;
 
-  /** Tile count is unknown, 0x280 is enough covers all terrain tiles */
-  const tilesQuantity = 0x280;
-  const tiles = decodeTiles({
-    romData,
-    bitplaneData: Uint8Array.from(bitplaneData),
-    palette,
-    tilesMetaAddress: entranceInfo.terrainTypeMetaAddress,
-    tilesMetaLength: { tilesQuantity },
-    bpp: BPP.Four,
-    options: {
-      opaqueZero: true,
-      assembleQuantity: PARTS_IN_TILE,
-    },
-  });
-  return assembleTiles(tiles, TILEMAP_IMAGE_TILE_PER_ROW);
-};
-
-const buildGraphicsData = (romData: Buffer, graphicsInfo: GraphicInfo[]) => {
-  const result: number[] = [];
-
-  let decompressedData: number[] | undefined = undefined;
-  for (const graphicInfo of graphicsInfo) {
-    let dataToAdd: number[];
-
-    if (graphicInfo.isCompressed) {
-      if (!decompressedData)
-        decompressedData = decompress(romData, graphicInfo.address);
-
-      dataToAdd = decompressedData;
-    } else {
-      dataToAdd = Array.from(
-        extract(romData, graphicInfo.address.pcAddress, graphicInfo.length),
-      );
-    }
-
-    const dataLengthToAdd =
-      (graphicInfo.isCompressed ? dataToAdd.length : graphicInfo.length) -
-      graphicInfo.offset;
-    if (result.length < graphicInfo.placeAt + dataLengthToAdd) {
-      result.push(
-        ...new Array(graphicInfo.placeAt + dataLengthToAdd - result.length),
-      );
-    }
-    result.splice(
-      graphicInfo.placeAt,
-      dataLengthToAdd,
-      ...dataToAdd.slice(graphicInfo.offset, dataLengthToAdd),
-    );
-  }
-
-  return result;
-};
-
-const readTerrainTypeTile = (
-  romData: Buffer,
-  bitplaneData: number[],
-  tilesMetaAddress: RomAddress,
-  tileMetaIndex: number,
-  palette: Palette,
-): ImageMatrix => {
-  const tileMetaOffset = tileMetaIndex * BYTES_PER_TILE_META * PARTS_IN_TILE;
-  return decodeAndAssembleTiles({
-    romData,
-    bitplaneData: Uint8Array.from(bitplaneData),
-    palette,
-    tilesMetaAddress,
-    tileMetaOffset,
-    bpp: BPP.Four,
-    options: { opaqueZero: true, assembleQuantity: PARTS_IN_TILE },
-  });
-};
-
-const readLevelTileMap = (
-  romData: Buffer,
-  tileMapAddress: RomAddress,
-  tileMapOffset: number,
-  levelSize: number,
-  isVertical: boolean,
-) => {
   let levelWidth, levelHeight;
   const rawTileMap = extract(
     romData,
     tileMapAddress.pcAddress + tileMapOffset,
-    levelSize,
+    tileMapLength,
   );
 
   if (isVertical) {

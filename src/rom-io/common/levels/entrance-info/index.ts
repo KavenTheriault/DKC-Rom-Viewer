@@ -1,7 +1,12 @@
 import { toHexString } from '../../../../website/utils/hex';
 import { read16, read24 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
-import { EntranceInfo, GameLevelConstant } from '../types';
+import {
+  EntranceInfo,
+  GameLevelConstant,
+  LevelInfo,
+  TerrainInfo,
+} from '../types';
 import { OpcodeEntry, readOpcodeUntil } from './asm/read';
 import { readGraphicsInfo } from './graphic';
 import { readTerrainTypeMeta } from './terrain-type';
@@ -57,20 +62,23 @@ export const loadEntranceInfo = (
     opcodeEntries,
   );
 
-  return {
-    terrainMetaIndex: terrainMetaIndex,
-    terrainTypeMetaAddress: terrainTypeMetaAddress,
-    terrainPalettesAddress: terrainPalettesAddress,
-    terrainGraphicsInfo: graphicsInfo,
-    terrainTileMapAddress,
-    levelTileMapAddress: levelTileMapAddress,
-    levelTileMapOffset:
+  const terrain: TerrainInfo = {
+    metaIndex: terrainMetaIndex,
+    metaAddress: terrainTypeMetaAddress,
+    palettesAddress: terrainPalettesAddress,
+    graphicsInfo: graphicsInfo,
+    tileMapAddress: terrainTileMapAddress,
+  };
+  const level: LevelInfo = {
+    tileMapAddress: levelTileMapAddress,
+    tileMapOffset:
       levelConstant.entrances.correctedTileMapOffset[entranceId] ?? 0,
-    levelTileMapLength:
+    tileMapLength:
       levelConstant.entrances.correctedTileMapLength[entranceId] ??
       levelTileMapLength,
     isVertical: levelConstant.entrances.isVertical.includes(entranceId),
   };
+  return { terrain, level };
 };
 
 const readLoadEntranceOpcodes = (

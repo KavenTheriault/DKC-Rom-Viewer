@@ -1,11 +1,11 @@
-import { RomAddress } from '../../rom/address';
-import { Color } from '../../types/color';
-import { ImageMatrix } from '../../types/image-matrix';
-import { Matrix } from '../../types/matrix';
-import { Palette } from '../palettes/types';
-import { BPP, decodeTile, DecodeTileOptions } from './decode-tile';
-
-const BYTES_PER_TILE_META = 2;
+import { RomAddress } from '../../../rom/address';
+import { BPP } from '../../../types/bpp';
+import { Color } from '../../../types/color';
+import { ImageMatrix } from '../../../types/image-matrix';
+import { Matrix } from '../../../types/matrix';
+import { Palette } from '../../palettes/types';
+import { BYTES_PER_TILE_META } from './constants';
+import { decodeTile, DecodeTileOptions } from './decode-tile';
 
 interface DecodeTilesOptions extends DecodeTileOptions {
   assembleQuantity?: number;
@@ -13,7 +13,7 @@ interface DecodeTilesOptions extends DecodeTileOptions {
 
 interface BaseDecodeTilesParams {
   romData: Buffer;
-  bitplaneData: Uint8Array;
+  bitplane: Uint8Array;
   palette: Palette;
   tilesMetaAddress: RomAddress;
   bpp: BPP;
@@ -30,7 +30,7 @@ interface DecodeAndAssembleTilesParams extends BaseDecodeTilesParams {
 
 export const decodeTiles = ({
   romData,
-  bitplaneData,
+  bitplane,
   palette,
   tilesMetaAddress,
   tilesMetaLength,
@@ -50,7 +50,7 @@ export const decodeTiles = ({
   for (let tileIndex = 0; tileIndex < tilesQuantity; tileIndex++) {
     const tileImage = decodeAndAssembleTiles({
       romData,
-      bitplaneData,
+      bitplane,
       palette,
       tilesMetaAddress,
       tileMetaOffset,
@@ -65,7 +65,7 @@ export const decodeTiles = ({
 
 export const decodeAndAssembleTiles = ({
   romData,
-  bitplaneData,
+  bitplane,
   palette,
   tilesMetaAddress,
   tileMetaOffset,
@@ -83,7 +83,7 @@ export const decodeAndAssembleTiles = ({
     for (let x = 0; x < tilesPerAxis; x++) {
       const tile = decodeTile(
         romData,
-        bitplaneData,
+        bitplane,
         palette,
         tilesMetaAddress,
         offset,
