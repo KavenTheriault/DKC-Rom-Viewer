@@ -16,6 +16,7 @@ import {
 } from '../../../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../../../rom-io/rom/address';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
+import { HexadecimalInput } from '../../../../../../components/hexadecimal-input';
 import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
 import { Menu } from '../../../../../../components/menu';
 import { stateSelector, useAppStore } from '../../../../../../state/selector';
@@ -213,6 +214,11 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
                   });
                 }}
                 onValueLoad={loadLevel}
+              />
+              <HexadecimalInput
+                className="input is-small"
+                readOnly
+                value={entranceInfo.terrain.tileMapAddress.snesAddress}
               />
               <LoadHexadecimalInput
                 label="Level Tilemap Address"

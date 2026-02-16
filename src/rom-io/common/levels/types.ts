@@ -1,5 +1,6 @@
 import { RomAddress } from '../../rom/address';
 import { BPP } from '../../types/bpp';
+import { DmaTransfer } from './entrance-info/dma-transfers';
 import { BackgroundRegisters } from './entrance-info/vram-registers';
 
 export type GraphicInfo = {
@@ -17,6 +18,7 @@ export type TerrainInfo = {
   palettesAddress: RomAddress;
   tileMapAddress: RomAddress;
   graphicsInfo: GraphicInfo[];
+  transfers: DmaTransfer[];
 };
 
 export type LevelInfo = {

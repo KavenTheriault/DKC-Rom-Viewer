@@ -1,18 +1,12 @@
-import { toHexString } from '../../../../website/utils/hex';
 import { read16, read8 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
 import { GameLevelConstant } from '../types';
 
-type ReadDmaTransferResult = {
-  compressedGraphicAddress?: RomAddress;
-  dmaTransfers: DmaTransfer[];
-  otherDmaTransfers: DmaTransfer[];
-};
-
-type DmaTransfer = {
+export type DmaTransfer = {
   origin: RomAddress;
   length: number;
   destination: number;
+  isCompressed: boolean;
 };
 
 const DATA_ORIGIN_BANK_OFFSET = 0; //$a994
@@ -25,11 +19,8 @@ export const readDmaTransfers = (
   romData: Buffer,
   levelConstant: GameLevelConstant,
   terrainTypeDataIndex: number,
-): ReadDmaTransferResult => {
+): DmaTransfer[] => {
   const dmaTransfers: DmaTransfer[] = [];
-  const otherDmaTransfers: DmaTransfer[] = [];
-
-  console.log('terrainTypeDataIndex:', toHexString(terrainTypeDataIndex));
 
   let currentOffset = read16(
     romData,
@@ -37,19 +28,14 @@ export const readDmaTransfers = (
       terrainTypeDataIndex * 2,
     ).pcAddress,
   );
-  let compressedGraphicsAddress;
 
-  // eslint-disable-next-line no-constant-condition
   while (currentOffset < 0x1000) {
     const doneIfZero = read8(
       romData,
       levelConstant.tables.terrainGraphicsInfo.getOffsetAddress(currentOffset)
         .pcAddress,
     );
-    if (doneIfZero == 0) {
-      console.log('doneIfZero');
-      break;
-    }
+    if (doneIfZero == 0) break;
 
     const goToDefaultIfNegative = read8(
       romData,
@@ -58,39 +44,26 @@ export const readDmaTransfers = (
         .getOffsetAddress(currentOffset).pcAddress,
     );
 
-    if (goToDefaultIfNegative > 0x7f) {
-      const mainDmaTransfer = readDmaTransfer(
-        romData,
-        levelConstant,
-        currentOffset,
-      );
-      compressedGraphicsAddress = mainDmaTransfer.origin;
+    const isCompressed = goToDefaultIfNegative > 0x7f;
+    const dmaTransfer = readDmaTransfer(
+      romData,
+      levelConstant,
+      currentOffset,
+      isCompressed,
+    );
+    dmaTransfers.push(dmaTransfer);
 
-      // DMA transfer for main graphics is stored at $7E79FC
-      mainDmaTransfer.origin = levelConstant.address.mainGraphic;
-      // Force main graphics to 0x2000 for simplicity
-      mainDmaTransfer.destination = 0x2000;
-      dmaTransfers.push(mainDmaTransfer);
-    }
-
-    const dmaTransfer = readDmaTransfer(romData, levelConstant, currentOffset);
-
-    if (dmaTransfer.destination === 0x2000) otherDmaTransfers.push(dmaTransfer);
-    else dmaTransfers.push(dmaTransfer);
     currentOffset += 7;
   }
 
-  return {
-    compressedGraphicAddress: compressedGraphicsAddress,
-    dmaTransfers,
-    otherDmaTransfers,
-  };
+  return dmaTransfers;
 };
 
 const readDmaTransfer = (
   romData: Buffer,
   levelConstant: GameLevelConstant,
   offset: number,
+  isCompressed: boolean,
 ): DmaTransfer => {
   const bank = read8(
     romData,
@@ -106,13 +79,16 @@ const readDmaTransfer = (
   );
   const originAddress = RomAddress.fromBankAndAbsolute(bank, absolute);
 
-  const destination =
-    read16(
-      romData,
-      levelConstant.tables.terrainGraphicsInfo
-        .getOffsetAddress(DATA_DESTINATION_OFFSET)
-        .getOffsetAddress(offset).pcAddress,
-    ) & 0x7fff;
+  let destination = read16(
+    romData,
+    levelConstant.tables.terrainGraphicsInfo
+      .getOffsetAddress(DATA_DESTINATION_OFFSET)
+      .getOffsetAddress(offset).pcAddress,
+  );
+  if (isCompressed) {
+    destination &= 0x7fff;
+  }
+
   const size = read16(
     romData,
     levelConstant.tables.terrainGraphicsInfo
@@ -124,5 +100,6 @@ const readDmaTransfer = (
     origin: originAddress,
     length: size,
     destination: destination,
+    isCompressed: isCompressed,
   };
 };

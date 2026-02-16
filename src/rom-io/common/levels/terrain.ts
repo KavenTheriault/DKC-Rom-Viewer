@@ -1,9 +1,11 @@
+import { toHexString } from '../../../website/utils/hex';
 import { extract } from '../../buffer';
 import { BPP } from '../../types/bpp';
 import { ImageMatrix } from '../../types/image-matrix';
 import { readPalette } from '../palettes';
 import { Palette } from '../palettes/types';
 import { decompress } from './compression';
+import { logBufferHexSimple } from './entrance-info/vram';
 import { assembleImages } from './tiles/assemble';
 import { BYTES_PER_TILE_META } from './tiles/constants';
 import { decodeAndAssembleTiles, decodeTiles } from './tiles/decode-tiles';
@@ -60,8 +62,13 @@ export const buildTerrainBitplane = (
     let dataToAdd: number[];
 
     if (graphicInfo.isCompressed) {
-      if (!decompressedData)
+      if (!decompressedData) {
+        console.log(
+          `Decompress2: $${toHexString(graphicInfo.address.snesAddress)}`,
+        );
         decompressedData = decompress(romData, graphicInfo.address);
+        logBufferHexSimple(decompressedData);
+      }
 
       dataToAdd = decompressedData;
     } else {

@@ -1,51 +1,34 @@
-import { toHexString } from '../../../../website/utils/hex';
+import { clone } from 'lodash';
 import { RomAddress } from '../../../rom/address';
-import { OpcodeEntry } from './asm/read';
-import { readDmaTransfers } from './dma-transfers';
 import { GameLevelConstant, GraphicInfo } from '../types';
-import {
-  findArgumentInPreviousOpcodes,
-  findOpcodeEntryByAddress,
-  findSubroutine,
-  readOpcodeEntryArgument,
-} from './utils';
+import { OpcodeEntry } from './asm/read';
+import { DmaTransfer } from './dma-transfers';
+import { findOpcodeEntryByAddress, readOpcodeEntryArgument } from './utils';
 
-export const readGraphicsInfo = (
+export const buildGraphicsInfo = (
   romData: Buffer,
   levelConstant: GameLevelConstant,
+  dmaTransfers: DmaTransfer[],
   opcodeEntries: OpcodeEntry[],
 ): GraphicInfo[] => {
-  const loadGraphicsSubroutine = findSubroutine(
-    opcodeEntries,
-    levelConstant.subroutines.loadGraphicsWithTerrainIndex,
-  );
-  const terrainDataIndex = findArgumentInPreviousOpcodes(
-    opcodeEntries,
-    loadGraphicsSubroutine,
-    'LDA',
-  );
-  const readDmaTransfersResult = readDmaTransfers(
-    romData,
-    levelConstant,
-    terrainDataIndex,
-  );
+  let mainGraphicAddress: RomAddress | undefined;
+  const validDmaTransfers: DmaTransfer[] = [];
+  for (const dmaTransfer of dmaTransfers) {
+    if (dmaTransfer.isCompressed) {
+      mainGraphicAddress = dmaTransfer.origin;
 
-  for (const test of readDmaTransfersResult.dmaTransfers) {
-    console.log('dmaTransfers:', test.origin.toString());
-    console.log('dmaTransfers length', toHexString(test.length));
-    console.log('dmaTransfers destination', toHexString(test.destination));
-  }
-  for (const test of readDmaTransfersResult.otherDmaTransfers) {
-    console.log(
-      'otherDmaTransfers:',
-      test.origin.toString(),
-      toHexString(test.origin.pcAddress),
-    );
-    console.log('otherDmaTransfers length', toHexString(test.length));
-    console.log('otherDmaTransfers destination', toHexString(test.destination));
-  }
+      const mainDmaTransfer = clone(dmaTransfer);
+      // DMA transfer for main graphics is stored at $7E79FC
+      mainDmaTransfer.origin = levelConstant.address.mainGraphic;
+      // Force main graphics to 0x2000 for simplicity
+      mainDmaTransfer.destination = 0x2000;
 
-  let mainGraphicAddress = readDmaTransfersResult.compressedGraphicAddress;
+      validDmaTransfers.push(mainDmaTransfer);
+      break;
+    } else {
+      validDmaTransfers.push(dmaTransfer);
+    }
+  }
 
   /* Some level use this subroutine with bank and address as "argument"
      Only used by Temple terrain type. For example: ADM code $B98D06 */
@@ -65,7 +48,7 @@ export const readGraphicsInfo = (
     }
   }
 
-  return readDmaTransfersResult.dmaTransfers.map((dmaTransfer) => {
+  return validDmaTransfers.map((dmaTransfer) => {
     const isMainGraphic =
       !!mainGraphicAddress &&
       dmaTransfer.origin.bank === levelConstant.address.mainGraphic.bank;

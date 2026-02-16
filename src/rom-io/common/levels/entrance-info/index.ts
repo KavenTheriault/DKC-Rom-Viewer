@@ -8,12 +8,14 @@ import {
   TerrainInfo,
 } from '../types';
 import { OpcodeEntry, readOpcodeUntil } from './asm/read';
-import { readGraphicsInfo } from './graphic';
+import { readDmaTransfers } from './dma-transfers';
+import { buildGraphicsInfo } from './graphic';
 import { readTerrainTypeMeta } from './terrain-type';
 import { readLevelTileMapInfo } from './tile-map';
 import {
   findArgumentInPreviousOpcodes,
   findOpcodeEntryByAddress,
+  findSubroutine,
 } from './utils';
 import { readVramRegisters } from './vram-registers';
 
@@ -43,12 +45,34 @@ export const loadEntranceInfo = (
     terrainTileMapBank,
     terrainTileOffset,
   );
-  console.log(
-    'terrainTileMapAddress:',
-    toHexString(terrainTileMapAddress.snesAddress),
-  );
 
-  const graphicsInfo = readGraphicsInfo(romData, levelConstant, opcodeEntries);
+  const loadGraphicsSubroutine = findSubroutine(
+    opcodeEntries,
+    levelConstant.subroutines.loadGraphicsWithTerrainIndex,
+  );
+  const terrainDataIndex = findArgumentInPreviousOpcodes(
+    opcodeEntries,
+    loadGraphicsSubroutine,
+    'LDA',
+  );
+  const dmaTransfers = readDmaTransfers(
+    romData,
+    levelConstant,
+    terrainDataIndex,
+  );
+  for (const test of dmaTransfers) {
+    console.log('dmaTransfers:', test.origin.toString());
+    console.log('dmaTransfers length', toHexString(test.length));
+    console.log('dmaTransfers destination', toHexString(test.destination));
+    console.log('dmaTransfers isCompressed', test.isCompressed);
+  }
+
+  const graphicsInfo = buildGraphicsInfo(
+    romData,
+    levelConstant,
+    dmaTransfers,
+    opcodeEntries,
+  );
 
   const { levelTileMapAddress, levelTileMapLength } = readLevelTileMapInfo(
     romData,
@@ -70,6 +94,7 @@ export const loadEntranceInfo = (
     metaAddress: terrainTypeMetaAddress,
     palettesAddress: terrainPalettesAddress,
     graphicsInfo: graphicsInfo,
+    transfers: dmaTransfers,
     tileMapAddress: terrainTileMapAddress,
   };
   const level: LevelInfo = {

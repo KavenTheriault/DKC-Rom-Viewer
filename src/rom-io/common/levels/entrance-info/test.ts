@@ -3,10 +3,10 @@ import { extract } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
 import { BPP } from '../../../types/bpp';
 import { readPalette } from '../../palettes';
-import { buildTerrainBitplane } from '../terrain';
 import { assembleImages } from '../tiles/assemble';
 import { decodeTiles } from '../tiles/decode-tiles';
 import { EntranceInfo } from '../types';
+import { buildVramFromDma } from './vram';
 
 const BG_IMAGE_DATA_LENGTH = 0x800;
 
@@ -17,21 +17,13 @@ export const tryBackground = (
   layerIndex: number,
 ) => {
   const vram = WebBuffer.from(
-    buildTerrainBitplane(romData, entranceInfo.terrain.graphicsInfo),
+    buildVramFromDma(romData, entranceInfo.terrain.transfers),
   );
 
   const layer = entranceInfo.backgroundRegisters.layers[layerIndex];
 
-  const tileMapData = extract(
-    vram,
-    (layer.tilesetAddress - 0x2000) * 2,
-    0x4000,
-  );
-  const tileSetData = extract(
-    vram,
-    (layer.tilemapAddress - 0x2000) * 2,
-    0x4000,
-  );
+  const tileMapData = extract(vram, layer.tilesetAddress * 2, 0x4000);
+  const tileSetData = extract(vram, layer.tilemapAddress * 2, 0x4000);
 
   const palette = readPalette(
     romData,
