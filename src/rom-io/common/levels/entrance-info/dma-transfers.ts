@@ -75,7 +75,7 @@ export const readDmaTransfers = (
 
     const dmaTransfer = readDmaTransfer(romData, levelConstant, currentOffset);
 
-    if (compressedGraphicsAddress) otherDmaTransfers.push(dmaTransfer);
+    if (dmaTransfer.destination === 0x2000) otherDmaTransfers.push(dmaTransfer);
     else dmaTransfers.push(dmaTransfer);
     currentOffset += 7;
   }

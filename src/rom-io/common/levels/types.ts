@@ -1,5 +1,6 @@
 import { RomAddress } from '../../rom/address';
 import { BPP } from '../../types/bpp';
+import { BackgroundRegisters } from './entrance-info/vram-registers';
 
 export type GraphicInfo = {
   address: RomAddress;
@@ -28,6 +29,7 @@ export type LevelInfo = {
 export type EntranceInfo = {
   terrain: TerrainInfo;
   level: LevelInfo;
+  backgroundRegisters: BackgroundRegisters;
 };
 
 export interface TilesDecodeSpec {

@@ -4,7 +4,7 @@ import { ImageMatrix } from '../../types/image-matrix';
 import { readPalette } from '../palettes';
 import { Palette } from '../palettes/types';
 import { decompress } from './compression';
-import { assembleTiles } from './tiles/assemble';
+import { assembleImages } from './tiles/assemble';
 import { BYTES_PER_TILE_META } from './tiles/constants';
 import { decodeAndAssembleTiles, decodeTiles } from './tiles/decode-tiles';
 import { GraphicInfo, TerrainInfo } from './types';
@@ -108,5 +108,5 @@ export const buildTerrainTilemapImage = (
       assembleQuantity: PARTS_IN_TILE,
     },
   });
-  return assembleTiles(tiles, TILEMAP_IMAGE_TILE_PER_ROW);
+  return assembleImages(tiles, TILEMAP_IMAGE_TILE_PER_ROW);
 };

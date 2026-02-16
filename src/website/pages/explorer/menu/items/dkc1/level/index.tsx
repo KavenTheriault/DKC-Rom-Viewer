@@ -2,6 +2,7 @@ import { noop } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { buildLevelImageFromEntranceInfo } from '../../../../../../../rom-io/common/levels';
 import { loadEntranceInfo } from '../../../../../../../rom-io/common/levels/entrance-info';
+import { tryBackground } from '../../../../../../../rom-io/common/levels/entrance-info/test';
 import { decodeTilesFromSpec } from '../../../../../../../rom-io/common/levels/spec';
 import { buildTerrainTilemapImage } from '../../../../../../../rom-io/common/levels/terrain';
 import {
@@ -271,6 +272,26 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
               {name}
             </button>
           ))}
+          <button
+            onClick={async () => {
+              if (!rom || !entranceInfo) return;
+              const image = tryBackground(rom.data, entranceInfo, 1);
+              const bitmap = await convertToImageBitmap(image);
+              setLevelBitmap(bitmap);
+            }}
+          >
+            BG Layer 2
+          </button>
+          <button
+            onClick={async () => {
+              if (!rom || !entranceInfo) return;
+              const image = tryBackground(rom.data, entranceInfo, 2);
+              const bitmap = await convertToImageBitmap(image);
+              setLevelBitmap(bitmap);
+            }}
+          >
+            BG Layer 3
+          </button>
         </OverlaySlotsContainer>
       ),
     },

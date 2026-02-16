@@ -15,6 +15,7 @@ import {
   findArgumentInPreviousOpcodes,
   findOpcodeEntryByAddress,
 } from './utils';
+import { readVramRegisters } from './vram-registers';
 
 /*
 Terrain Graphics Data = Compressed data to form all terrain tile parts
@@ -62,6 +63,8 @@ export const loadEntranceInfo = (
     opcodeEntries,
   );
 
+  const backgroundRegisters = readVramRegisters(romData, opcodeEntries);
+
   const terrain: TerrainInfo = {
     metaIndex: terrainMetaIndex,
     metaAddress: terrainTypeMetaAddress,
@@ -78,7 +81,7 @@ export const loadEntranceInfo = (
       levelTileMapLength,
     isVertical: levelConstant.entrances.isVertical.includes(entranceId),
   };
-  return { terrain, level };
+  return { terrain, level, backgroundRegisters };
 };
 
 const readLoadEntranceOpcodes = (

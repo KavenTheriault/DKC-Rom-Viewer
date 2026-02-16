@@ -1,7 +1,7 @@
 import { extract } from '../../buffer';
 import { ImageMatrix } from '../../types/image-matrix';
 import { readPalette } from '../palettes';
-import { assembleTiles } from './tiles/assemble';
+import { assembleImages } from './tiles/assemble';
 import { decodeTiles } from './tiles/decode-tiles';
 import { TilesDecodeSpec } from './types';
 
@@ -29,5 +29,5 @@ export const decodeTilesFromSpec = (
       opaqueZero: true,
     },
   });
-  return assembleTiles(tiles, tilesPerRow);
+  return assembleImages(tiles, tilesPerRow);
 };

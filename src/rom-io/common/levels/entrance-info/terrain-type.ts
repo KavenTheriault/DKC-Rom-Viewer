@@ -1,7 +1,7 @@
 import { read16, read8 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
-import { OpcodeEntry } from './asm/read';
 import { GameLevelConstant } from '../types';
+import { OpcodeEntry } from './asm/read';
 import { findArgumentInPreviousOpcodes, findSubroutine } from './utils';
 
 export const readTerrainTypeMeta = (
