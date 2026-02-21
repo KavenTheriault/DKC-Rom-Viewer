@@ -10,20 +10,22 @@ export const decodeTilesFromSpec = (
   spec: TilesDecodeSpec,
   tilesPerRow: number,
 ): ImageMatrix => {
-  const bitplaneOffset = spec.bitplane.offset ?? 0;
-  const bitplane = new Uint8Array(bitplaneOffset + spec.bitplane.length);
-  bitplane.set(
-    extract(romData, spec.bitplane.address.pcAddress, spec.bitplane.length),
-    bitplaneOffset,
+  const tilesetOffset = spec.tileset.offset ?? 0;
+  const tileset = new Uint8Array(tilesetOffset + spec.tileset.length);
+  tileset.set(
+    extract(romData, spec.tileset.address.pcAddress, spec.tileset.length),
+    tilesetOffset,
   );
   const palette = readPalette(romData, spec.paletteAddress, 128);
 
   const tiles = decodeTiles({
-    romData,
-    bitplane: bitplane,
+    tileset,
+    tilemap: {
+      data: romData,
+      address: spec.tilemap.address,
+    },
+    tilemapSize: { dataLength: spec.tilemap.length },
     palette,
-    tilesMetaAddress: spec.tileMeta.address,
-    tilesMetaLength: { dataLength: spec.tileMeta.length },
     bpp: spec.bpp,
     options: {
       opaqueZero: true,

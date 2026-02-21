@@ -12,63 +12,62 @@ interface DecodeTilesOptions extends DecodeTileOptions {
 }
 
 interface BaseDecodeTilesParams {
-  romData: Buffer;
-  bitplane: Uint8Array;
+  tileset: Uint8Array;
+  tilemap: {
+    data: Buffer;
+    address: RomAddress;
+  };
   palette: Palette;
-  tilesMetaAddress: RomAddress;
   bpp: BPP;
   options?: DecodeTilesOptions;
 }
 
 interface DecodeTilesParams extends BaseDecodeTilesParams {
-  tilesMetaLength: { dataLength: number } | { tilesQuantity: number };
+  tilemapSize: { dataLength: number } | { tilesQuantity: number };
 }
 
 interface DecodeAndAssembleTilesParams extends BaseDecodeTilesParams {
-  tileMetaOffset: number;
+  tilemapOffsetStart: number;
 }
 
 export const decodeTiles = ({
-  romData,
-  bitplane,
+  tileset,
+  tilemap,
+  tilemapSize,
   palette,
-  tilesMetaAddress,
-  tilesMetaLength,
   bpp,
   options,
 }: DecodeTilesParams): ImageMatrix[] => {
   const tiles = [];
   const assembleQuantity = options?.assembleQuantity ?? 1;
   const tilesQuantity =
-    'dataLength' in tilesMetaLength
+    'dataLength' in tilemapSize
       ? Math.floor(
-          tilesMetaLength.dataLength / (assembleQuantity * BYTES_PER_TILE_META),
+          tilemapSize.dataLength / (assembleQuantity * BYTES_PER_TILE_META),
         )
-      : tilesMetaLength.tilesQuantity;
+      : tilemapSize.tilesQuantity;
 
-  let tileMetaOffset = 0;
+  let tilemapOffset = 0;
   for (let tileIndex = 0; tileIndex < tilesQuantity; tileIndex++) {
     const tileImage = decodeAndAssembleTiles({
-      romData,
-      bitplane,
+      tileset,
+      tilemap,
       palette,
-      tilesMetaAddress,
-      tileMetaOffset,
+      tilemapOffsetStart: tilemapOffset,
       bpp,
       options,
     });
-    tileMetaOffset += BYTES_PER_TILE_META * assembleQuantity;
+    tilemapOffset += BYTES_PER_TILE_META * assembleQuantity;
     tiles.push(tileImage);
   }
   return tiles;
 };
 
 export const decodeAndAssembleTiles = ({
-  romData,
-  bitplane,
+  tileset,
+  tilemap,
+  tilemapOffsetStart,
   palette,
-  tilesMetaAddress,
-  tileMetaOffset,
   bpp,
   options,
 }: DecodeAndAssembleTilesParams): ImageMatrix => {
@@ -76,20 +75,22 @@ export const decodeAndAssembleTiles = ({
   const tilesPerAxis = Math.sqrt(assembleQuantity);
   const size = tilesPerAxis * 8;
 
-  let offset = tileMetaOffset;
+  let offset = tilemapOffsetStart;
   const tileImage = new Matrix<Color | null>(size, size, null);
 
   for (let y = 0; y < tilesPerAxis; y++) {
     for (let x = 0; x < tilesPerAxis; x++) {
-      const tile = decodeTile(
-        romData,
-        bitplane,
+      const tile = decodeTile({
+        tileset,
+        tilemap: {
+          data: tilemap.data,
+          address: tilemap.address,
+          offset: offset,
+        },
         palette,
-        tilesMetaAddress,
-        offset,
         bpp,
         options,
-      );
+      });
       tileImage.setMatrixAt(x * tile.width, y * tile.height, tile);
       offset += BYTES_PER_TILE_META;
     }

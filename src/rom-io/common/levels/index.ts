@@ -4,7 +4,7 @@ import { Color } from '../../types/color';
 import { ImageMatrix } from '../../types/image-matrix';
 import { Matrix } from '../../types/matrix';
 import {
-  readTerrainBitplaneAndPalette,
+  readTilesetAndPalette,
   readTerrainTypeTile,
   TILE_SIZE,
 } from './terrain';
@@ -14,89 +14,89 @@ export const buildLevelImageFromEntranceInfo = (
   romData: Buffer,
   entranceInfo: EntranceInfo,
 ) => {
-  const bitplaneAndPalette = readTerrainBitplaneAndPalette(
+  const tilesetAndPalette = readTilesetAndPalette(
     romData,
     entranceInfo.terrain,
   );
-  const levelTileMap = readLevelTileMap(romData, entranceInfo.level);
+  const levelTilemap = readLevelTilemap(romData, entranceInfo.level);
   return buildLevelImage(
-    levelTileMap,
-    memoize((tileMetaIndex) =>
+    levelTilemap,
+    memoize((tilesetIndex) =>
       readTerrainTypeTile(
         romData,
-        bitplaneAndPalette,
+        tilesetAndPalette,
         entranceInfo.terrain,
-        tileMetaIndex,
+        tilesetIndex,
       ),
     ),
   );
 };
 
-const readLevelTileMap = (romData: Buffer, level: LevelInfo) => {
-  const { tileMapAddress, tileMapOffset, tileMapLength, isVertical } = level;
+const readLevelTilemap = (romData: Buffer, level: LevelInfo) => {
+  const { tilemapAddress, tilemapOffset, tilemapLength, isVertical } = level;
 
   let levelWidth, levelHeight;
-  const rawTileMap = extract(
+  const rawTilemap = extract(
     romData,
-    tileMapAddress.pcAddress + tileMapOffset,
-    tileMapLength,
+    tilemapAddress.pcAddress + tilemapOffset,
+    tilemapLength,
   );
 
   if (isVertical) {
     levelWidth = 64;
-    levelHeight = Math.ceil(rawTileMap.length / levelWidth / 2);
+    levelHeight = Math.ceil(rawTilemap.length / levelWidth / 2);
   } else {
     levelHeight = 16;
-    levelWidth = Math.ceil(rawTileMap.length / levelHeight / 2);
+    levelWidth = Math.ceil(rawTilemap.length / levelHeight / 2);
   }
 
-  const levelTileMap = new Matrix<number>(levelWidth, levelHeight, 0);
+  const levelTilemap = new Matrix<number>(levelWidth, levelHeight, 0);
 
   let offset = 0;
 
   const readTile = (x: number, y: number) => {
-    const tileInfo = read16(rawTileMap, offset);
+    const tileInfo = read16(rawTilemap, offset);
     offset += 2;
-    levelTileMap.set(x, y, tileInfo);
+    levelTilemap.set(x, y, tileInfo);
   };
 
   if (isVertical) {
-    for (let y = 0; y < levelTileMap.height; y++) {
-      for (let x = 0; x < levelTileMap.width; x++) {
+    for (let y = 0; y < levelTilemap.height; y++) {
+      for (let x = 0; x < levelTilemap.width; x++) {
         readTile(x, y);
       }
     }
   } else {
-    for (let x = 0; x < levelTileMap.width; x++) {
-      for (let y = 0; y < levelTileMap.height; y++) {
+    for (let x = 0; x < levelTilemap.width; x++) {
+      for (let y = 0; y < levelTilemap.height; y++) {
         readTile(x, y);
       }
     }
   }
 
-  return levelTileMap;
+  return levelTilemap;
 };
 
 const buildLevelImage = (
-  levelTileMap: Matrix<number>,
-  getTileImage: (tileMetaIndex: number) => ImageMatrix | null,
+  levelTilemap: Matrix<number>,
+  getTileImage: (tilesetIndex: number) => ImageMatrix | null,
 ) => {
   const result = new Matrix<Color | null>(
-    levelTileMap.width * TILE_SIZE,
-    levelTileMap.height * TILE_SIZE,
+    levelTilemap.width * TILE_SIZE,
+    levelTilemap.height * TILE_SIZE,
     null,
   );
 
-  for (let y = 0; y < levelTileMap.height; y++) {
-    for (let x = 0; x < levelTileMap.width; x++) {
-      const tileInfo = levelTileMap.get(x, y);
+  for (let y = 0; y < levelTilemap.height; y++) {
+    for (let x = 0; x < levelTilemap.width; x++) {
+      const tileInfo = levelTilemap.get(x, y);
 
-      // Flips = 1100000000000000
+      // Flips = 11000000 00000000
       const flips = (tileInfo & 0xc000) >> 14;
 
-      // Tile Index = 0000001111111111
-      const tileMetaIndex = tileInfo & 0x3ff;
-      const tileImage = getTileImage(tileMetaIndex);
+      // Tileset Index = 00000011 11111111
+      const tilesetIndex = tileInfo & 0x3ff;
+      const tileImage = getTileImage(tilesetIndex);
       if (!tileImage) continue;
 
       const tileClone = tileImage.clone();

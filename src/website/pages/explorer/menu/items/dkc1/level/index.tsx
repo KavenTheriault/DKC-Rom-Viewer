@@ -4,7 +4,7 @@ import { buildLevelImageFromEntranceInfo } from '../../../../../../../rom-io/com
 import { loadEntranceInfo } from '../../../../../../../rom-io/common/levels/entrance-info';
 import { tryBackground } from '../../../../../../../rom-io/common/levels/entrance-info/test';
 import { decodeTilesFromSpec } from '../../../../../../../rom-io/common/levels/spec';
-import { buildTerrainTilemapImage } from '../../../../../../../rom-io/common/levels/terrain';
+import { buildTerrainTilesetImage } from '../../../../../../../rom-io/common/levels/terrain';
 import {
   EntranceInfo,
   LevelInfo,
@@ -75,7 +75,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
 
     try {
       const levelImage = showTilemapOnly
-        ? buildTerrainTilemapImage(rom.data, info.terrain)
+        ? buildTerrainTilesetImage(rom.data, info.terrain)
         : buildLevelImageFromEntranceInfo(rom.data, info);
       const bitmap = await convertToImageBitmap(levelImage);
       setLevelBitmap(bitmap);
@@ -193,11 +193,13 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
             <AddressesDiv>
               <LoadHexadecimalInput
                 label="Terrain Type Address"
-                hexadecimalValue={entranceInfo.terrain.metaAddress.snesAddress}
+                hexadecimalValue={
+                  entranceInfo.terrain.tilemapAddress.snesAddress
+                }
                 onValueChange={(value) => {
                   if (value === undefined) return;
                   updateTerrainInfo({
-                    metaAddress: RomAddress.fromSnesAddress(value),
+                    tilemapAddress: RomAddress.fromSnesAddress(value),
                   });
                 }}
                 onValueLoad={loadLevel}
@@ -218,37 +220,37 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
               <HexadecimalInput
                 className="input is-small"
                 readOnly
-                value={entranceInfo.terrain.tileMapAddress.snesAddress}
+                value={entranceInfo.terrain.levelsTilemapStart.snesAddress}
               />
               <LoadHexadecimalInput
                 label="Level Tilemap Address"
-                hexadecimalValue={entranceInfo.level.tileMapAddress.snesAddress}
+                hexadecimalValue={entranceInfo.level.tilemapAddress.snesAddress}
                 onValueChange={(value) => {
                   if (value === undefined) return;
                   updateLevelInfo({
-                    tileMapAddress: RomAddress.fromSnesAddress(value),
+                    tilemapAddress: RomAddress.fromSnesAddress(value),
                   });
                 }}
                 onValueLoad={loadLevel}
               />
               <LoadHexadecimalInput
                 label="Level Tilemap Offset"
-                hexadecimalValue={entranceInfo.level.tileMapOffset}
+                hexadecimalValue={entranceInfo.level.tilemapOffset}
                 onValueChange={(value) => {
                   if (value === undefined) return;
                   updateLevelInfo({
-                    tileMapOffset: value,
+                    tilemapOffset: value,
                   });
                 }}
                 onValueLoad={loadLevel}
               />
               <LoadHexadecimalInput
                 label="Level Tilemap Length"
-                hexadecimalValue={entranceInfo.level.tileMapLength}
+                hexadecimalValue={entranceInfo.level.tilemapLength}
                 onValueChange={(value) => {
                   if (value === undefined) return;
                   updateLevelInfo({
-                    tileMapLength: value,
+                    tilemapLength: value,
                   });
                 }}
                 onValueLoad={loadLevel}

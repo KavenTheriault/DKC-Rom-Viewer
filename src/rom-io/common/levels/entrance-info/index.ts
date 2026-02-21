@@ -9,9 +9,9 @@ import {
 } from '../types';
 import { OpcodeEntry, readOpcodeUntil } from './asm/read';
 import { readDmaTransfers } from './dma-transfers';
-import { buildGraphicsInfo } from './graphic';
 import { readTerrainTypeMeta } from './terrain-type';
-import { readLevelTileMapInfo } from './tile-map';
+import { readLevelTilemapInfo } from './tile-map';
+import { buildTilesetsInfo } from './tileset';
 import {
   findArgumentInPreviousOpcodes,
   findOpcodeEntryByAddress,
@@ -19,11 +19,6 @@ import {
 } from './utils';
 import { readVramRegisters } from './vram-registers';
 
-/*
-Terrain Graphics Data = Compressed data to form all terrain tile parts
-Terrain Type Meta = How to stitch all terrain tile parts together
-Level Tile Map = How to stitch all terrain tiles together
- */
 export const loadEntranceInfo = (
   romData: Buffer,
   levelConstant: GameLevelConstant,
@@ -34,25 +29,21 @@ export const loadEntranceInfo = (
     levelConstant,
     entranceId,
   );
-  const {
-    terrainMetaIndex,
-    terrainTileOffset,
-    terrainTypeMetaAddress,
-    terrainTileMapBank,
-  } = readTerrainTypeMeta(romData, levelConstant, opcodeEntries);
+  const { levelsTilemapOffset, levelsTilemapBank, terrainTilemapAddress } =
+    readTerrainTypeMeta(romData, levelConstant, opcodeEntries);
 
-  const terrainTileMapAddress = RomAddress.fromBankAndAbsolute(
-    terrainTileMapBank,
-    terrainTileOffset,
+  const levelsTilemapStart = RomAddress.fromBankAndAbsolute(
+    levelsTilemapBank,
+    levelsTilemapOffset,
   );
 
-  const loadGraphicsSubroutine = findSubroutine(
+  const loadTilesetSubroutine = findSubroutine(
     opcodeEntries,
-    levelConstant.subroutines.loadGraphicsWithTerrainIndex,
+    levelConstant.subroutines.loadTilesetWithTerrainIndex,
   );
   const terrainDataIndex = findArgumentInPreviousOpcodes(
     opcodeEntries,
-    loadGraphicsSubroutine,
+    loadTilesetSubroutine,
     'LDA',
   );
   const dmaTransfers = readDmaTransfers(
@@ -67,19 +58,19 @@ export const loadEntranceInfo = (
     console.log('dmaTransfers isCompressed', test.isCompressed);
   }
 
-  const graphicsInfo = buildGraphicsInfo(
+  const tilesetsInfo = buildTilesetsInfo(
     romData,
     levelConstant,
     dmaTransfers,
     opcodeEntries,
   );
 
-  const { levelTileMapAddress, levelTileMapLength } = readLevelTileMapInfo(
+  const { levelTilemapAddress, levelTilemapLength } = readLevelTilemapInfo(
     romData,
     levelConstant,
     entranceId,
-    terrainTileMapBank,
-    terrainTileOffset,
+    levelsTilemapBank,
+    levelsTilemapOffset,
   );
 
   const terrainPalettesAddress = readTerrainPaletteAddress(
@@ -90,20 +81,19 @@ export const loadEntranceInfo = (
   const backgroundRegisters = readVramRegisters(romData, opcodeEntries);
 
   const terrain: TerrainInfo = {
-    metaIndex: terrainMetaIndex,
-    metaAddress: terrainTypeMetaAddress,
+    tilemapAddress: terrainTilemapAddress,
     palettesAddress: terrainPalettesAddress,
-    graphicsInfo: graphicsInfo,
+    tilesetsInfo: tilesetsInfo,
     transfers: dmaTransfers,
-    tileMapAddress: terrainTileMapAddress,
+    levelsTilemapStart: levelsTilemapStart,
   };
   const level: LevelInfo = {
-    tileMapAddress: levelTileMapAddress,
-    tileMapOffset:
-      levelConstant.entrances.correctedTileMapOffset[entranceId] ?? 0,
-    tileMapLength:
-      levelConstant.entrances.correctedTileMapLength[entranceId] ??
-      levelTileMapLength,
+    tilemapAddress: levelTilemapAddress,
+    tilemapOffset:
+      levelConstant.entrances.correctedTilemapOffset[entranceId] ?? 0,
+    tilemapLength:
+      levelConstant.entrances.correctedTilemapLength[entranceId] ??
+      levelTilemapLength,
     isVertical: levelConstant.entrances.isVertical.includes(entranceId),
   };
   return { terrain, level, backgroundRegisters };

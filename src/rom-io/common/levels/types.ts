@@ -3,7 +3,7 @@ import { BPP } from '../../types/bpp';
 import { DmaTransfer } from './entrance-info/dma-transfers';
 import { BackgroundRegisters } from './entrance-info/vram-registers';
 
-export type GraphicInfo = {
+export type TilesetInfo = {
   address: RomAddress;
   isCompressed: boolean;
   length: number;
@@ -12,19 +12,17 @@ export type GraphicInfo = {
 };
 
 export type TerrainInfo = {
-  // Internal index used to load meta
-  metaIndex: number;
-  metaAddress: RomAddress;
+  tilemapAddress: RomAddress;
+  tilesetsInfo: TilesetInfo[];
   palettesAddress: RomAddress;
-  tileMapAddress: RomAddress;
-  graphicsInfo: GraphicInfo[];
+  levelsTilemapStart: RomAddress;
   transfers: DmaTransfer[];
 };
 
 export type LevelInfo = {
-  tileMapAddress: RomAddress;
-  tileMapOffset: number;
-  tileMapLength: number;
+  tilemapAddress: RomAddress;
+  tilemapOffset: number;
+  tilemapLength: number;
   isVertical: boolean;
 };
 
@@ -35,12 +33,12 @@ export type EntranceInfo = {
 };
 
 export interface TilesDecodeSpec {
-  bitplane: {
+  tileset: {
     address: RomAddress;
     length: number;
     offset?: number;
   };
-  tileMeta: {
+  tilemap: {
     address: RomAddress;
     length: number;
   };
@@ -50,7 +48,7 @@ export interface TilesDecodeSpec {
 
 export interface GameLevelConstant {
   address: {
-    mainGraphic: RomAddress;
+    mainTileset: RomAddress;
   };
   banks: {
     terrainPalette: number;
@@ -62,21 +60,21 @@ export interface GameLevelConstant {
     levelBounds: number;
   };
   subroutines: {
-    loadTerrainMeta: RomAddress;
-    loadGraphicsWithAddress: RomAddress;
-    loadGraphicsWithTerrainIndex: RomAddress;
+    loadTerrainTilemap: RomAddress;
+    loadTilesetWithAddress: RomAddress;
+    loadTilesetWithTerrainIndex: RomAddress;
     loadTerrainPalette: RomAddress;
   };
   tables: {
-    terrainMetaPointer: RomAddress;
-    terrainMetaTileOffset: RomAddress;
-    terrainMetaBank: RomAddress;
-    terrainTileMapBank: RomAddress;
-    terrainGraphicsInfo: RomAddress;
+    levelsTilemapBank: RomAddress;
+    levelsTilemapOffset: RomAddress;
+    terrainTilesetInfo: RomAddress;
+    terrainTilemapBank: RomAddress;
+    terrainTilemapPointer: RomAddress;
   };
   entrances: {
-    correctedTileMapOffset: Record<number, number>;
-    correctedTileMapLength: Record<number, number>;
+    correctedTilemapOffset: Record<number, number>;
+    correctedTilemapLength: Record<number, number>;
     isVertical: number[];
   };
 }

@@ -16,46 +16,55 @@ export interface DecodeTileOptions {
   skipForegroundTiles?: boolean;
 }
 
-export const decodeTile = (
-  romData: Buffer,
-  bitplane: Uint8Array,
-  palette: Palette,
-  tilesMetaAddress: RomAddress,
-  tileMetaOffset: number,
-  bpp: BPP,
-  options?: DecodeTileOptions,
-): ImageMatrix => {
+interface DecodeTileParams {
+  tileset: Uint8Array;
+  tilemap: {
+    data: Buffer;
+    address: RomAddress;
+    offset: number;
+  };
+  palette: Palette;
+  bpp: BPP;
+  options?: DecodeTileOptions;
+}
+
+export const decodeTile = ({
+  tileset,
+  tilemap,
+  palette,
+  bpp,
+  options,
+}: DecodeTileParams): ImageMatrix => {
   const {
     opaqueZero = false,
     skipBackgroundTiles = false,
     skipForegroundTiles = false,
   } = options ?? {};
-  const tilePartMeta = read16(
-    romData,
-    tilesMetaAddress.getOffsetAddress(tileMetaOffset).pcAddress,
+  const tilemapTile = read16(
+    tilemap.data,
+    tilemap.address.getOffsetAddress(tilemap.offset).pcAddress,
   );
 
   // Vertical Flip = 10000000 00000000
-  const vFlip = (tilePartMeta & 0xc000) >> 15;
+  const vFlip = (tilemapTile & 0xc000) >> 15;
   // Horizontal Flips = 01000000 00000000
-  const hFlip = (tilePartMeta & 0x4000) >> 14;
+  const hFlip = (tilemapTile & 0x4000) >> 14;
   // Priority = 00100000 00000000
-  const priority = (tilePartMeta & 0x2000) >> 13;
+  const priority = (tilemapTile & 0x2000) >> 13;
   // Palette Index = 00011100 00000000
-  const paletteIndex = (tilePartMeta & 0x1c00) >> 10;
-  // Tile Part Index = 00000011 11111111
-  const tilePartIndex = tilePartMeta & 0x3ff;
+  const paletteIndex = (tilemapTile & 0x1c00) >> 10;
+  // Tile Index = 00000011 11111111
+  const tileIndex = tilemapTile & 0x3ff;
 
   const is4bpp = bpp === BPP.Four;
-  const bitplaneOffset = tilePartIndex * (is4bpp ? 32 : 16);
+  const tilesetOffset = tileIndex * (is4bpp ? 32 : 16);
   const paletteOffset = paletteIndex * (is4bpp ? 16 : 4);
 
-  const pixelDataLength = 8 * (is4bpp ? 4 : 2);
-  const tileBitplane = bitplane.subarray(
-    bitplaneOffset,
-    bitplaneOffset + pixelDataLength,
+  const tilesetTileLength = 8 * (is4bpp ? 4 : 2);
+  const tilesetTile = Array.from(
+    tileset.subarray(tilesetOffset, tilesetOffset + tilesetTileLength),
   );
-  const pixels = parseTilePixels(Array.from(tileBitplane), bpp);
+  const pixels = parseTilePixels(tilesetTile, bpp);
 
   const tile = new Matrix<Color | null>(8, 8, null);
   for (let i = 0; i < 8; i++) {

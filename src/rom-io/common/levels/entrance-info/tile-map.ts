@@ -4,11 +4,11 @@ import { GameLevelConstant } from '../types';
 
 const SCREEN_WIDTH = 0x100;
 
-export const readLevelTileMapInfo = (
+export const readLevelTilemapInfo = (
   romData: Buffer,
   levelConstant: GameLevelConstant,
   entranceId: number,
-  levelTileMapBank: number,
+  levelTilemapBank: number,
   terrainTileOffset: number,
 ) => {
   // Level Tile Maps are in the same bank as the Terrain Type Meta
@@ -17,13 +17,13 @@ export const readLevelTileMapInfo = (
     levelConstant,
     entranceId,
   );
-  const levelTileMapAddress = RomAddress.fromBankAndAbsolute(
-    levelTileMapBank,
+  const levelTilemapAddress = RomAddress.fromBankAndAbsolute(
+    levelTilemapBank,
     levelXStart + terrainTileOffset,
   );
-  const levelTileMapLength = levelXEnd - levelXStart;
+  const levelTilemapLength = levelXEnd - levelXStart;
 
-  return { levelTileMapAddress, levelTileMapLength };
+  return { levelTilemapAddress, levelTilemapLength };
 };
 
 const readLevelBounds = (

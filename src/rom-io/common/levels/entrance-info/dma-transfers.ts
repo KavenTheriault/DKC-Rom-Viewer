@@ -18,28 +18,28 @@ const DATA_LENGTH_OFFSET = 5; // $a999
 export const readDmaTransfers = (
   romData: Buffer,
   levelConstant: GameLevelConstant,
-  terrainTypeDataIndex: number,
+  terrainDataIndex: number,
 ): DmaTransfer[] => {
   const dmaTransfers: DmaTransfer[] = [];
 
   let currentOffset = read16(
     romData,
-    levelConstant.tables.terrainGraphicsInfo.getOffsetAddress(
-      terrainTypeDataIndex * 2,
+    levelConstant.tables.terrainTilesetInfo.getOffsetAddress(
+      terrainDataIndex * 2,
     ).pcAddress,
   );
 
   while (currentOffset < 0x1000) {
     const doneIfZero = read8(
       romData,
-      levelConstant.tables.terrainGraphicsInfo.getOffsetAddress(currentOffset)
+      levelConstant.tables.terrainTilesetInfo.getOffsetAddress(currentOffset)
         .pcAddress,
     );
     if (doneIfZero == 0) break;
 
     const goToDefaultIfNegative = read8(
       romData,
-      levelConstant.tables.terrainGraphicsInfo
+      levelConstant.tables.terrainTilesetInfo
         .getOffsetAddress(4)
         .getOffsetAddress(currentOffset).pcAddress,
     );
@@ -67,13 +67,13 @@ const readDmaTransfer = (
 ): DmaTransfer => {
   const bank = read8(
     romData,
-    levelConstant.tables.terrainGraphicsInfo
+    levelConstant.tables.terrainTilesetInfo
       .getOffsetAddress(DATA_ORIGIN_BANK_OFFSET)
       .getOffsetAddress(offset).pcAddress,
   );
   const absolute = read16(
     romData,
-    levelConstant.tables.terrainGraphicsInfo
+    levelConstant.tables.terrainTilesetInfo
       .getOffsetAddress(DATA_ORIGIN_ABSOLUTE_OFFSET)
       .getOffsetAddress(offset).pcAddress,
   );
@@ -81,7 +81,7 @@ const readDmaTransfer = (
 
   let destination = read16(
     romData,
-    levelConstant.tables.terrainGraphicsInfo
+    levelConstant.tables.terrainTilesetInfo
       .getOffsetAddress(DATA_DESTINATION_OFFSET)
       .getOffsetAddress(offset).pcAddress,
   );
@@ -91,7 +91,7 @@ const readDmaTransfer = (
 
   const size = read16(
     romData,
-    levelConstant.tables.terrainGraphicsInfo
+    levelConstant.tables.terrainTilesetInfo
       .getOffsetAddress(DATA_LENGTH_OFFSET)
       .getOffsetAddress(offset).pcAddress,
   );

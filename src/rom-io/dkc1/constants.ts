@@ -14,47 +14,47 @@ export const Dkc1EntitiesEndReference = 0xfff7;
 
 const CoralCapers = {
   entranceIndex: 0xbf,
-  tileMapOffset: 0x8c00,
-  tileMapLength: 0x1e00,
+  tilemapOffset: 0x8c00,
+  tilemapLength: 0x1e00,
 };
 const ClamCity = {
   entranceIndex: 0xde,
-  tileMapOffset: 0xaa00,
-  tileMapLength: 0x1900,
+  tilemapOffset: 0xaa00,
+  tilemapLength: 0x1900,
 };
 const PoisonPond = {
   entranceIndex: 0x22,
-  tileMapOffset: 0,
-  tileMapLength: 0x3080,
+  tilemapOffset: 0,
+  tilemapLength: 0x3080,
 };
 const CroctopusChase = {
   entranceIndex: 0x3e,
-  tileMapOffset: 0x3080,
-  tileMapLength: 0x4400,
+  tilemapOffset: 0x3080,
+  tilemapLength: 0x4400,
 };
 const EnguardedBonus = {
   entranceIndex: 0xa6,
-  tileMapOffset: 0x7500,
-  tileMapLength: 0x1700,
+  tilemapOffset: 0x7500,
+  tilemapLength: 0x1700,
 };
 const SlipslideRide = {
   entranceIndex: 0x6d,
-  tileMapOffset: 0x0400,
-  tileMapLength: 0x2e00,
+  tilemapOffset: 0x0400,
+  tilemapLength: 0x2e00,
 };
 
 const IceCaves = {
   entrancesIndex: [0x62, 0xab, 0xc5, 0xc6, 0xc7, 0xc8, 0xca, 0xcb],
-  tileMapLength: 0x3a00,
+  tilemapLength: 0x3a00,
 };
 const Underwater = {
   entrancesIndex: [0x2a, 0x3f, 0xc0, 0xdf],
-  tileMapLength: 0xc380,
+  tilemapLength: 0xc380,
 };
 
 export const Dkc1LevelConstant: GameLevelConstant = {
   address: {
-    mainGraphic: RomAddress.fromSnesAddress(0x7e79fc),
+    mainTileset: RomAddress.fromSnesAddress(0x7e79fc),
   },
   banks: {
     terrainPalette: 0xb9,
@@ -66,40 +66,40 @@ export const Dkc1LevelConstant: GameLevelConstant = {
     levelBounds: 0x8000,
   },
   subroutines: {
-    loadTerrainMeta: RomAddress.fromSnesAddress(0x818c66),
-    loadGraphicsWithAddress: RomAddress.fromSnesAddress(0xb896fc),
-    loadGraphicsWithTerrainIndex: RomAddress.fromSnesAddress(0xb9a924),
+    loadTerrainTilemap: RomAddress.fromSnesAddress(0x818c66),
+    loadTilesetWithAddress: RomAddress.fromSnesAddress(0xb896fc),
+    loadTilesetWithTerrainIndex: RomAddress.fromSnesAddress(0xb9a924),
     loadTerrainPalette: RomAddress.fromSnesAddress(0xb999f1),
   },
   tables: {
-    terrainMetaPointer: RomAddress.fromSnesAddress(0x818bbe),
-    terrainMetaTileOffset: RomAddress.fromSnesAddress(0x818b94),
-    terrainMetaBank: RomAddress.fromSnesAddress(0x818bc0),
-    terrainTileMapBank: RomAddress.fromSnesAddress(0x818b96),
-    terrainGraphicsInfo: RomAddress.fromSnesAddress(0xb9a994),
+    terrainTilemapPointer: RomAddress.fromSnesAddress(0x818bbe),
+    levelsTilemapOffset: RomAddress.fromSnesAddress(0x818b94),
+    terrainTilemapBank: RomAddress.fromSnesAddress(0x818bc0),
+    levelsTilemapBank: RomAddress.fromSnesAddress(0x818b96),
+    terrainTilesetInfo: RomAddress.fromSnesAddress(0xb9a994),
   },
   entrances: {
-    correctedTileMapOffset: {
-      [CoralCapers.entranceIndex]: CoralCapers.tileMapOffset,
-      [ClamCity.entranceIndex]: ClamCity.tileMapOffset,
-      [PoisonPond.entranceIndex]: PoisonPond.tileMapOffset,
-      [CroctopusChase.entranceIndex]: CroctopusChase.tileMapOffset,
-      [EnguardedBonus.entranceIndex]: EnguardedBonus.tileMapOffset,
-      [SlipslideRide.entranceIndex]: SlipslideRide.tileMapOffset,
+    correctedTilemapOffset: {
+      [CoralCapers.entranceIndex]: CoralCapers.tilemapOffset,
+      [ClamCity.entranceIndex]: ClamCity.tilemapOffset,
+      [PoisonPond.entranceIndex]: PoisonPond.tilemapOffset,
+      [CroctopusChase.entranceIndex]: CroctopusChase.tilemapOffset,
+      [EnguardedBonus.entranceIndex]: EnguardedBonus.tilemapOffset,
+      [SlipslideRide.entranceIndex]: SlipslideRide.tilemapOffset,
     },
-    correctedTileMapLength: {
-      [CoralCapers.entranceIndex]: CoralCapers.tileMapLength,
-      [ClamCity.entranceIndex]: ClamCity.tileMapLength,
-      [PoisonPond.entranceIndex]: PoisonPond.tileMapLength,
-      [CroctopusChase.entranceIndex]: CroctopusChase.tileMapLength,
-      [EnguardedBonus.entranceIndex]: EnguardedBonus.tileMapLength,
-      [SlipslideRide.entranceIndex]: SlipslideRide.tileMapLength,
+    correctedTilemapLength: {
+      [CoralCapers.entranceIndex]: CoralCapers.tilemapLength,
+      [ClamCity.entranceIndex]: ClamCity.tilemapLength,
+      [PoisonPond.entranceIndex]: PoisonPond.tilemapLength,
+      [CroctopusChase.entranceIndex]: CroctopusChase.tilemapLength,
+      [EnguardedBonus.entranceIndex]: EnguardedBonus.tilemapLength,
+      [SlipslideRide.entranceIndex]: SlipslideRide.tilemapLength,
       ...IceCaves.entrancesIndex.reduce<Record<number, number>>((acc, e) => {
-        acc[e] = IceCaves.tileMapLength;
+        acc[e] = IceCaves.tilemapLength;
         return acc;
       }, {}),
       ...Underwater.entrancesIndex.reduce<Record<number, number>>((acc, e) => {
-        acc[e] = Underwater.tileMapLength;
+        acc[e] = Underwater.tilemapLength;
         return acc;
       }, {}),
     },
@@ -118,11 +118,11 @@ export const Dkc1LevelConstant: GameLevelConstant = {
 
 export const DKC1_ASSETS: Record<string, TilesDecodeSpec> = {
   Forest: {
-    bitplane: {
+    tileset: {
       address: RomAddress.fromSnesAddress(0x238bfb),
       length: 0x1800,
     },
-    tileMeta: {
+    tilemap: {
       address: RomAddress.fromSnesAddress(0x2383fb),
       length: 0x800,
     },
@@ -130,11 +130,11 @@ export const DKC1_ASSETS: Record<string, TilesDecodeSpec> = {
     bpp: BPP.Two,
   },
   Temple: {
-    bitplane: {
+    tileset: {
       address: RomAddress.fromSnesAddress(0x14eb52),
       length: 0x1300,
     },
-    tileMeta: {
+    tilemap: {
       address: RomAddress.fromSnesAddress(0x14df52),
       length: 0x800,
     },
@@ -142,11 +142,11 @@ export const DKC1_ASSETS: Record<string, TilesDecodeSpec> = {
     bpp: BPP.Two,
   },
   Overworld: {
-    bitplane: {
+    tileset: {
       address: RomAddress.fromSnesAddress(0x0116f1),
       length: 0x7000,
     },
-    tileMeta: {
+    tilemap: {
       address: RomAddress.fromSnesAddress(0x010ff0),
       length: 0x700,
     },
@@ -154,12 +154,12 @@ export const DKC1_ASSETS: Record<string, TilesDecodeSpec> = {
     bpp: BPP.Four,
   },
   TreeTopTown: {
-    bitplane: {
+    tileset: {
       address: RomAddress.fromSnesAddress(0xc3bfe),
       length: 0x21a0,
       offset: 0xe60,
     },
-    tileMeta: {
+    tilemap: {
       address: RomAddress.fromSnesAddress(0xc33fe),
       length: 0x800,
     },
@@ -167,11 +167,11 @@ export const DKC1_ASSETS: Record<string, TilesDecodeSpec> = {
     bpp: BPP.Four,
   },
   Nintendo: {
-    bitplane: {
+    tileset: {
       address: RomAddress.fromSnesAddress(0x240690),
       length: 0x2000,
     },
-    tileMeta: {
+    tilemap: {
       address: RomAddress.fromSnesAddress(0x240450),
       length: 0x280,
     },

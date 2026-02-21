@@ -22,8 +22,8 @@ export const tryBackground = (
 
   const layer = entranceInfo.backgroundRegisters.layers[layerIndex];
 
-  const tileMapData = extract(vram, layer.tilesetAddress * 2, 0x4000);
-  const tileSetData = extract(vram, layer.tilemapAddress * 2, 0x4000);
+  const tileset = extract(vram, layer.tilesetAddress * 2, 0x4000);
+  const tilemap = extract(vram, layer.tilemapAddress * 2, 0x4000);
 
   const palette = readPalette(
     romData,
@@ -55,11 +55,13 @@ export const tryBackground = (
   const pageImages = [];
   for (let i = 0; i < imageCount; i++) {
     const tiles = decodeTiles({
-      romData: tileSetData,
-      bitplane: Uint8Array.from(tileMapData),
+      tileset: Uint8Array.from(tileset),
+      tilemap: {
+        data: tilemap,
+        address: RomAddress.fromSnesAddress(BG_IMAGE_DATA_LENGTH * i),
+      },
+      tilemapSize: { dataLength: BG_IMAGE_DATA_LENGTH },
       palette,
-      tilesMetaAddress: RomAddress.fromSnesAddress(BG_IMAGE_DATA_LENGTH * i),
-      tilesMetaLength: { dataLength: BG_IMAGE_DATA_LENGTH },
       bpp: layerIndex > 1 ? BPP.Two : BPP.Four,
       options: {
         opaqueZero: layerIndex > 1,
