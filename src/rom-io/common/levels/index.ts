@@ -32,7 +32,7 @@ export const buildLevelImageFromEntranceInfo = (
   );
 };
 
-const readLevelTilemap = (romData: Buffer, level: LevelInfo) => {
+export const readLevelTilemap = (romData: Buffer, level: LevelInfo) => {
   const { tilemapAddress, tilemapOffset, tilemapLength, isVertical } = level;
 
   let levelWidth, levelHeight;

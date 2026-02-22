@@ -46,7 +46,7 @@ export const readOpcodeUntil = (
     count: 0,
     flags: { ...DEFAULT_FLAGS },
   },
-  options: { readLimit: number } = { readLimit: 1000 },
+  options: { readLimit: number } = { readLimit: 0x400 },
 ) => {
   let readOffset = 0;
   const opcodeEntries: OpcodeEntry[] = [];

@@ -60,6 +60,16 @@ export class Matrix<T> {
     }
     return newMatrix;
   }
+
+  subMatrix(x: number, y: number, width: number, height: number): Matrix<T> {
+    const result = new Matrix<T>(width, height, this._fill);
+    for (let sx = 0; sx < width; sx++) {
+      for (let sy = 0; sy < height; sy++) {
+        result.set(sx, sy, this.get(x + sx, y + sy));
+      }
+    }
+    return result;
+  }
 }
 
 /* Combine an array of matrices into a bigger matrix

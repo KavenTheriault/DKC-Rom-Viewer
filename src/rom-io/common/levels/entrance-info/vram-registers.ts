@@ -1,13 +1,19 @@
+import { Size } from '../../../../website/types/spatial';
 import { toHexString } from '../../../../website/utils/hex';
 import { read16, read8 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
 import { OpcodeEntry } from './asm/read';
 import { findArgumentInPreviousOpcodes, findSubroutine } from './utils';
 
-export const ScreenSize = ['32x32', '64x32', '32x64', '64x64'];
+export const BackgroundSize: Size[] = [
+  { width: 32, height: 32 },
+  { width: 64, height: 32 },
+  { width: 32, height: 64 },
+  { width: 64, height: 64 },
+];
 
 interface BackgroundRegister {
-  size: string;
+  size: Size;
   tilemapAddress: number;
   tilesetAddress: number;
 }
@@ -33,10 +39,10 @@ export const readVramRegisters = (
 
   const bgRegisters: BackgroundRegisters = {
     layers: [
-      { size: '', tilemapAddress: 0, tilesetAddress: 0 },
-      { size: '', tilemapAddress: 0, tilesetAddress: 0 },
-      { size: '', tilemapAddress: 0, tilesetAddress: 0 },
-      { size: '', tilemapAddress: 0, tilesetAddress: 0 },
+      { size: { width: 0, height: 0 }, tilemapAddress: 0, tilesetAddress: 0 },
+      { size: { width: 0, height: 0 }, tilemapAddress: 0, tilesetAddress: 0 },
+      { size: { width: 0, height: 0 }, tilemapAddress: 0, tilesetAddress: 0 },
+      { size: { width: 0, height: 0 }, tilemapAddress: 0, tilesetAddress: 0 },
     ],
   };
 
@@ -86,7 +92,7 @@ export const readVramRegisters = (
         RomAddress.fromSnesAddress(0xb9a50e).getOffsetAddress(y).pcAddress,
       );
       // STA $00,X [Vram Register]
-      logRegister(x, a, bgRegisters);
+      parseRegister(x, a, bgRegisters);
       // INX
       x++;
       // INY
@@ -98,7 +104,7 @@ export const readVramRegisters = (
       RomAddress.fromSnesAddress(0xb9a50e).getOffsetAddress(y).pcAddress,
     );
     // STA $00,X [Vram Register]
-    logRegister(x, a, bgRegisters);
+    parseRegister(x, a, bgRegisters);
     // INY
     y++;
     // BRA $B9A4EA
@@ -117,7 +123,7 @@ export const readVramRegisters = (
   return bgRegisters;
 };
 
-const logRegister = (
+const parseRegister = (
   address: number,
   value: number,
   bgRegisters: BackgroundRegisters,
@@ -127,10 +133,10 @@ const logRegister = (
   if (address >= 0x2107 && address <= 0x210a) {
     // aaaaaass
     const tilemapLocation = ((value & 0b11111100) >> 2) * 0x400;
-    const screenSize = ScreenSize[value & 0b11];
+    const size = BackgroundSize[value & 0b11];
 
     const layerIndex = address - 0x2107;
-    bgRegisters.layers[layerIndex].size = screenSize;
+    bgRegisters.layers[layerIndex].size = size;
     bgRegisters.layers[layerIndex].tilemapAddress = tilemapLocation;
   }
 

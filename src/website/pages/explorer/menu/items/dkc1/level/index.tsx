@@ -2,7 +2,7 @@ import { noop } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { buildLevelImageFromEntranceInfo } from '../../../../../../../rom-io/common/levels';
 import { loadEntranceInfo } from '../../../../../../../rom-io/common/levels/entrance-info';
-import { tryBackground } from '../../../../../../../rom-io/common/levels/entrance-info/test';
+import { getLayer } from '../../../../../../../rom-io/common/levels/layers';
 import { decodeTilesFromSpec } from '../../../../../../../rom-io/common/levels/spec';
 import { buildTerrainTilesetImage } from '../../../../../../../rom-io/common/levels/terrain';
 import {
@@ -11,8 +11,8 @@ import {
   TerrainInfo,
 } from '../../../../../../../rom-io/common/levels/types';
 import {
-  Dkc1LevelConstant,
   DKC1_ASSETS,
+  Dkc1LevelConstant,
 } from '../../../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../../../rom-io/rom/address';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
@@ -283,7 +283,17 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
           <button
             onClick={async () => {
               if (!rom || !entranceInfo) return;
-              const image = tryBackground(rom.data, entranceInfo, 1);
+              const image = getLayer(rom.data, entranceInfo, 0);
+              const bitmap = await convertToImageBitmap(image);
+              setLevelBitmap(bitmap);
+            }}
+          >
+            BG Layer 1
+          </button>
+          <button
+            onClick={async () => {
+              if (!rom || !entranceInfo) return;
+              const image = getLayer(rom.data, entranceInfo, 1);
               const bitmap = await convertToImageBitmap(image);
               setLevelBitmap(bitmap);
             }}
@@ -293,7 +303,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
           <button
             onClick={async () => {
               if (!rom || !entranceInfo) return;
-              const image = tryBackground(rom.data, entranceInfo, 2);
+              const image = getLayer(rom.data, entranceInfo, 2);
               const bitmap = await convertToImageBitmap(image);
               setLevelBitmap(bitmap);
             }}

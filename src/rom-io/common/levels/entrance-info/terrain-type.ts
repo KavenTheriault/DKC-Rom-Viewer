@@ -4,6 +4,7 @@ import { GameLevelConstant } from '../types';
 import { OpcodeEntry } from './asm/read';
 import { findArgumentInPreviousOpcodes, findSubroutine } from './utils';
 
+// Ref: ASM Code at $818C66
 export const readTerrainTypeMeta = (
   romData: Buffer,
   levelConstant: GameLevelConstant,
@@ -19,8 +20,11 @@ export const readTerrainTypeMeta = (
     'LDA',
   );
 
-  // Ref: ASM Code at $818C66
+  // X
   const tilemapTableOffset = terrainIndex * 3;
+
+  // Y
+  const vramTableOffset = terrainIndex << 1;
 
   const levelsTilemapOffset = read16(
     romData,
@@ -48,6 +52,13 @@ export const readTerrainTypeMeta = (
       .pcAddress,
   );
 
+  const levelTilemapVramAddress = read16(
+    romData,
+    levelConstant.tables.levelsTilemapVramAddress.getOffsetAddress(
+      vramTableOffset,
+    ).pcAddress,
+  );
+
   const terrainTilemapAddress = RomAddress.fromBankAndAbsolute(
     terrainTilemapBank !== 0 ? terrainTilemapBank : levelsTilemapBank,
     terrainTilemapAbsolute,
@@ -56,5 +67,6 @@ export const readTerrainTypeMeta = (
     levelsTilemapBank,
     levelsTilemapOffset,
     terrainTilemapAddress,
+    levelTilemapVramAddress,
   };
 };

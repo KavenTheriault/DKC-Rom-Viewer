@@ -1,7 +1,7 @@
 import { toHexString } from '../../../../website/utils/hex';
 import { extract } from '../../../buffer';
 import { decompress } from '../compression';
-import { DmaTransfer } from './dma-transfers';
+import { DmaTransfer } from '../entrance-info/dma-transfers';
 
 export const buildVramFromDma = (
   romData: Buffer,

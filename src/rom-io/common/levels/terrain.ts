@@ -4,11 +4,10 @@ import { ImageMatrix } from '../../types/image-matrix';
 import { readPalette } from '../palettes';
 import { Palette } from '../palettes/types';
 import { decompress } from './compression';
-import { logBufferHexSimple } from './entrance-info/vram';
 import { assembleImages } from './tiles/assemble';
 import { BYTES_PER_TILE_META } from './tiles/constants';
 import { decodeAndAssembleTiles, decodeTiles } from './tiles/decode-tiles';
-import { TilesetInfo, TerrainInfo } from './types';
+import { TerrainInfo, TilesetInfo } from './types';
 
 export const TILE_SIZE = 32;
 const TILEMAP_IMAGE_TILE_PER_ROW = 16;
@@ -65,7 +64,6 @@ export const buildTerrainTileset = (
     if (tilesetInfo.isCompressed) {
       if (!decompressedData) {
         decompressedData = decompress(romData, tilesetInfo.address);
-        logBufferHexSimple(decompressedData);
       }
 
       dataToAdd = decompressedData;

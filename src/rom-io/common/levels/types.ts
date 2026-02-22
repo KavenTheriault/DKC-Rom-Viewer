@@ -12,10 +12,12 @@ export type TilesetInfo = {
 };
 
 export type TerrainInfo = {
+  levelTilemapVramAddress: number;
+  levelsTilemapBackgroundAddress?: RomAddress;
+  levelsTilemapStart: RomAddress;
+  palettesAddress: RomAddress;
   tilemapAddress: RomAddress;
   tilesetsInfo: TilesetInfo[];
-  palettesAddress: RomAddress;
-  levelsTilemapStart: RomAddress;
   transfers: DmaTransfer[];
 };
 
@@ -61,6 +63,7 @@ export interface GameLevelConstant {
   };
   subroutines: {
     loadTerrainTilemap: RomAddress;
+    loadTerrainBackgroundTilemap: RomAddress;
     loadTilesetWithAddress: RomAddress;
     loadTilesetWithTerrainIndex: RomAddress;
     loadTerrainPalette: RomAddress;
@@ -68,9 +71,10 @@ export interface GameLevelConstant {
   tables: {
     levelsTilemapBank: RomAddress;
     levelsTilemapOffset: RomAddress;
-    terrainTilesetInfo: RomAddress;
+    levelsTilemapVramAddress: RomAddress;
     terrainTilemapBank: RomAddress;
     terrainTilemapPointer: RomAddress;
+    terrainTilesetInfo: RomAddress;
   };
   entrances: {
     correctedTilemapOffset: Record<number, number>;
