@@ -1,7 +1,7 @@
 import { Size } from '../../../../website/types/spatial';
-import { toHexString } from '../../../../website/utils/hex';
 import { read16, read8 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
+import { GameLevelConstant } from '../types';
 import { OpcodeEntry } from './asm/read';
 import { findArgumentInPreviousOpcodes, findSubroutine } from './utils';
 
@@ -22,22 +22,23 @@ export interface BackgroundRegisters {
   layers: BackgroundRegister[];
 }
 
+// Ref: ASM Code at $B9A4DC
 export const readVramRegisters = (
   romData: Buffer,
+  levelConstant: GameLevelConstant,
   opcodeEntries: OpcodeEntry[],
 ): BackgroundRegisters => {
-  const loadTerrainMetaSubroutine = findSubroutine(
+  const loadVramRegistersSubroutine = findSubroutine(
     opcodeEntries,
-    RomAddress.fromSnesAddress(0xb9a4dc),
+    levelConstant.subroutines.loadVramRegisters,
   );
   const vramMetaIndex = findArgumentInPreviousOpcodes(
     opcodeEntries,
-    loadTerrainMetaSubroutine,
+    loadVramRegistersSubroutine,
     'LDA',
   );
-  console.log('vramMetaIndex', toHexString(vramMetaIndex));
 
-  const bgRegisters: BackgroundRegisters = {
+  const backgroundRegisters: BackgroundRegisters = {
     layers: [
       { size: { width: 0, height: 0 }, tilemapAddress: 0, tilesetAddress: 0 },
       { size: { width: 0, height: 0 }, tilemapAddress: 0, tilesetAddress: 0 },
@@ -59,6 +60,7 @@ export const readVramRegisters = (
     RomAddress.fromSnesAddress(0xb9a50e).getOffsetAddress(y).pcAddress,
   );
   // TXY
+  // noinspection JSSuspiciousNameCombination
   y = x;
 
   // eslint-disable-next-line no-constant-condition
@@ -66,7 +68,7 @@ export const readVramRegisters = (
     // LDX $A50E,Y
     x = read16(
       romData,
-      RomAddress.fromSnesAddress(0xb9a50e).getOffsetAddress(y).pcAddress,
+      levelConstant.tables.vramRegisters.getOffsetAddress(y).pcAddress,
     );
     // BEQ $B9A50A (End of loop)
     if (x === 0) break;
@@ -89,10 +91,10 @@ export const readVramRegisters = (
       // LDA $A50E,Y
       a = read8(
         romData,
-        RomAddress.fromSnesAddress(0xb9a50e).getOffsetAddress(y).pcAddress,
+        levelConstant.tables.vramRegisters.getOffsetAddress(y).pcAddress,
       );
       // STA $00,X [Vram Register]
-      parseRegister(x, a, bgRegisters);
+      parseRegister(x, a, backgroundRegisters);
       // INX
       x++;
       // INY
@@ -101,26 +103,16 @@ export const readVramRegisters = (
     // LDA $A50E,Y
     a = read8(
       romData,
-      RomAddress.fromSnesAddress(0xb9a50e).getOffsetAddress(y).pcAddress,
+      levelConstant.tables.vramRegisters.getOffsetAddress(y).pcAddress,
     );
     // STA $00,X [Vram Register]
-    parseRegister(x, a, bgRegisters);
+    parseRegister(x, a, backgroundRegisters);
     // INY
     y++;
     // BRA $B9A4EA
   }
 
-  for (let i = 0; i < 4; i++) {
-    console.log(
-      'Background Registers Layer',
-      i + 1,
-      bgRegisters.layers[i].size,
-      toHexString(bgRegisters.layers[i].tilemapAddress),
-      toHexString(bgRegisters.layers[i].tilesetAddress),
-    );
-  }
-
-  return bgRegisters;
+  return backgroundRegisters;
 };
 
 const parseRegister = (
@@ -128,8 +120,6 @@ const parseRegister = (
   value: number,
   bgRegisters: BackgroundRegisters,
 ) => {
-  console.log('Vram Register', toHexString(address), toHexString(value));
-
   if (address >= 0x2107 && address <= 0x210a) {
     // aaaaaass
     const tilemapLocation = ((value & 0b11111100) >> 2) * 0x400;

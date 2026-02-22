@@ -1,5 +1,6 @@
 import { memoize } from 'lodash';
 import { extract, read16 } from '../../buffer';
+import { RomAddress } from '../../rom/address';
 import { Color } from '../../types/color';
 import { ImageMatrix } from '../../types/image-matrix';
 import { Matrix } from '../../types/matrix';
@@ -18,7 +19,11 @@ export const buildLevelImageFromEntranceInfo = (
     romData,
     entranceInfo.terrain,
   );
-  const levelTilemap = readLevelTilemap(romData, entranceInfo.level);
+  const levelTilemap = readLevelTilemap(
+    romData,
+    entranceInfo.terrain.levelsTilemapAddress,
+    entranceInfo.level,
+  );
   return buildLevelImage(
     levelTilemap,
     memoize((tilesetIndex) =>
@@ -32,8 +37,12 @@ export const buildLevelImageFromEntranceInfo = (
   );
 };
 
-export const readLevelTilemap = (romData: Buffer, level: LevelInfo) => {
-  const { tilemapAddress, tilemapOffset, tilemapLength, isVertical } = level;
+export const readLevelTilemap = (
+  romData: Buffer,
+  tilemapAddress: RomAddress,
+  level: LevelInfo,
+) => {
+  const { tilemapOffset, tilemapLength, isVertical } = level;
 
   let levelWidth, levelHeight;
   const rawTilemap = extract(

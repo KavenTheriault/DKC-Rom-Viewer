@@ -5,7 +5,7 @@ import { OpcodeEntry } from './asm/read';
 import { findArgumentInPreviousOpcodes, findSubroutine } from './utils';
 
 // Ref: ASM Code at $818C66
-export const readTerrainTypeMeta = (
+export const readTerrainTilemapInfo = (
   romData: Buffer,
   levelConstant: GameLevelConstant,
   opcodeEntries: OpcodeEntry[],
@@ -52,7 +52,7 @@ export const readTerrainTypeMeta = (
       .pcAddress,
   );
 
-  const levelTilemapVramAddress = read16(
+  const levelsTilemapVramAddress = read16(
     romData,
     levelConstant.tables.levelsTilemapVramAddress.getOffsetAddress(
       vramTableOffset,
@@ -67,6 +67,6 @@ export const readTerrainTypeMeta = (
     levelsTilemapBank,
     levelsTilemapOffset,
     terrainTilemapAddress,
-    levelTilemapVramAddress,
+    levelsTilemapVramAddress,
   };
 };

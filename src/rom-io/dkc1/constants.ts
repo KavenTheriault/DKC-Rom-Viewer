@@ -71,6 +71,7 @@ export const Dkc1LevelConstant: GameLevelConstant = {
     loadTilesetWithAddress: RomAddress.fromSnesAddress(0xb896fc),
     loadTilesetWithTerrainIndex: RomAddress.fromSnesAddress(0xb9a924),
     loadTerrainPalette: RomAddress.fromSnesAddress(0xb999f1),
+    loadVramRegisters: RomAddress.fromSnesAddress(0xb9a4dc),
   },
   tables: {
     levelsTilemapBank: RomAddress.fromSnesAddress(0x818b96),
@@ -79,6 +80,7 @@ export const Dkc1LevelConstant: GameLevelConstant = {
     terrainTilemapBank: RomAddress.fromSnesAddress(0x818bc0),
     terrainTilemapPointer: RomAddress.fromSnesAddress(0x818bbe),
     terrainTilesetInfo: RomAddress.fromSnesAddress(0xb9a994),
+    vramRegisters: RomAddress.fromSnesAddress(0xb9a50e),
   },
   entrances: {
     correctedTilemapOffset: {

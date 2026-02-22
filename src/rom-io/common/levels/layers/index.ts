@@ -10,41 +10,51 @@ import { assembleImages } from '../tiles/assemble';
 import { BYTES_PER_TILE_META } from '../tiles/constants';
 import { decodeTiles } from '../tiles/decode-tiles';
 import { EntranceInfo } from '../types';
-import { buildVramFromDma } from './vram';
+import { buildVramFromDma, ManualTransfer } from './vram';
 
 const BG_IMAGE_DATA_LENGTH = 0x800;
+const BG_PART_SIZE = 32;
 
-export const getLayer = (
+export const buildLayer = (
   romData: Buffer,
   entranceInfo: EntranceInfo,
   layerIndex: number,
 ) => {
   const layer = entranceInfo.backgroundRegisters.layers[layerIndex];
 
-  const mainTilesetAddress =
+  const terrainTilesetAddress =
     entranceInfo.backgroundRegisters.layers[0].tilesetAddress;
-  const layerUsingLevelTileset = entranceInfo.backgroundRegisters.layers.find(
+  /* Find layers using the levels tilemap and terrain tileset */
+  const layerUsingTerrainTileset = entranceInfo.backgroundRegisters.layers.find(
     (t) =>
-      t.tilesetAddress === mainTilesetAddress &&
-      t.tilemapAddress !== entranceInfo.terrain.levelTilemapVramAddress,
+      t.tilesetAddress === terrainTilesetAddress &&
+      t.tilemapAddress !== entranceInfo.terrain.levelsTilemapVramAddress,
   );
 
-  const vramArray = buildVramFromDma(romData, entranceInfo.terrain.transfers);
-
+  const manualTransfers: ManualTransfer[] = [];
   if (
     entranceInfo.terrain.levelsTilemapBackgroundAddress &&
-    layer === layerUsingLevelTileset
+    layer === layerUsingTerrainTileset
   ) {
-    const bgTilemap = readLevelTilemapData(
+    const bgTilemap = buildScreenTilemap(
       romData,
       entranceInfo.terrain.tilemapAddress,
       entranceInfo.terrain.levelsTilemapBackgroundAddress,
       layer.size,
     );
-    vramArray.set(bgTilemap, layer.tilemapAddress * 2);
+    manualTransfers.push({
+      data: bgTilemap,
+      destination: layer.tilemapAddress,
+    });
   }
 
-  const vram = WebBuffer.from(vramArray);
+  const vram = WebBuffer.from(
+    buildVramFromDma(
+      romData,
+      entranceInfo.terrain.dmaTransfers,
+      manualTransfers,
+    ),
+  );
 
   const tileset = extract(vram, layer.tilesetAddress * 2, 0x8000);
   const tilemap = extract(vram, layer.tilemapAddress * 2, 0x4000);
@@ -55,8 +65,8 @@ export const getLayer = (
     128,
   );
 
-  const widthPartCount = layer.size.width / 32;
-  const heightPartCount = layer.size.height / 32;
+  const widthPartCount = layer.size.width / BG_PART_SIZE;
+  const heightPartCount = layer.size.height / BG_PART_SIZE;
 
   const pageImages = [];
   for (let i = 0; i < widthPartCount * heightPartCount; i++) {
@@ -73,58 +83,55 @@ export const getLayer = (
         opaqueZero: layerIndex > 1,
       },
     });
-    pageImages.push(assembleImages(tiles, 32));
+    pageImages.push(assembleImages(tiles, BG_PART_SIZE));
   }
 
   return assembleImages(pageImages, widthPartCount);
 };
 
-const readLevelTilemapData = (
+const buildScreenTilemap = (
   romData: Buffer,
   terrainTilemapAddress: RomAddress,
-  levelTilemapAddress: RomAddress,
+  levelsTilemapAddress: RomAddress,
   size: Size,
 ) => {
   const result: number[] = [];
 
-  const levelMatrix = readLevelTilemap(romData, {
-    tilemapAddress: levelTilemapAddress,
+  const levelMatrix = readLevelTilemap(romData, levelsTilemapAddress, {
     tilemapOffset: 0,
     tilemapLength: 0x200, // 0x200 fits 64x64 bg size
     isVertical: false,
   }); // 16x16
 
-  for (let pY = 0; pY < size.height / 32; pY++) {
-    for (let pX = 0; pX < size.width / 32; pX++) {
+  for (let pY = 0; pY < size.height / BG_PART_SIZE; pY++) {
+    for (let pX = 0; pX < size.width / BG_PART_SIZE; pX++) {
       const bgPart = levelMatrix.subMatrix(pX * 8, pY * 8, 8, 8); // 8x8
 
-      const fullBytesMatrix = new Matrix<number[]>(size.width, size.height, []);
+      const fullBytesMatrix = new Matrix<number[]>(
+        BG_PART_SIZE,
+        BG_PART_SIZE,
+        [],
+      );
       for (let x = 0; x < bgPart.width; x++) {
         for (let y = 0; y < bgPart.height; y++) {
           const tileInfo = bgPart.get(x, y);
 
           // Flips = 11000000 00000000
           const flips = (tileInfo & 0xc000) >> 14;
+          const hFlip = (flips & 0b01) > 0;
+          const vFlip = (flips & 0b10) > 0;
 
           // Tileset Index = 00000011 11111111
           const tilesetIndex = tileInfo & 0x3ff;
 
-          const tileBytesMatrix = readTerrainTilemapTile(
+          const tileBytesMatrix = readTerrainTilemapTileBytes(
             romData,
             terrainTilemapAddress,
             tilesetIndex,
-            {
-              hFlip: (flips & 0b01) > 0,
-              vFlip: (flips & 0b10) > 0,
-            },
+            { hFlip, vFlip },
           );
-
-          if ((flips & 0b01) > 0) {
-            tileBytesMatrix.flip('horizontal');
-          }
-          if ((flips & 0b10) > 0) {
-            tileBytesMatrix.flip('vertical');
-          }
+          if (hFlip) tileBytesMatrix.flip('horizontal');
+          if (vFlip) tileBytesMatrix.flip('vertical');
 
           fullBytesMatrix.setMatrixAt(
             x * tileBytesMatrix.width,
@@ -136,8 +143,7 @@ const readLevelTilemapData = (
 
       for (let y = 0; y < fullBytesMatrix.height; y++) {
         for (let x = 0; x < fullBytesMatrix.width; x++) {
-          const part = fullBytesMatrix.get(x, y);
-          result.push(...part);
+          result.push(...fullBytesMatrix.get(x, y));
         }
       }
     }
@@ -147,7 +153,7 @@ const readLevelTilemapData = (
 };
 
 const PARTS_IN_TILE = 16;
-const readTerrainTilemapTile = (
+const readTerrainTilemapTileBytes = (
   romData: Buffer,
   tilemapAddress: RomAddress,
   tilemapIndex: number,
@@ -157,24 +163,19 @@ const readTerrainTilemapTile = (
 
   const tileBytesMatrix = new Matrix<number[]>(4, 4, []);
   let offset = tilemapOffset;
-  for (let y = 0; y < 4; y++) {
-    for (let x = 0; x < 4; x++) {
-      const bytes = extract(
-        romData,
-        tilemapAddress.getOffsetAddress(offset).pcAddress,
-        BYTES_PER_TILE_META,
+  for (let y = 0; y < tileBytesMatrix.height; y++) {
+    for (let x = 0; x < tileBytesMatrix.width; x++) {
+      const tileBytes = Array.from(
+        extract(
+          romData,
+          tilemapAddress.getOffsetAddress(offset).pcAddress,
+          BYTES_PER_TILE_META,
+        ),
       );
 
-      const test = Array.from(bytes);
-
-      if (options.vFlip) {
-        test[1] ^= 0x80;
-      }
-
-      if (options.hFlip) {
-        test[1] ^= 0x40;
-      }
-      tileBytesMatrix.set(x, y, test);
+      if (options.vFlip) tileBytes[1] ^= 0x80;
+      if (options.hFlip) tileBytes[1] ^= 0x40;
+      tileBytesMatrix.set(x, y, tileBytes);
 
       offset += BYTES_PER_TILE_META;
     }

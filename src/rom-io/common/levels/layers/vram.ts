@@ -1,45 +1,42 @@
-import { toHexString } from '../../../../website/utils/hex';
 import { extract } from '../../../buffer';
 import { decompress } from '../compression';
 import { DmaTransfer } from '../entrance-info/dma-transfers';
 
+const SNES_VRAM_LENGTH = 0x10000;
+
+export type ManualTransfer = {
+  data: number[];
+  destination: number;
+};
+
 export const buildVramFromDma = (
   romData: Buffer,
-  transfers: DmaTransfer[],
+  dmaTransfers: DmaTransfer[],
+  manualTransfers: ManualTransfer[],
 ): Uint8Array => {
-  // SNES VRAM is 64KB
-  const vram = new Uint8Array(0x10000);
+  const vram = new Uint8Array(SNES_VRAM_LENGTH);
 
-  for (const transfer of transfers) {
+  const updateVram = (data: number[], destination: number) => {
+    /* `destination` is a VRAM *word* address (increments in 16-bit units) */
+    vram.set(data, destination * 2);
+  };
+
+  for (const transfer of dmaTransfers) {
     const { origin, destination, length } = transfer;
 
     let sourceData: number[];
-
-    if (transfer.origin.bank === 0x7e || transfer.origin.bank === 0x7f) {
-      console.log('Data from WRAM');
-    }
-
-    // Determine if source is ROM or RAM
     if (transfer.isCompressed) {
-      // Extract from WRAM buffer
       sourceData = decompress(romData, transfer.origin);
-      console.log(`Decompress: $${toHexString(transfer.origin.snesAddress)}`);
     } else {
       sourceData = Array.from(extract(romData, origin.pcAddress, length));
     }
 
-    vram.set(sourceData, destination * 2);
-    console.log(
-      `DMA: $${origin.snesAddress.toString(16).toUpperCase().padStart(6, '0')} → VRAM:$${destination.toString(16).toUpperCase().padStart(4, '0')} (${length} bytes)`,
-    );
+    updateVram(sourceData, destination);
+  }
+
+  for (const transfer of manualTransfers) {
+    updateVram(transfer.data, transfer.destination);
   }
 
   return vram;
 };
-
-export function logBufferHexSimple(buffer: number[]): void {
-  const hexBytes = Array.from(buffer).map((byte) =>
-    (byte ?? 0).toString(16).toUpperCase().padStart(2, '0'),
-  );
-  console.log(hexBytes.join(' '));
-}

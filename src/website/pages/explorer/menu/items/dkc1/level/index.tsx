@@ -2,7 +2,7 @@ import { noop } from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { buildLevelImageFromEntranceInfo } from '../../../../../../../rom-io/common/levels';
 import { loadEntranceInfo } from '../../../../../../../rom-io/common/levels/entrance-info';
-import { getLayer } from '../../../../../../../rom-io/common/levels/layers';
+import { buildLayer } from '../../../../../../../rom-io/common/levels/layers';
 import { decodeTilesFromSpec } from '../../../../../../../rom-io/common/levels/spec';
 import { buildTerrainTilesetImage } from '../../../../../../../rom-io/common/levels/terrain';
 import {
@@ -16,7 +16,6 @@ import {
 } from '../../../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../../../rom-io/rom/address';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
-import { HexadecimalInput } from '../../../../../../components/hexadecimal-input';
 import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
 import { Menu } from '../../../../../../components/menu';
 import { stateSelector, useAppStore } from '../../../../../../state/selector';
@@ -192,7 +191,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
           <CollapsiblePanel title="Entrance info">
             <AddressesDiv>
               <LoadHexadecimalInput
-                label="Terrain Type Address"
+                label="Terrain Tilemap Address"
                 hexadecimalValue={
                   entranceInfo.terrain.tilemapAddress.snesAddress
                 }
@@ -217,18 +216,15 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
                 }}
                 onValueLoad={loadLevel}
               />
-              <HexadecimalInput
-                className="input is-small"
-                readOnly
-                value={entranceInfo.terrain.levelsTilemapStart.snesAddress}
-              />
               <LoadHexadecimalInput
-                label="Level Tilemap Address"
-                hexadecimalValue={entranceInfo.level.tilemapAddress.snesAddress}
+                label="Levels Tilemap Address"
+                hexadecimalValue={
+                  entranceInfo.terrain.levelsTilemapAddress.snesAddress
+                }
                 onValueChange={(value) => {
                   if (value === undefined) return;
-                  updateLevelInfo({
-                    tilemapAddress: RomAddress.fromSnesAddress(value),
+                  updateTerrainInfo({
+                    levelsTilemapAddress: RomAddress.fromSnesAddress(value),
                   });
                 }}
                 onValueLoad={loadLevel}
@@ -283,7 +279,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
           <button
             onClick={async () => {
               if (!rom || !entranceInfo) return;
-              const image = getLayer(rom.data, entranceInfo, 0);
+              const image = buildLayer(rom.data, entranceInfo, 0);
               const bitmap = await convertToImageBitmap(image);
               setLevelBitmap(bitmap);
             }}
@@ -293,7 +289,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
           <button
             onClick={async () => {
               if (!rom || !entranceInfo) return;
-              const image = getLayer(rom.data, entranceInfo, 1);
+              const image = buildLayer(rom.data, entranceInfo, 1);
               const bitmap = await convertToImageBitmap(image);
               setLevelBitmap(bitmap);
             }}
@@ -303,7 +299,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
           <button
             onClick={async () => {
               if (!rom || !entranceInfo) return;
-              const image = getLayer(rom.data, entranceInfo, 2);
+              const image = buildLayer(rom.data, entranceInfo, 2);
               const bitmap = await convertToImageBitmap(image);
               setLevelBitmap(bitmap);
             }}

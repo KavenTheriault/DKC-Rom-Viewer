@@ -1,4 +1,3 @@
-import { bufferToString, toHexString } from '../../../../website/utils/hex';
 import { read16, read24 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
 import {
@@ -8,27 +7,17 @@ import {
   TerrainInfo,
 } from '../types';
 import { OpcodeEntry, readOpcodeUntil } from './asm/read';
+import { readLevelsTilemapBackgroundAbsolute } from './background';
 import { readDmaTransfers } from './dma-transfers';
-import { readTerrainTypeMeta } from './terrain-type';
-import { readLevelTilemapInfo } from './tile-map';
+import { readTerrainTilemapInfo } from './terrain-type';
+import { readLevelBounds } from './tile-map';
 import { buildTilesetsInfo } from './tileset';
 import {
   findArgumentInPreviousOpcodes,
-  findOpcodeEntriesByName,
   findOpcodeEntryByAddress,
   findSubroutine,
-  readOpcodeEntryArgument,
 } from './utils';
 import { readVramRegisters } from './vram-registers';
-
-export const logOpcodeEntry = ({ opcode, bytes, address }: OpcodeEntry) => {
-  console.log({
-    name: opcode.name,
-    opcode: opcode,
-    bytes: bufferToString(bytes),
-    address: address.toString(),
-  });
-};
 
 export const loadEntranceInfo = (
   romData: Buffer,
@@ -40,18 +29,15 @@ export const loadEntranceInfo = (
     levelConstant,
     entranceId,
   );
-  /*for (const opcodeEntry of opcodeEntries) {
-    logOpcodeEntry(opcodeEntry);
-  }*/
 
   const {
     levelsTilemapOffset,
     levelsTilemapBank,
     terrainTilemapAddress,
-    levelTilemapVramAddress,
-  } = readTerrainTypeMeta(romData, levelConstant, opcodeEntries);
+    levelsTilemapVramAddress,
+  } = readTerrainTilemapInfo(romData, levelConstant, opcodeEntries);
 
-  const levelsTilemapStart = RomAddress.fromBankAndAbsolute(
+  const levelsTilemapAddress = RomAddress.fromBankAndAbsolute(
     levelsTilemapBank,
     levelsTilemapOffset,
   );
@@ -70,76 +56,19 @@ export const loadEntranceInfo = (
     levelConstant,
     terrainDataIndex,
   );
-  for (const test of dmaTransfers) {
-    console.log('dmaTransfers:', test.origin.toString());
-    console.log('dmaTransfers length', toHexString(test.length));
-    console.log('dmaTransfers destination', toHexString(test.destination));
-    console.log('dmaTransfers isCompressed', test.isCompressed);
-  }
 
-  const loadTerrainBackgroundTilemapSubroutine = findOpcodeEntryByAddress(
+  const levelsTilemapBackgroundAbsolute = readLevelsTilemapBackgroundAbsolute(
+    levelConstant,
     opcodeEntries,
-    levelConstant.subroutines.loadTerrainBackgroundTilemap,
+    levelsTilemapOffset,
   );
-
-  let levelsTilemapBackgroundAddress: RomAddress | undefined = undefined;
-  if (loadTerrainBackgroundTilemapSubroutine) {
-    const index = opcodeEntries.indexOf(loadTerrainBackgroundTilemapSubroutine);
-    const ldaOpcodes = findOpcodeEntriesByName(
-      opcodeEntries.slice(Math.max(index - 6, 0), index).reverse(),
-      'LDA',
-    );
-
-    if (ldaOpcodes.length > 0) {
-      const backgroundTilemapConst = readOpcodeEntryArgument(ldaOpcodes[0]);
-      const backgroundTilemapConst2 =
-        ldaOpcodes.length > 1 ? readOpcodeEntryArgument(ldaOpcodes[1]) : 0;
-      console.log(
-        'backgroundTilemapConst:',
-        toHexString(backgroundTilemapConst),
-      );
-      console.log(
-        'backgroundTilemapConst2:',
-        toHexString(backgroundTilemapConst2),
-      );
-
-      let temp = backgroundTilemapConst;
-      // ADC #$0100
-      temp += 0x0100;
-      temp &= 0xffff;
-      // AND #$FFE0
-      temp &= 0xffe0;
-      // ADC $D3 (levelsTilemapOffset)
-      temp += levelsTilemapOffset;
-      temp &= 0xffff;
-
-      if (backgroundTilemapConst2 > 0) {
-        let temp2 = backgroundTilemapConst2;
-        // AND #$01E0
-        temp2 &= 0x01e0;
-        // LSR (x4)
-        temp2 = temp2 >> 4;
-        temp2 &= 0xffff;
-        // ADC $4C
-        temp += temp2;
-        temp &= 0xffff;
-      }
-
-      // The value is always 0x20 before the real start
-      temp += 0x20;
-      temp &= 0xffff;
-
-      levelsTilemapBackgroundAddress = RomAddress.fromBankAndAbsolute(
-        levelsTilemapBank,
-        temp,
-      );
-
-      console.log(
-        'levelsTilemapBackgroundAddress:',
-        toHexString(levelsTilemapBackgroundAddress.snesAddress),
-      );
-    }
-  }
+  const levelsTilemapBackgroundAddress =
+    levelsTilemapBackgroundAbsolute !== null
+      ? RomAddress.fromBankAndAbsolute(
+          levelsTilemapBank,
+          levelsTilemapBackgroundAbsolute,
+        )
+      : undefined;
 
   const tilesetsInfo = buildTilesetsInfo(
     romData,
@@ -148,37 +77,38 @@ export const loadEntranceInfo = (
     opcodeEntries,
   );
 
-  const { levelTilemapAddress, levelTilemapLength } = readLevelTilemapInfo(
+  const { levelXStart, levelXEnd } = readLevelBounds(
     romData,
     levelConstant,
     entranceId,
-    levelsTilemapBank,
-    levelsTilemapOffset,
   );
+  const levelLength = levelXEnd - levelXStart;
 
-  const terrainPalettesAddress = readTerrainPaletteAddress(
+  const palettesAddress = readTerrainPaletteAddress(
     levelConstant,
     opcodeEntries,
   );
 
-  const backgroundRegisters = readVramRegisters(romData, opcodeEntries);
+  const backgroundRegisters = readVramRegisters(
+    romData,
+    levelConstant,
+    opcodeEntries,
+  );
 
   const terrain: TerrainInfo = {
-    levelTilemapVramAddress,
+    levelsTilemapVramAddress,
     levelsTilemapBackgroundAddress,
-    levelsTilemapStart,
-    palettesAddress: terrainPalettesAddress,
+    levelsTilemapAddress,
+    palettesAddress,
     tilemapAddress: terrainTilemapAddress,
     tilesetsInfo,
-    transfers: dmaTransfers,
+    dmaTransfers,
   };
   const level: LevelInfo = {
-    tilemapAddress: levelTilemapAddress,
     tilemapOffset:
-      levelConstant.entrances.correctedTilemapOffset[entranceId] ?? 0,
+      levelConstant.entrances.correctedTilemapOffset[entranceId] ?? levelXStart,
     tilemapLength:
-      levelConstant.entrances.correctedTilemapLength[entranceId] ??
-      levelTilemapLength,
+      levelConstant.entrances.correctedTilemapLength[entranceId] ?? levelLength,
     isVertical: levelConstant.entrances.isVertical.includes(entranceId),
   };
   return { terrain, level, backgroundRegisters };
