@@ -1,14 +1,11 @@
-import { memoize } from 'lodash';
+import { Buffer as WebBuffer } from 'buffer';
 import { extract, read16 } from '../../buffer';
 import { RomAddress } from '../../rom/address';
-import { Color } from '../../types/color';
-import { ImageMatrix } from '../../types/image-matrix';
+import { BPP } from '../../types/bpp';
 import { Matrix } from '../../types/matrix';
-import {
-  readTilesetAndPalette,
-  readTerrainTypeTile,
-  TILE_SIZE,
-} from './terrain';
+import { readTerrainTilemapTileBytes, readTilesetAndPalette } from './terrain';
+import { assembleImages } from './tiles/assemble';
+import { decodeTiles } from './tiles/decode-tiles';
 import { EntranceInfo, LevelInfo } from './types';
 
 export const buildLevelImageFromEntranceInfo = (
@@ -24,17 +21,28 @@ export const buildLevelImageFromEntranceInfo = (
     entranceInfo.terrain.levelsTilemapAddress,
     entranceInfo.level,
   );
-  return buildLevelImage(
+  const terrainTilemap = buildTerrainTilemapFromLevelTilemap(
+    romData,
     levelTilemap,
-    memoize((tilesetIndex) =>
-      readTerrainTypeTile(
-        romData,
-        tilesetAndPalette,
-        entranceInfo.terrain,
-        tilesetIndex,
-      ),
-    ),
+    entranceInfo.terrain.tilemapAddress,
   );
+  const tilemap = terrainTilemap.flat().flat();
+
+  const tiles = decodeTiles({
+    tileset: tilesetAndPalette.tileset,
+    tilemap: {
+      data: WebBuffer.from(tilemap),
+      address: RomAddress.fromSnesAddress(0),
+    },
+    tilemapSize: { dataLength: tilemap.length },
+    palette: tilesetAndPalette.palette,
+    bpp: BPP.Four,
+    options: {
+      opaqueZero: true,
+    },
+  });
+
+  return assembleImages(tiles, terrainTilemap.width);
 };
 
 export const readLevelTilemap = (
@@ -86,38 +94,43 @@ export const readLevelTilemap = (
   return levelTilemap;
 };
 
-const buildLevelImage = (
+export const buildTerrainTilemapFromLevelTilemap = (
+  romData: Buffer,
   levelTilemap: Matrix<number>,
-  getTileImage: (tilesetIndex: number) => ImageMatrix | null,
+  terrainTilemapAddress: RomAddress,
 ) => {
-  const result = new Matrix<Color | null>(
-    levelTilemap.width * TILE_SIZE,
-    levelTilemap.height * TILE_SIZE,
-    null,
+  const terrainTilemap = new Matrix<number[]>(
+    levelTilemap.width * 4,
+    levelTilemap.height * 4,
+    [],
   );
-
-  for (let y = 0; y < levelTilemap.height; y++) {
-    for (let x = 0; x < levelTilemap.width; x++) {
+  for (let x = 0; x < levelTilemap.width; x++) {
+    for (let y = 0; y < levelTilemap.height; y++) {
       const tileInfo = levelTilemap.get(x, y);
 
       // Flips = 11000000 00000000
       const flips = (tileInfo & 0xc000) >> 14;
+      const hFlip = (flips & 0b01) > 0;
+      const vFlip = (flips & 0b10) > 0;
 
       // Tileset Index = 00000011 11111111
       const tilesetIndex = tileInfo & 0x3ff;
-      const tileImage = getTileImage(tilesetIndex);
-      if (!tileImage) continue;
 
-      const tileClone = tileImage.clone();
-      if ((flips & 0b01) > 0) {
-        tileClone.flip('horizontal');
-      }
-      if ((flips & 0b10) > 0) {
-        tileClone.flip('vertical');
-      }
-      result.setMatrixAt(x * TILE_SIZE, y * TILE_SIZE, tileClone);
+      const tileBytesMatrix = readTerrainTilemapTileBytes(
+        romData,
+        terrainTilemapAddress,
+        tilesetIndex,
+        { hFlip, vFlip },
+      );
+      if (hFlip) tileBytesMatrix.flip('horizontal');
+      if (vFlip) tileBytesMatrix.flip('vertical');
+
+      terrainTilemap.setMatrixAt(
+        x * tileBytesMatrix.width,
+        y * tileBytesMatrix.height,
+        tileBytesMatrix,
+      );
     }
   }
-
-  return result;
+  return terrainTilemap;
 };

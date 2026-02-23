@@ -1,15 +1,15 @@
 import { extract } from '../../buffer';
+import { RomAddress } from '../../rom/address';
 import { BPP } from '../../types/bpp';
-import { ImageMatrix } from '../../types/image-matrix';
+import { Matrix } from '../../types/matrix';
 import { readPalette } from '../palettes';
 import { Palette } from '../palettes/types';
 import { decompress } from './compression';
 import { assembleImages } from './tiles/assemble';
 import { BYTES_PER_TILE_META } from './tiles/constants';
-import { decodeAndAssembleTiles, decodeTiles } from './tiles/decode-tiles';
+import { decodeTiles } from './tiles/decode-tiles';
 import { TerrainInfo, TilesetInfo } from './types';
 
-export const TILE_SIZE = 32;
 const TILEMAP_IMAGE_TILE_PER_ROW = 16;
 const PARTS_IN_TILE = 16;
 const PALETTE_LENGTH = 128;
@@ -28,27 +28,34 @@ export const readTilesetAndPalette = (
   return { tileset: Uint8Array.from(tileset), palette };
 };
 
-export const readTerrainTypeTile = (
+export const readTerrainTilemapTileBytes = (
   romData: Buffer,
-  tilesetAndPalette: TerrainTilesetAndPalette,
-  terrain: TerrainInfo,
+  tilemapAddress: RomAddress,
   tilemapIndex: number,
-): ImageMatrix => {
-  const tilemapOffset = tilemapIndex * BYTES_PER_TILE_META * PARTS_IN_TILE;
-  return decodeAndAssembleTiles({
-    tileset: tilesetAndPalette.tileset,
-    tilemap: {
-      data: romData,
-      address: terrain.tilemapAddress,
-    },
-    tilemapOffsetStart: tilemapOffset,
-    palette: tilesetAndPalette.palette,
-    bpp: BPP.Four,
-    options: {
-      opaqueZero: true,
-      assembleQuantity: PARTS_IN_TILE,
-    },
-  });
+  options: { vFlip: boolean; hFlip: boolean },
+) => {
+  const tileBytesMatrix = new Matrix<number[]>(4, 4, []);
+
+  let tilemapOffset = tilemapIndex * BYTES_PER_TILE_META * PARTS_IN_TILE;
+  for (let y = 0; y < tileBytesMatrix.height; y++) {
+    for (let x = 0; x < tileBytesMatrix.width; x++) {
+      const tileBytes = Array.from(
+        extract(
+          romData,
+          tilemapAddress.getOffsetAddress(tilemapOffset).pcAddress,
+          BYTES_PER_TILE_META,
+        ),
+      );
+
+      if (options.vFlip) tileBytes[1] ^= 0x80;
+      if (options.hFlip) tileBytes[1] ^= 0x40;
+      tileBytesMatrix.set(x, y, tileBytes);
+
+      tilemapOffset += BYTES_PER_TILE_META;
+    }
+  }
+
+  return tileBytesMatrix;
 };
 
 export const buildTerrainTileset = (
