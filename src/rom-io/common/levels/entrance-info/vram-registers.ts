@@ -12,7 +12,7 @@ export const BackgroundSize: Size[] = [
   { width: 64, height: 64 },
 ];
 
-interface BackgroundRegister {
+export interface BackgroundRegister {
   size: Size;
   tilemapAddress: number;
   tilesetAddress: number;

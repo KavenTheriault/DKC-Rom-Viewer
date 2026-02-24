@@ -1,7 +1,7 @@
 import { RomAddress } from '../../rom/address';
 import { BPP } from '../../types/bpp';
 import { DmaTransfer } from './entrance-info/dma-transfers';
-import { BackgroundRegisters } from './entrance-info/vram-registers';
+import { BackgroundRegister } from './entrance-info/vram-registers';
 
 export type TilesetInfo = {
   address: RomAddress;
@@ -27,10 +27,14 @@ export type LevelInfo = {
   isVertical: boolean;
 };
 
+export type Layer = {
+  type: 'LEVEL' | 'TILESET_IMAGE' | 'IMAGE';
+} & BackgroundRegister;
+
 export type EntranceInfo = {
   terrain: TerrainInfo;
   level: LevelInfo;
-  backgroundRegisters: BackgroundRegisters;
+  layers: Layer[];
 };
 
 export interface TilesDecodeSpec {

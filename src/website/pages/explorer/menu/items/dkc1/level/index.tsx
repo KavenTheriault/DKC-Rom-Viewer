@@ -277,36 +277,22 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
               {name}
             </button>
           ))}
-          <button
-            onClick={async () => {
-              if (!rom || !entranceInfo) return;
-              const image = buildLayer(rom.data, entranceInfo, 0);
-              const bitmap = await convertToImageBitmap(image);
-              setLevelBitmap(bitmap);
-            }}
-          >
-            BG Layer 1
-          </button>
-          <button
-            onClick={async () => {
-              if (!rom || !entranceInfo) return;
-              const image = buildLayer(rom.data, entranceInfo, 1);
-              const bitmap = await convertToImageBitmap(image);
-              setLevelBitmap(bitmap);
-            }}
-          >
-            BG Layer 2
-          </button>
-          <button
-            onClick={async () => {
-              if (!rom || !entranceInfo) return;
-              const image = buildLayer(rom.data, entranceInfo, 2);
-              const bitmap = await convertToImageBitmap(image);
-              setLevelBitmap(bitmap);
-            }}
-          >
-            BG Layer 3
-          </button>
+
+          {entranceInfo.layers.map((l, i) => {
+            if (l.type === 'LEVEL') return null;
+            return (
+              <button
+                onClick={async () => {
+                  if (!rom || !entranceInfo) return;
+                  const image = buildLayer(rom.data, entranceInfo, i);
+                  const bitmap = await convertToImageBitmap(image);
+                  setLevelBitmap(bitmap);
+                }}
+              >
+                {l.type}
+              </button>
+            );
+          })}
         </OverlaySlotsContainer>
       ),
     },

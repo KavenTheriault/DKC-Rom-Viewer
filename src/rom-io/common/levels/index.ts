@@ -26,20 +26,13 @@ export const buildLevelImageFromEntranceInfo = (
     entranceInfo.terrain.tilemapAddress,
   );
 
-  const tilemap = [];
-  for (let y = 0; y < terrainTilemap.height; y++) {
-    for (let x = 0; x < terrainTilemap.width; x++) {
-      tilemap.push(...terrainTilemap.get(x, y));
-    }
-  }
-
   const tiles = decodeTiles({
     tileset: tilesetAndPalette.tileset,
     tilemap: {
-      data: Uint8Array.from(tilemap),
+      data: terrainTilemap.bytes,
       address: 0,
     },
-    tilemapSize: { dataLength: tilemap.length },
+    tilemapSize: { dataLength: terrainTilemap.bytes.length },
     palette: tilesetAndPalette.palette,
     bpp: BPP.Four,
     options: {
@@ -103,7 +96,7 @@ export const buildTerrainTilemapFromLevelTilemap = (
   romData: Uint8Array,
   levelTilemap: Matrix<number>,
   terrainTilemapAddress: RomAddress,
-) => {
+): { bytes: Uint8Array; width: number; height: number } => {
   const terrainTilemap = new Matrix<Uint8Array>(
     levelTilemap.width * 4,
     levelTilemap.height * 4,
@@ -137,5 +130,17 @@ export const buildTerrainTilemapFromLevelTilemap = (
       );
     }
   }
-  return terrainTilemap;
+
+  const bytes = [];
+  for (let y = 0; y < terrainTilemap.height; y++) {
+    for (let x = 0; x < terrainTilemap.width; x++) {
+      bytes.push(...terrainTilemap.get(x, y));
+    }
+  }
+
+  return {
+    bytes: Uint8Array.from(bytes),
+    width: terrainTilemap.width,
+    height: terrainTilemap.height,
+  };
 };

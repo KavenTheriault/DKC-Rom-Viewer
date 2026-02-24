@@ -9,6 +9,7 @@ import {
 import { OpcodeEntry, readOpcodeUntil } from './asm/read';
 import { readLevelsTilemapBackgroundAbsolute } from './background';
 import { readDmaTransfers } from './dma-transfers';
+import { buildLayersInfo } from './layers-info';
 import { readTerrainTilemapInfo } from './terrain-type';
 import { readLevelBounds } from './tile-map';
 import { buildTilesetsInfo } from './tileset';
@@ -17,7 +18,6 @@ import {
   findOpcodeEntryByAddress,
   findSubroutine,
 } from './utils';
-import { readVramRegisters } from './vram-registers';
 
 export const loadEntranceInfo = (
   romData: Uint8Array,
@@ -89,12 +89,6 @@ export const loadEntranceInfo = (
     opcodeEntries,
   );
 
-  const backgroundRegisters = readVramRegisters(
-    romData,
-    levelConstant,
-    opcodeEntries,
-  );
-
   const terrain: TerrainInfo = {
     levelsTilemapVramAddress,
     levelsTilemapBackgroundAddress,
@@ -111,7 +105,14 @@ export const loadEntranceInfo = (
       levelConstant.entrances.correctedTilemapLength[entranceId] ?? levelLength,
     isVertical: levelConstant.entrances.isVertical.includes(entranceId),
   };
-  return { terrain, level, backgroundRegisters };
+  const layers = buildLayersInfo(
+    romData,
+    levelConstant,
+    opcodeEntries,
+    terrain,
+  );
+
+  return { terrain, level, layers };
 };
 
 const readLoadEntranceOpcodes = (

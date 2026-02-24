@@ -16,11 +16,6 @@ export const buildVramFromDma = (
 ): Uint8Array => {
   const vram = new Uint8Array(SNES_VRAM_LENGTH);
 
-  const updateVram = (data: Uint8Array, destination: number) => {
-    /* `destination` is a VRAM *word* address (increments in 16-bit units) */
-    vram.set(data, destination * 2);
-  };
-
   for (const transfer of dmaTransfers) {
     const { origin, destination, length } = transfer;
 
@@ -31,12 +26,26 @@ export const buildVramFromDma = (
       sourceData = extract(romData, origin.pcAddress, length);
     }
 
-    updateVram(sourceData, destination);
+    updateVram(vram, sourceData, destination);
   }
 
   for (const transfer of manualTransfers) {
-    updateVram(transfer.data, transfer.destination);
+    updateVram(vram, transfer.data, transfer.destination);
   }
 
   return vram;
+};
+
+export const updateVram = (
+  vram: Uint8Array,
+  data: Uint8Array,
+  destination: number,
+) => {
+  /* `destination` is a VRAM *word* address (increments in 16-bit units) */
+  vram.set(data, destination * 2);
+};
+
+export const readVram = (vram: Uint8Array, address: number, length: number) => {
+  /* `destination` is a VRAM *word* address (increments in 16-bit units) */
+  return extract(vram, address * 2, length);
 };
