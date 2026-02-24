@@ -28,7 +28,7 @@ export type LevelInfo = {
 };
 
 export type Layer = {
-  type: 'LEVEL' | 'TILESET_IMAGE' | 'IMAGE';
+  type: 'Level' | 'Tileset' | 'Image';
 } & BackgroundRegister;
 
 export type EntranceInfo = {

@@ -25,11 +25,11 @@ export const buildLayersInfo = (
 
     let type: Layer['type'];
     if (layer.tilemapAddress === terrainInfo.levelsTilemapVramAddress) {
-      type = 'LEVEL';
+      type = 'Level';
     } else if (layer.tilesetAddress === terrainTilesetAddress) {
-      type = 'TILESET_IMAGE';
+      type = 'Tileset';
     } else {
-      type = 'IMAGE';
+      type = 'Image';
     }
 
     layers.push({ type, ...layer });

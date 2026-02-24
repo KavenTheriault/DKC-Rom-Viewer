@@ -29,7 +29,14 @@ import { OverlaySlotsContainer } from '../../../../styles';
 import { AddressesDiv } from '../styles';
 import { EntranceIndexInput } from './index-input';
 import { DKC1_LEVELS } from './level-list';
+import { RadiosContainer, RadioText } from './styles';
 import { Level, LevelItem } from './types';
+
+type DisplayMode = {
+  mode: 'Level' | 'Tilemap' | 'Layer';
+  layerIndex?: number;
+};
+const defaultDisplayMode: DisplayMode = { mode: 'Level' };
 
 export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   const appStore = useAppStore();
@@ -47,13 +54,15 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   const [selectedLevelItem, setSelectedLevelItem] = useState<LevelItem | null>(
     DKC1_LEVELS[0].items[0],
   );
-  const [showTilemapOnly, setShowTilemapOnly] = useState<boolean>(false);
   const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
   const [levelBitmap, setLevelBitmap] = useState<ImageBitmap>();
+  const [displayMode, setDisplayMode] =
+    useState<DisplayMode>(defaultDisplayMode);
   const [error, setError] = useState('');
 
   const loadLevelFromEntranceId = async (entrance: number) => {
     setError('');
+    setDisplayMode(defaultDisplayMode);
 
     let info: EntranceInfo | null = null;
     try {
@@ -66,17 +75,28 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
       setLevelBitmap(undefined);
     }
 
-    if (info) await loadLevelFromEntranceInfo(info);
+    if (info) await loadFromEntranceInfoAndMode(info);
   };
 
-  const loadLevelFromEntranceInfo = async (info: EntranceInfo) => {
+  const loadFromEntranceInfoAndMode = async (info: EntranceInfo) => {
     setError('');
 
     try {
-      const levelImage = showTilemapOnly
-        ? buildTerrainTilesetImage(rom.data, info.terrain)
-        : buildLevelImageFromEntranceInfo(rom.data, info);
-      const bitmap = await convertToImageBitmap(levelImage);
+      let imageMatrix;
+      switch (displayMode.mode) {
+        case 'Level':
+          imageMatrix = buildLevelImageFromEntranceInfo(rom.data, info);
+          break;
+        case 'Tilemap':
+          imageMatrix = buildTerrainTilesetImage(rom.data, info.terrain);
+          break;
+        case 'Layer':
+          if (displayMode.layerIndex === undefined) return;
+          imageMatrix = buildLayer(rom.data, info, displayMode.layerIndex);
+          break;
+      }
+
+      const bitmap = await convertToImageBitmap(imageMatrix);
       setLevelBitmap(bitmap);
     } catch (error) {
       console.error(error);
@@ -111,7 +131,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
 
   const loadLevel = async () => {
     if (!entranceInfo) return;
-    await loadLevelFromEntranceInfo(entranceInfo);
+    await loadFromEntranceInfoAndMode(entranceInfo);
   };
 
   const drawLevelImage = (
@@ -144,8 +164,9 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   }, [selectedLevelItem]);
 
   useEffect(() => {
-    loadLevel().then(noop);
-  }, [showTilemapOnly]);
+    if (!entranceInfo) return;
+    loadFromEntranceInfoAndMode(entranceInfo).then(noop);
+  }, [displayMode]);
 
   useEffect(() => {
     canvasController.resetTransform();
@@ -255,15 +276,41 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
             </AddressesDiv>
           </CollapsiblePanel>
           <CollapsiblePanel title="Options">
-            <label className="checkbox">
-              <input
-                className="mr-1"
-                type="checkbox"
-                value={showTilemapOnly.toString()}
-                onChange={() => setShowTilemapOnly(!showTilemapOnly)}
-              />
-              Show Tilemap Only
-            </label>
+            <RadiosContainer>
+              {entranceInfo.layers.map((l, i) => {
+                const layerDisplayMode: DisplayMode =
+                  l.type === 'Level'
+                    ? { mode: 'Level' }
+                    : { mode: 'Layer', layerIndex: i };
+                return (
+                  <label>
+                    <input
+                      type="radio"
+                      name="display_mode"
+                      value={l.type}
+                      checked={
+                        displayMode.mode === layerDisplayMode.mode &&
+                        displayMode.layerIndex === layerDisplayMode.layerIndex
+                      }
+                      onChange={() => setDisplayMode(layerDisplayMode)}
+                    />
+                    <RadioText>
+                      Layer {i + 1}: {l.type}
+                    </RadioText>
+                  </label>
+                );
+              })}
+              <label>
+                <input
+                  type="radio"
+                  name="display_mode"
+                  value="tilemap"
+                  checked={displayMode.mode === 'Tilemap'}
+                  onChange={() => setDisplayMode({ mode: 'Tilemap' })}
+                />
+                <RadioText>Tilemap</RadioText>
+              </label>
+            </RadiosContainer>
           </CollapsiblePanel>
           {Object.entries(DKC1_ASSETS).map(([name, spec]) => (
             <button
@@ -277,22 +324,6 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
               {name}
             </button>
           ))}
-
-          {entranceInfo.layers.map((l, i) => {
-            if (l.type === 'LEVEL') return null;
-            return (
-              <button
-                onClick={async () => {
-                  if (!rom || !entranceInfo) return;
-                  const image = buildLayer(rom.data, entranceInfo, i);
-                  const bitmap = await convertToImageBitmap(image);
-                  setLevelBitmap(bitmap);
-                }}
-              >
-                {l.type}
-              </button>
-            );
-          })}
         </OverlaySlotsContainer>
       ),
     },

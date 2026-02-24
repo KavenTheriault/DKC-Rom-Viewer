@@ -25,7 +25,7 @@ export const buildLayer = (
   const manualTransfers: ManualTransfer[] = [];
   if (
     entranceInfo.terrain.levelsTilemapBackgroundAddress &&
-    layer.type === 'TILESET_IMAGE'
+    layer.type === 'Tileset'
   ) {
     const tilemap = buildLayerTilemap(
       romData,
