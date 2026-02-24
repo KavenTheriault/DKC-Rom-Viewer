@@ -4,13 +4,13 @@ import { Rom } from '../../../rom-io/rom/types';
 
 interface ScanControlsProps {
   onSelectedAddressChange: (address: RomAddress) => void;
-  scanFn: (romData: Buffer) => RomAddress[];
+  scanFn: (romData: Uint8Array) => RomAddress[];
   rom: Rom;
 }
 
 const scanAsync = (
-  romData: Buffer,
-  scan: (romData: Buffer) => RomAddress[],
+  romData: Uint8Array,
+  scan: (romData: Uint8Array) => RomAddress[],
 ): Promise<RomAddress[]> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {

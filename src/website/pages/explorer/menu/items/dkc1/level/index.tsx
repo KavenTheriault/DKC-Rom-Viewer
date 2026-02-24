@@ -79,6 +79,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
       const bitmap = await convertToImageBitmap(levelImage);
       setLevelBitmap(bitmap);
     } catch (error) {
+      console.error(error);
       setError(
         error instanceof Error ? error.message : 'Invalid entrance info',
       );

@@ -6,7 +6,7 @@ import { DmaTransfer } from './dma-transfers';
 import { findOpcodeEntryByAddress, readOpcodeEntryArgument } from './utils';
 
 export const buildTilesetsInfo = (
-  romData: Buffer,
+  romData: Uint8Array,
   levelConstant: GameLevelConstant,
   dmaTransfers: DmaTransfer[],
   opcodeEntries: OpcodeEntry[],

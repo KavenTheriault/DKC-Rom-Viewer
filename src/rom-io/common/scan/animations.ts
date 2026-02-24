@@ -4,7 +4,7 @@ import { EntityCommand } from '../entities/types';
 import { scanEntities } from './entities';
 
 export const scanAnimations = (
-  romData: Buffer,
+  romData: Uint8Array,
   entityBankSnesAddress: number,
   entitiesStartReference: number,
   entitiesEndReference: number,

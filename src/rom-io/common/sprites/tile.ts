@@ -12,7 +12,7 @@ import { SmallTile } from './types';
 export const TILE_DATA_LENGTH = 32;
 
 export const getSmallTiles = (
-  romData: Buffer,
+  romData: Uint8Array,
   spriteAddress: RomAddress,
   spriteHeader: SpriteHeader,
 ): SmallTile[] => {
@@ -24,14 +24,14 @@ export const getSmallTiles = (
     const tileAddress: RomAddress = tilesStartAddress.getOffsetAddress(
       i * TILE_DATA_LENGTH,
     );
-    const tileData: Buffer = extract(
+    const tileData: Uint8Array = extract(
       romData,
       tileAddress.pcAddress,
       TILE_DATA_LENGTH,
     );
     tiles.push({
       address: tileAddress,
-      pixels: parseTilePixels(Array.from(tileData)),
+      pixels: parseTilePixels(tileData),
     });
   }
   return tiles;

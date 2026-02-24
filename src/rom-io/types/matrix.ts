@@ -70,16 +70,6 @@ export class Matrix<T> {
     }
     return result;
   }
-
-  flat(): T[] {
-    const result: T[] = [];
-    for (let y = 0; y < this.height; y++) {
-      for (let x = 0; x < this.width; x++) {
-        result.push(this.get(x, y));
-      }
-    }
-    return result;
-  }
 }
 
 /* Combine an array of matrices into a bigger matrix

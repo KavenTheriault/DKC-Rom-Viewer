@@ -1,4 +1,3 @@
-import { Buffer as WebBuffer } from 'buffer';
 import { extract, read16 } from '../../buffer';
 import { RomAddress } from '../../rom/address';
 import { BPP } from '../../types/bpp';
@@ -9,7 +8,7 @@ import { decodeTiles } from './tiles/decode-tiles';
 import { EntranceInfo, LevelInfo } from './types';
 
 export const buildLevelImageFromEntranceInfo = (
-  romData: Buffer,
+  romData: Uint8Array,
   entranceInfo: EntranceInfo,
 ) => {
   const tilesetAndPalette = readTilesetAndPalette(
@@ -26,13 +25,19 @@ export const buildLevelImageFromEntranceInfo = (
     levelTilemap,
     entranceInfo.terrain.tilemapAddress,
   );
-  const tilemap = terrainTilemap.flat().flat();
+
+  const tilemap = [];
+  for (let y = 0; y < terrainTilemap.height; y++) {
+    for (let x = 0; x < terrainTilemap.width; x++) {
+      tilemap.push(...terrainTilemap.get(x, y));
+    }
+  }
 
   const tiles = decodeTiles({
     tileset: tilesetAndPalette.tileset,
     tilemap: {
-      data: WebBuffer.from(tilemap),
-      address: RomAddress.fromSnesAddress(0),
+      data: Uint8Array.from(tilemap),
+      address: 0,
     },
     tilemapSize: { dataLength: tilemap.length },
     palette: tilesetAndPalette.palette,
@@ -46,7 +51,7 @@ export const buildLevelImageFromEntranceInfo = (
 };
 
 export const readLevelTilemap = (
-  romData: Buffer,
+  romData: Uint8Array,
   tilemapAddress: RomAddress,
   level: LevelInfo,
 ) => {
@@ -95,14 +100,14 @@ export const readLevelTilemap = (
 };
 
 export const buildTerrainTilemapFromLevelTilemap = (
-  romData: Buffer,
+  romData: Uint8Array,
   levelTilemap: Matrix<number>,
   terrainTilemapAddress: RomAddress,
 ) => {
-  const terrainTilemap = new Matrix<number[]>(
+  const terrainTilemap = new Matrix<Uint8Array>(
     levelTilemap.width * 4,
     levelTilemap.height * 4,
-    [],
+    new Uint8Array(0),
   );
   for (let x = 0; x < levelTilemap.width; x++) {
     for (let y = 0; y < levelTilemap.height; y++) {

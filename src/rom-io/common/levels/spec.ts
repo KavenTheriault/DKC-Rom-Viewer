@@ -6,7 +6,7 @@ import { decodeTiles } from './tiles/decode-tiles';
 import { TilesDecodeSpec } from './types';
 
 export const decodeTilesFromSpec = (
-  romData: Buffer,
+  romData: Uint8Array,
   spec: TilesDecodeSpec,
   tilesPerRow: number,
 ): ImageMatrix => {
@@ -22,7 +22,7 @@ export const decodeTilesFromSpec = (
     tileset,
     tilemap: {
       data: romData,
-      address: spec.tilemap.address,
+      address: spec.tilemap.address.pcAddress,
     },
     tilemapSize: { dataLength: spec.tilemap.length },
     palette,

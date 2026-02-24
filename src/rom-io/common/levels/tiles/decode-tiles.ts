@@ -1,4 +1,3 @@
-import { RomAddress } from '../../../rom/address';
 import { BPP } from '../../../types/bpp';
 import { Color } from '../../../types/color';
 import { ImageMatrix } from '../../../types/image-matrix';
@@ -14,8 +13,8 @@ interface DecodeTilesOptions extends DecodeTileOptions {
 interface BaseDecodeTilesParams {
   tileset: Uint8Array;
   tilemap: {
-    data: Buffer;
-    address: RomAddress;
+    data: Uint8Array;
+    address: number;
   };
   palette: Palette;
   bpp: BPP;

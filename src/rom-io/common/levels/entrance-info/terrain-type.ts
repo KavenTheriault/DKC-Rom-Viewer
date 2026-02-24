@@ -6,7 +6,7 @@ import { findArgumentInPreviousOpcodes, findSubroutine } from './utils';
 
 // Ref: ASM Code at $818C66
 export const readTerrainTilemapInfo = (
-  romData: Buffer,
+  romData: Uint8Array,
   levelConstant: GameLevelConstant,
   opcodeEntries: OpcodeEntry[],
 ) => {

@@ -20,26 +20,26 @@ type TerrainTilesetAndPalette = {
 };
 
 export const readTilesetAndPalette = (
-  romData: Buffer,
+  romData: Uint8Array,
   terrain: TerrainInfo,
 ): TerrainTilesetAndPalette => {
   const tileset = buildTerrainTileset(romData, terrain.tilesetsInfo);
   const palette = readPalette(romData, terrain.palettesAddress, PALETTE_LENGTH);
-  return { tileset: Uint8Array.from(tileset), palette };
+  return { tileset, palette };
 };
 
 export const readTerrainTilemapTileBytes = (
-  romData: Buffer,
+  romData: Uint8Array,
   tilemapAddress: RomAddress,
   tilemapIndex: number,
   options: { vFlip: boolean; hFlip: boolean },
 ) => {
-  const tileBytesMatrix = new Matrix<number[]>(4, 4, []);
+  const tileBytesMatrix = new Matrix<Uint8Array>(4, 4, new Uint8Array(0));
 
   let tilemapOffset = tilemapIndex * BYTES_PER_TILE_META * PARTS_IN_TILE;
   for (let y = 0; y < tileBytesMatrix.height; y++) {
     for (let x = 0; x < tileBytesMatrix.width; x++) {
-      const tileBytes = Array.from(
+      const tileBytes = Uint8Array.from(
         extract(
           romData,
           tilemapAddress.getOffsetAddress(tilemapOffset).pcAddress,
@@ -59,14 +59,14 @@ export const readTerrainTilemapTileBytes = (
 };
 
 export const buildTerrainTileset = (
-  romData: Buffer,
+  romData: Uint8Array,
   tilesetInfos: TilesetInfo[],
 ) => {
   const result: number[] = [];
 
-  let decompressedData: number[] | undefined = undefined;
+  let decompressedData: Uint8Array | undefined = undefined;
   for (const tilesetInfo of tilesetInfos) {
-    let dataToAdd: number[];
+    let dataToAdd: Uint8Array;
 
     if (tilesetInfo.isCompressed) {
       if (!decompressedData) {
@@ -75,8 +75,10 @@ export const buildTerrainTileset = (
 
       dataToAdd = decompressedData;
     } else {
-      dataToAdd = Array.from(
-        extract(romData, tilesetInfo.address.pcAddress, tilesetInfo.length),
+      dataToAdd = extract(
+        romData,
+        tilesetInfo.address.pcAddress,
+        tilesetInfo.length,
       );
     }
 
@@ -95,11 +97,11 @@ export const buildTerrainTileset = (
     );
   }
 
-  return result;
+  return Uint8Array.from(result);
 };
 
 export const buildTerrainTilesetImage = (
-  romData: Buffer,
+  romData: Uint8Array,
   terrain: TerrainInfo,
 ) => {
   const tilesetAndPalette = readTilesetAndPalette(romData, terrain);
@@ -110,7 +112,7 @@ export const buildTerrainTilesetImage = (
     tileset: tilesetAndPalette.tileset,
     tilemap: {
       data: romData,
-      address: terrain.tilemapAddress,
+      address: terrain.tilemapAddress.pcAddress,
     },
     tilemapSize: { tilesQuantity },
     palette: tilesetAndPalette.palette,

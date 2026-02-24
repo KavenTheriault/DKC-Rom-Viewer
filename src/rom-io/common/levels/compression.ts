@@ -8,7 +8,7 @@ enum CompressionCommand {
   Raw = 0x00,
 }
 
-export const decompress = (romData: Buffer, address: RomAddress) => {
+export const decompress = (romData: Uint8Array, address: RomAddress) => {
   let index = 0x80;
   const readNextByte = () => {
     const result = read8(romData, address.pcAddress + index);
@@ -53,5 +53,5 @@ export const decompress = (romData: Buffer, address: RomAddress) => {
     }
   }
 
-  return decompressed;
+  return Uint8Array.from(decompressed);
 };

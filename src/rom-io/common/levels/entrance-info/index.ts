@@ -20,7 +20,7 @@ import {
 import { readVramRegisters } from './vram-registers';
 
 export const loadEntranceInfo = (
-  romData: Buffer,
+  romData: Uint8Array,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ): EntranceInfo => {
@@ -115,7 +115,7 @@ export const loadEntranceInfo = (
 };
 
 const readLoadEntranceOpcodes = (
-  romData: Buffer,
+  romData: Uint8Array,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ) => {

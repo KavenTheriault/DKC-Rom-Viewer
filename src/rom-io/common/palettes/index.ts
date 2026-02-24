@@ -49,7 +49,7 @@ export const grayscalePalette = (): Color[] => {
 };
 
 export const readPalette = (
-  romData: Buffer,
+  romData: Uint8Array,
   paletteAddress: RomAddress,
   paletteLength: number = SPRITE_PALETTE_LENGTH,
 ): Palette => {
@@ -62,7 +62,7 @@ export const readPalette = (
 };
 
 export const readPalettes = (
-  romData: Buffer,
+  romData: Uint8Array,
   palettesAddress: RomAddress,
   paletteQuantity: number,
   paletteLength: number,

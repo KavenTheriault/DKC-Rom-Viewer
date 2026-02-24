@@ -1,4 +1,3 @@
-import { Buffer as WebBuffer } from 'buffer';
 import { Size } from '../../../../website/types/spatial';
 import { extract } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
@@ -17,7 +16,7 @@ const BG_IMAGE_DATA_LENGTH = 0x800;
 const BG_PART_SIZE = 32;
 
 export const buildLayer = (
-  romData: Buffer,
+  romData: Uint8Array,
   entranceInfo: EntranceInfo,
   layerIndex: number,
 ) => {
@@ -49,14 +48,11 @@ export const buildLayer = (
     });
   }
 
-  const vram = WebBuffer.from(
-    buildVramFromDma(
-      romData,
-      entranceInfo.terrain.dmaTransfers,
-      manualTransfers,
-    ),
+  const vram = buildVramFromDma(
+    romData,
+    entranceInfo.terrain.dmaTransfers,
+    manualTransfers,
   );
-
   const tileset = extract(vram, layer.tilesetAddress * 2, 0x8000);
   const tilemap = extract(vram, layer.tilemapAddress * 2, 0x4000);
 
@@ -72,10 +68,10 @@ export const buildLayer = (
   const pageImages = [];
   for (let i = 0; i < widthPartCount * heightPartCount; i++) {
     const tiles = decodeTiles({
-      tileset: Uint8Array.from(tileset),
+      tileset: tileset,
       tilemap: {
         data: tilemap,
-        address: RomAddress.fromSnesAddress(BG_IMAGE_DATA_LENGTH * i),
+        address: RomAddress.fromSnesAddress(BG_IMAGE_DATA_LENGTH * i).pcAddress,
       },
       tilemapSize: { dataLength: BG_IMAGE_DATA_LENGTH },
       palette,
@@ -91,7 +87,7 @@ export const buildLayer = (
 };
 
 const buildScreenTilemap = (
-  romData: Buffer,
+  romData: Uint8Array,
   terrainTilemapAddress: RomAddress,
   levelsTilemapAddress: RomAddress,
   size: Size,
@@ -113,9 +109,14 @@ const buildScreenTilemap = (
         bgPart,
         terrainTilemapAddress,
       );
-      tilemap.push(...terrainTilemap.flat().flat());
+
+      for (let pY = 0; pY < terrainTilemap.height; pY++) {
+        for (let pX = 0; pX < terrainTilemap.width; pX++) {
+          tilemap.push(...terrainTilemap.get(pX, pY));
+        }
+      }
     }
   }
 
-  return tilemap;
+  return Uint8Array.from(tilemap);
 };

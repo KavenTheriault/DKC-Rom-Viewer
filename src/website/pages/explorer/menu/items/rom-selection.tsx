@@ -1,4 +1,3 @@
-import { Buffer as WebBuffer } from 'buffer';
 import { cloneDeep } from 'lodash';
 import React, { ChangeEvent, useState } from 'react';
 import { readRomFile } from '../../../../../rom-io/rom';
@@ -36,11 +35,9 @@ export const RomSelection: MainMenuItemComponent = ({ children }) => {
 
     if (event.target.files?.length) {
       const file: File = event.target.files[0];
+      const bytes: Uint8Array = await file.bytes();
 
-      const bytes: ArrayBuffer = await file.arrayBuffer();
-      const buffer: Buffer = WebBuffer.from(bytes);
-
-      const rom = await readRomFile(buffer);
+      const rom = await readRomFile(bytes);
       onSelectedRom(rom);
     }
   };
@@ -51,11 +48,9 @@ export const RomSelection: MainMenuItemComponent = ({ children }) => {
     try {
       setIsDownloading(true);
       const response = await fetch(atob(DKC1_ROM_BASE64_URL));
+      const bytes: Uint8Array = await response.bytes();
 
-      const bytes: ArrayBuffer = await response.arrayBuffer();
-      const buffer: Buffer = WebBuffer.from(bytes);
-
-      const rom = await readRomFile(buffer);
+      const rom = await readRomFile(bytes);
       onSelectedRom(rom);
     } catch (e) {
       setError('An error occurred when downloading Rom');

@@ -24,7 +24,7 @@ export interface BackgroundRegisters {
 
 // Ref: ASM Code at $B9A4DC
 export const readVramRegisters = (
-  romData: Buffer,
+  romData: Uint8Array,
   levelConstant: GameLevelConstant,
   opcodeEntries: OpcodeEntry[],
 ): BackgroundRegisters => {

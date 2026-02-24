@@ -1,5 +1,4 @@
-import { read16 } from '../../../buffer';
-import { RomAddress } from '../../../rom/address';
+import { extract, read16 } from '../../../buffer';
 import { BPP } from '../../../types/bpp';
 import { Color } from '../../../types/color';
 import { ImageMatrix } from '../../../types/image-matrix';
@@ -19,8 +18,8 @@ export interface DecodeTileOptions {
 interface DecodeTileParams {
   tileset: Uint8Array;
   tilemap: {
-    data: Buffer;
-    address: RomAddress;
+    data: Uint8Array;
+    address: number;
     offset: number;
   };
   palette: Palette;
@@ -40,10 +39,7 @@ export const decodeTile = ({
     skipBackgroundTiles = false,
     skipForegroundTiles = false,
   } = options ?? {};
-  const tilemapTile = read16(
-    tilemap.data,
-    tilemap.address.getOffsetAddress(tilemap.offset).pcAddress,
-  );
+  const tilemapTile = read16(tilemap.data, tilemap.address + tilemap.offset);
 
   // Vertical Flip = 10000000 00000000
   const vFlip = (tilemapTile & 0xc000) >> 15;
@@ -61,9 +57,7 @@ export const decodeTile = ({
   const paletteOffset = paletteIndex * (is4bpp ? 16 : 4);
 
   const tilesetTileLength = 8 * (is4bpp ? 4 : 2);
-  const tilesetTile = Array.from(
-    tileset.subarray(tilesetOffset, tilesetOffset + tilesetTileLength),
-  );
+  const tilesetTile = extract(tileset, tilesetOffset, tilesetTileLength);
   const pixels = parseTilePixels(tilesetTile, bpp);
 
   const tile = new Matrix<Color | null>(8, 8, null);

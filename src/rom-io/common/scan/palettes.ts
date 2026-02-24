@@ -4,7 +4,7 @@ import { paletteReferenceToSnesAddress } from '../palettes';
 import { scanEntities } from './entities';
 
 export const scanPalettes = (
-  romData: Buffer,
+  romData: Uint8Array,
   entityBankSnesAddress: number,
   entityPaletteBankSnesAddress: number,
   entitiesStartReference: number,

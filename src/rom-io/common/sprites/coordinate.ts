@@ -12,14 +12,14 @@ export const getSpriteCoordinateQuantity = (spriteHeader: SpriteHeader) =>
   spriteHeader.tileQuantity.small2;
 
 export const getSpriteCoordinates = (
-  romData: Buffer,
+  romData: Uint8Array,
   spriteAddress: RomAddress,
   spriteHeader: SpriteHeader,
 ): Coordinate[] => {
   const coordinates: Coordinate[] = [];
   const coordinatesPosition: number =
     spriteAddress.pcAddress + SPRITE_HEADER_LENGTH;
-  const coordinatesData: Buffer = extract(
+  const coordinatesData: Uint8Array = extract(
     romData,
     coordinatesPosition,
     getSpriteCoordinateQuantity(spriteHeader) * 2,

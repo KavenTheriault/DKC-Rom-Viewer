@@ -2,7 +2,7 @@ import { BPP } from '../types/bpp';
 import { Matrix } from '../types/matrix';
 
 export const parseTilePixels = (
-  pixelData: number[],
+  pixelData: Uint8Array,
   bpp: BPP = BPP.Four,
 ): Matrix<number> => {
   const pixels = new Matrix(8, 8, 0);

@@ -177,7 +177,7 @@ export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
         <CollapsiblePanel title="Scan Animations" startCollapsed>
           <ScanControls
             rom={rom}
-            scanFn={(romData: Buffer) => {
+            scanFn={(romData: Uint8Array) => {
               return scanAnimations(
                 romData,
                 Dkc1EntityBank,

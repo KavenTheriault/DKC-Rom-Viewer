@@ -16,7 +16,7 @@ const DATA_LENGTH_OFFSET = 5; // $a999
 
 // Ref: ASM Code at $B9A924
 export const readDmaTransfers = (
-  romData: Buffer,
+  romData: Uint8Array,
   levelConstant: GameLevelConstant,
   terrainDataIndex: number,
 ): DmaTransfer[] => {
@@ -60,7 +60,7 @@ export const readDmaTransfers = (
 };
 
 const readDmaTransfer = (
-  romData: Buffer,
+  romData: Uint8Array,
   levelConstant: GameLevelConstant,
   offset: number,
   isCompressed: boolean,

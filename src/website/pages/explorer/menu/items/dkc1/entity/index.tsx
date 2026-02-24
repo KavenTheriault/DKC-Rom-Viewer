@@ -178,7 +178,7 @@ export const Dkc1Entity: MainMenuItemComponent = ({ children }) => {
         <CollapsiblePanel title="Scan Entities" startCollapsed>
           <ScanControls
             rom={rom}
-            scanFn={(romData: Buffer) => {
+            scanFn={(romData: Uint8Array) => {
               return scanEntityAddresses(
                 romData,
                 Dkc1EntityBank,

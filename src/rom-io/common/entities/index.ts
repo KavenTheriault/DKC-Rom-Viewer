@@ -12,7 +12,7 @@ import {
 } from './types';
 
 export const readEntityFromReference = (
-  romData: Buffer,
+  romData: Uint8Array,
   entityBankSnesAddress: number,
   entityReference: number,
 ) => {
@@ -35,7 +35,7 @@ export const snesAddressToEntityReference = (romAddress: RomAddress) => {
 };
 
 export const readEntity = (
-  romData: Buffer,
+  romData: Uint8Array,
   entityBankSnesAddress: number,
   romAddress: RomAddress,
 ): Entity => {
@@ -107,7 +107,7 @@ export const findEntityInstruction = (
 };
 
 export const readEntityAnimationInfo = (
-  romData: Buffer,
+  romData: Uint8Array,
   animationScriptBankSnesAddress: number,
   animationScriptTableSnesAddress: number,
   entity: Entity,
@@ -129,7 +129,7 @@ export const readEntityAnimationInfo = (
 };
 
 export const readEntityPalette = (
-  romData: Buffer,
+  romData: Uint8Array,
   entityPaletteBankSnesAddress: number,
   entity: Entity,
 ): Palette | undefined => {

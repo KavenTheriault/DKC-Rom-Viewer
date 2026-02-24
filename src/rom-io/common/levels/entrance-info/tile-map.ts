@@ -5,7 +5,7 @@ import { GameLevelConstant } from '../types';
 const SCREEN_WIDTH = 0x100;
 
 export const readLevelBounds = (
-  romData: Buffer,
+  romData: Uint8Array,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ) => {

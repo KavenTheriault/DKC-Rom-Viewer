@@ -45,13 +45,13 @@ export const AnimationCommandParametersCount: Record<AnimationCommand, number> =
 
 export type AnimationInfo = {
   address: RomAddress;
-  bytes: Buffer;
+  bytes: Uint8Array;
   entries: (EntryCommand | EntrySprite)[];
 };
 
 export type EntryCommand = {
   command: AnimationCommand;
-  parameters: Buffer;
+  parameters: Uint8Array;
 };
 
 export type EntrySprite = {
