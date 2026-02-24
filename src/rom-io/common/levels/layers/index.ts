@@ -7,6 +7,7 @@ import {
   readLevelTilemap,
 } from '../index';
 import { assembleImages } from '../tiles/assemble';
+import { DecodeTileOptions } from '../tiles/decode-tile';
 import { decodeTiles } from '../tiles/decode-tiles';
 import { EntranceInfo } from '../types';
 import { buildVramFromDma, ManualTransfer, readVram } from './vram';
@@ -19,6 +20,7 @@ export const buildLayer = (
   romData: Uint8Array,
   entranceInfo: EntranceInfo,
   layerIndex: number,
+  decodeTileOptions?: DecodeTileOptions,
 ) => {
   const layer = entranceInfo.layers[layerIndex];
 
@@ -68,9 +70,7 @@ export const buildLayer = (
       tilemapSize: { dataLength: LAYER_PART_DATA_LENGTH },
       palette,
       bpp: layerIndex > 1 ? BPP.Two : BPP.Four,
-      options: {
-        opaqueZero: layerIndex > 1,
-      },
+      options: decodeTileOptions,
     });
     partImages.push(assembleImages(tiles, LAYER_PART_SIZE));
   }

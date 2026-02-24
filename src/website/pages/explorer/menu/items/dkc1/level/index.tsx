@@ -5,6 +5,7 @@ import { loadEntranceInfo } from '../../../../../../../rom-io/common/levels/entr
 import { buildLayer } from '../../../../../../../rom-io/common/levels/layers';
 import { decodeTilesFromSpec } from '../../../../../../../rom-io/common/levels/spec';
 import { buildTerrainTilesetImage } from '../../../../../../../rom-io/common/levels/terrain';
+import { DecodeTileOptions } from '../../../../../../../rom-io/common/levels/tiles/decode-tile';
 import {
   EntranceInfo,
   LevelInfo,
@@ -29,7 +30,7 @@ import { OverlaySlotsContainer } from '../../../../styles';
 import { AddressesDiv } from '../styles';
 import { EntranceIndexInput } from './index-input';
 import { DKC1_LEVELS } from './level-list';
-import { RadiosContainer, RadioText } from './styles';
+import { OptionsContainer, RadioText } from './styles';
 import { Level, LevelItem } from './types';
 
 type DisplayMode = {
@@ -37,6 +38,7 @@ type DisplayMode = {
   layerIndex?: number;
 };
 const defaultDisplayMode: DisplayMode = { mode: 'Level' };
+const defaultDecodeTileOptions: DecodeTileOptions = { opaqueZero: true };
 
 export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   const appStore = useAppStore();
@@ -52,12 +54,15 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   };
 
   const [selectedLevelItem, setSelectedLevelItem] = useState<LevelItem | null>(
-    DKC1_LEVELS[0].items[0],
+    null,
   );
   const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
   const [levelBitmap, setLevelBitmap] = useState<ImageBitmap>();
   const [displayMode, setDisplayMode] =
     useState<DisplayMode>(defaultDisplayMode);
+  const [decodeTileOptions, setDecodeTileOptions] = useState<DecodeTileOptions>(
+    defaultDecodeTileOptions,
+  );
   const [error, setError] = useState('');
 
   const loadLevelFromEntranceId = async (entrance: number) => {
@@ -85,14 +90,27 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
       let imageMatrix;
       switch (displayMode.mode) {
         case 'Level':
-          imageMatrix = buildLevelImageFromEntranceInfo(rom.data, info);
+          imageMatrix = buildLevelImageFromEntranceInfo(
+            rom.data,
+            info,
+            decodeTileOptions,
+          );
           break;
         case 'Tilemap':
-          imageMatrix = buildTerrainTilesetImage(rom.data, info.terrain);
+          imageMatrix = buildTerrainTilesetImage(
+            rom.data,
+            info.terrain,
+            decodeTileOptions,
+          );
           break;
         case 'Layer':
           if (displayMode.layerIndex === undefined) return;
-          imageMatrix = buildLayer(rom.data, info, displayMode.layerIndex);
+          imageMatrix = buildLayer(
+            rom.data,
+            info,
+            displayMode.layerIndex,
+            decodeTileOptions,
+          );
           break;
       }
 
@@ -166,7 +184,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   useEffect(() => {
     if (!entranceInfo) return;
     loadFromEntranceInfoAndMode(entranceInfo).then(noop);
-  }, [displayMode]);
+  }, [displayMode, decodeTileOptions]);
 
   useEffect(() => {
     canvasController.resetTransform();
@@ -275,8 +293,8 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
               />
             </AddressesDiv>
           </CollapsiblePanel>
-          <CollapsiblePanel title="Options">
-            <RadiosContainer>
+          <CollapsiblePanel title="Layer">
+            <OptionsContainer>
               {entranceInfo.layers.map((l, i) => {
                 const layerDisplayMode: DisplayMode =
                   l.type === 'Level'
@@ -286,7 +304,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
                   <label>
                     <input
                       type="radio"
-                      name="display_mode"
+                      name="displayMode"
                       value={l.type}
                       checked={
                         displayMode.mode === layerDisplayMode.mode &&
@@ -303,27 +321,76 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
               <label>
                 <input
                   type="radio"
-                  name="display_mode"
+                  name="displayMode"
                   value="tilemap"
                   checked={displayMode.mode === 'Tilemap'}
                   onChange={() => setDisplayMode({ mode: 'Tilemap' })}
                 />
                 <RadioText>Tilemap</RadioText>
               </label>
-            </RadiosContainer>
+            </OptionsContainer>
           </CollapsiblePanel>
-          {Object.entries(DKC1_ASSETS).map(([name, spec]) => (
-            <button
-              onClick={async () => {
-                if (!rom) return;
-                const image = decodeTilesFromSpec(rom.data, spec, 32);
-                const bitmap = await convertToImageBitmap(image);
-                setLevelBitmap(bitmap);
-              }}
-            >
-              {name}
-            </button>
-          ))}
+          <CollapsiblePanel title="Options">
+            <OptionsContainer>
+              <label className="checkbox">
+                <input
+                  className="mr-1"
+                  type="checkbox"
+                  checked={decodeTileOptions.opaqueZero}
+                  onChange={() =>
+                    setDecodeTileOptions({
+                      ...decodeTileOptions,
+                      opaqueZero: !decodeTileOptions.opaqueZero,
+                    })
+                  }
+                />
+                Fill background
+              </label>
+              <label className="checkbox">
+                <input
+                  className="mr-1"
+                  type="checkbox"
+                  checked={decodeTileOptions.skipBackgroundTiles}
+                  onChange={() =>
+                    setDecodeTileOptions({
+                      ...decodeTileOptions,
+                      skipBackgroundTiles:
+                        !decodeTileOptions.skipBackgroundTiles,
+                    })
+                  }
+                />
+                Foreground only
+              </label>
+              <label className="checkbox">
+                <input
+                  className="mr-1"
+                  type="checkbox"
+                  checked={decodeTileOptions.skipForegroundTiles}
+                  onChange={() =>
+                    setDecodeTileOptions({
+                      ...decodeTileOptions,
+                      skipForegroundTiles:
+                        !decodeTileOptions.skipForegroundTiles,
+                    })
+                  }
+                />
+                Background only
+              </label>
+              {Object.entries(DKC1_ASSETS).map(([name, spec]) => (
+                <button
+                  className="button is-small"
+                  onClick={async () => {
+                    if (!rom) return;
+                    const image = decodeTilesFromSpec(rom.data, spec, 32);
+                    const bitmap = await convertToImageBitmap(image);
+                    setLevelBitmap(bitmap);
+                  }}
+                >
+                  {name}
+                </button>
+              ))}
+            </OptionsContainer>
+          </CollapsiblePanel>
         </OverlaySlotsContainer>
       ),
     },

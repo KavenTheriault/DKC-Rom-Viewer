@@ -4,12 +4,14 @@ import { BPP } from '../../types/bpp';
 import { Matrix } from '../../types/matrix';
 import { readTerrainTilemapTileBytes, readTilesetAndPalette } from './terrain';
 import { assembleImages } from './tiles/assemble';
+import { DecodeTileOptions } from './tiles/decode-tile';
 import { decodeTiles } from './tiles/decode-tiles';
 import { EntranceInfo, LevelInfo } from './types';
 
 export const buildLevelImageFromEntranceInfo = (
   romData: Uint8Array,
   entranceInfo: EntranceInfo,
+  decodeTileOptions?: DecodeTileOptions,
 ) => {
   const tilesetAndPalette = readTilesetAndPalette(
     romData,
@@ -35,9 +37,7 @@ export const buildLevelImageFromEntranceInfo = (
     tilemapSize: { dataLength: terrainTilemap.bytes.length },
     palette: tilesetAndPalette.palette,
     bpp: BPP.Four,
-    options: {
-      opaqueZero: true,
-    },
+    options: decodeTileOptions,
   });
 
   return assembleImages(tiles, terrainTilemap.width);

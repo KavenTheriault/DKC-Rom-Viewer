@@ -7,6 +7,7 @@ import { Palette } from '../palettes/types';
 import { decompress } from './compression';
 import { assembleImages } from './tiles/assemble';
 import { BYTES_PER_TILE_META } from './tiles/constants';
+import { DecodeTileOptions } from './tiles/decode-tile';
 import { decodeTiles } from './tiles/decode-tiles';
 import { TerrainInfo, TilesetInfo } from './types';
 
@@ -103,6 +104,7 @@ export const buildTerrainTileset = (
 export const buildTerrainTilesetImage = (
   romData: Uint8Array,
   terrain: TerrainInfo,
+  decodeTileOptions?: DecodeTileOptions,
 ) => {
   const tilesetAndPalette = readTilesetAndPalette(romData, terrain);
 
@@ -118,7 +120,7 @@ export const buildTerrainTilesetImage = (
     palette: tilesetAndPalette.palette,
     bpp: BPP.Four,
     options: {
-      opaqueZero: true,
+      ...decodeTileOptions,
       assembleQuantity: PARTS_IN_TILE,
     },
   });

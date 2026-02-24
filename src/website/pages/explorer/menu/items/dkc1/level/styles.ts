@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const RadiosContainer = styled.div`
+export const OptionsContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

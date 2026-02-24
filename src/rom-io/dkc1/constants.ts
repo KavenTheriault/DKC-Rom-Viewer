@@ -121,30 +121,6 @@ export const Dkc1LevelConstant: GameLevelConstant = {
 };
 
 export const DKC1_ASSETS: Record<string, TilesDecodeSpec> = {
-  Forest: {
-    tileset: {
-      address: RomAddress.fromSnesAddress(0x238bfb),
-      length: 0x1800,
-    },
-    tilemap: {
-      address: RomAddress.fromSnesAddress(0x2383fb),
-      length: 0x800,
-    },
-    paletteAddress: RomAddress.fromSnesAddress(0x39c623),
-    bpp: BPP.Two,
-  },
-  Temple: {
-    tileset: {
-      address: RomAddress.fromSnesAddress(0x14eb52),
-      length: 0x1300,
-    },
-    tilemap: {
-      address: RomAddress.fromSnesAddress(0x14df52),
-      length: 0x800,
-    },
-    paletteAddress: RomAddress.fromSnesAddress(0x39b3a3),
-    bpp: BPP.Two,
-  },
   Overworld: {
     tileset: {
       address: RomAddress.fromSnesAddress(0x0116f1),
@@ -155,19 +131,6 @@ export const DKC1_ASSETS: Record<string, TilesDecodeSpec> = {
       length: 0x700,
     },
     paletteAddress: RomAddress.fromSnesAddress(0x39be03),
-    bpp: BPP.Four,
-  },
-  TreeTopTown: {
-    tileset: {
-      address: RomAddress.fromSnesAddress(0xc3bfe),
-      length: 0x21a0,
-      offset: 0xe60,
-    },
-    tilemap: {
-      address: RomAddress.fromSnesAddress(0xc33fe),
-      length: 0x800,
-    },
-    paletteAddress: RomAddress.fromSnesAddress(0x39b2a3),
     bpp: BPP.Four,
   },
   Nintendo: {
