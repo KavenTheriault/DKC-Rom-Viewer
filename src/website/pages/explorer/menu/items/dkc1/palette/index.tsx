@@ -124,7 +124,7 @@ export const Dkc1Palette: MainMenuItemComponent = ({ children }) => {
         <CollapsiblePanel title="Scan Palettes" startCollapsed>
           <ScanControls
             rom={rom}
-            scanFn={(romData: Buffer) => {
+            scanFn={(romData: Uint8Array) => {
               return scanPalettes(
                 romData,
                 Dkc1EntityBank,

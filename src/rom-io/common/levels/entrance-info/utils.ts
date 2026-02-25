@@ -55,3 +55,8 @@ export const findOpcodeEntryByName = (
   opcodeEntries: OpcodeEntry[],
   name: string,
 ) => opcodeEntries.find((o) => o.opcode.name.includes(name));
+
+export const findOpcodeEntriesByName = (
+  opcodeEntries: OpcodeEntry[],
+  name: string,
+) => opcodeEntries.filter((o) => o.opcode.name.includes(name));

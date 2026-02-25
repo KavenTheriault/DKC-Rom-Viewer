@@ -19,7 +19,7 @@ import {
 const ANIMATION_POINTER_LENGTH = 2;
 
 export const readAnimationPointer = (
-  romData: Buffer,
+  romData: Uint8Array,
   animationScriptBankSnesAddress: number,
   animationScriptTableSnesAddress: number,
   animationIndex: number,
@@ -42,7 +42,7 @@ const animationPointerToSnesAddress = (
 };
 
 export const readAnimationInfo = (
-  romData: Buffer,
+  romData: Uint8Array,
   animationAddress: RomAddress,
 ): AnimationInfo => {
   const entries: (EntryCommand | EntrySprite)[] = [];
@@ -63,7 +63,7 @@ export const readAnimationInfo = (
     if (entryStart in AnimationCommandParametersCount) {
       const parametersCount =
         AnimationCommandParametersCount[entryStart as AnimationCommand];
-      const parameters: Buffer = extract(
+      const parameters: Uint8Array = extract(
         romData,
         animationAddress.pcAddress + offset,
         parametersCount,
@@ -87,7 +87,7 @@ export const readAnimationInfo = (
 };
 
 export const buildAnimation = (
-  romData: Buffer,
+  romData: Uint8Array,
   spritePointerTableSnesAddress: number,
   animationInfo: AnimationInfo,
   palette: Color[],

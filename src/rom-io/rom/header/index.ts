@@ -40,7 +40,7 @@ const HeaderLocation: Record<RomType, number> = {
   [RomType.ExHiROM]: 0x40ffb0,
 };
 
-const computeRomChecksum = (romData: Buffer) => {
+const computeRomChecksum = (romData: Uint8Array) => {
   let checksum = 0x0000;
   for (let i = 0; i < romData.length; i++) {
     // 16-bit - Overflow is discarded
@@ -49,7 +49,7 @@ const computeRomChecksum = (romData: Buffer) => {
   return checksum;
 };
 
-const getHeaderChecksums = (headerData: Buffer) => {
+const getHeaderChecksums = (headerData: Uint8Array) => {
   const checksumCompliment = (headerData[45] << 8) | headerData[44];
   const checksum = (headerData[47] << 8) | headerData[46];
   return {
@@ -67,11 +67,15 @@ const isValidChecksums = (
   return headerChecksum + headerChecksumCompliment === 0xffff;
 };
 
-const findRomType = (romData: Buffer): RomType => {
+const findRomType = (romData: Uint8Array): RomType => {
   const computedChecksum = computeRomChecksum(romData);
   for (const romType in RomType) {
     const headerLocation = HeaderLocation[romType as RomType];
-    const headerData: Buffer = extract(romData, headerLocation, HEADER_LENGTH);
+    const headerData: Uint8Array = extract(
+      romData,
+      headerLocation,
+      HEADER_LENGTH,
+    );
     const { checksum, checksumCompliment } = getHeaderChecksums(headerData);
     if (isValidChecksums(computedChecksum, checksum, checksumCompliment)) {
       return romType as RomType;
@@ -80,7 +84,7 @@ const findRomType = (romData: Buffer): RomType => {
   throw new Error('Unable to find Rom Type - Checksum invalid');
 };
 
-const getCompanyCode = (headerData: Buffer) => {
+const getCompanyCode = (headerData: Uint8Array) => {
   let firstPart: number, secondPart: number;
   if (headerData[42] != 0x33) {
     firstPart = (headerData[42] >> 4) & 0x0f;
@@ -97,13 +101,9 @@ const getCompanyCode = (headerData: Buffer) => {
   return firstPart * 36 + secondPart;
 };
 
-export const getRomHeader = (romData: Buffer): RomHeader => {
+export const getRomHeader = (romData: Uint8Array): RomHeader => {
   const romType: RomType = findRomType(romData);
-  const headerData: Buffer = extract(
-    romData,
-    HeaderLocation[romType],
-    HEADER_LENGTH,
-  );
+  const headerData = extract(romData, HeaderLocation[romType], HEADER_LENGTH);
 
   const rawSpeed = (headerData[37] & 0b00010000) >> 4;
   const rawType = headerData[37] & 0b00001111;
@@ -116,7 +116,7 @@ export const getRomHeader = (romData: Buffer): RomHeader => {
   const { checksum, checksumCompliment } = getHeaderChecksums(headerData);
 
   return {
-    title: extract(headerData, 16, 21).toString('ascii'),
+    title: String.fromCharCode(...extract(headerData, 16, 21)),
     speed: rawSpeed === 1 ? 'Fast' : 'Slow',
     type: RomTypeHeaderValue[rawType],
     chipset: getChipset(rawChipset) || UNKNOWN,

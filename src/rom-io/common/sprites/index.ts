@@ -18,7 +18,7 @@ export type Sprite = {
 };
 
 export const getAddressFromSpritePointerIndex = (
-  romData: Buffer,
+  romData: Uint8Array,
   spritePointerTableSnesAddress: number,
   spritePointerIndex: number,
 ): RomAddress => {
@@ -29,7 +29,7 @@ export const getAddressFromSpritePointerIndex = (
 };
 
 export const readSpritePointer = (
-  romData: Buffer,
+  romData: Uint8Array,
   address: RomAddress,
 ): RomAddress => {
   const snesAddress: number = read32(romData, address.pcAddress);
@@ -37,7 +37,7 @@ export const readSpritePointer = (
 };
 
 export const readSprite = (
-  romData: Buffer,
+  romData: Uint8Array,
   spriteAddress: RomAddress,
 ): Sprite | undefined => {
   const spriteHeader = getSpriteHeader(romData, spriteAddress);

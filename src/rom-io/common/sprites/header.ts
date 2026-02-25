@@ -28,10 +28,10 @@ export const getSpriteTilesQuantity = (spriteHeader: SpriteHeader) =>
   spriteHeader.tileQuantity.small2;
 
 export const getSpriteHeader = (
-  romData: Buffer,
+  romData: Uint8Array,
   spriteAddress: RomAddress,
 ): SpriteHeader | undefined => {
-  const headerData: Buffer = extract(
+  const headerData: Uint8Array = extract(
     romData,
     spriteAddress.pcAddress,
     SPRITE_HEADER_LENGTH,

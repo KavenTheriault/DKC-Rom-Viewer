@@ -1,22 +1,26 @@
 import { read16, read24 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
-import { EntranceInfo, GameLevelConstant } from '../types';
+import {
+  EntranceInfo,
+  GameLevelConstant,
+  LevelInfo,
+  TerrainInfo,
+} from '../types';
 import { OpcodeEntry, readOpcodeUntil } from './asm/read';
-import { readGraphicsInfo } from './graphic';
-import { readTerrainTypeMeta } from './terrain-type';
-import { readLevelTileMapInfo } from './tile-map';
+import { readLevelsTilemapBackgroundAbsolute } from './background';
+import { readDmaTransfers } from './dma-transfers';
+import { buildLayersInfo } from './layers-info';
+import { readTerrainTilemapInfo } from './terrain-type';
+import { readLevelBounds } from './tile-map';
+import { buildTilesetsInfo } from './tileset';
 import {
   findArgumentInPreviousOpcodes,
   findOpcodeEntryByAddress,
+  findSubroutine,
 } from './utils';
 
-/*
-Terrain Graphics Data = Compressed data to form all terrain tile parts
-Terrain Type Meta = How to stitch all terrain tile parts together
-Level Tile Map = How to stitch all terrain tiles together
- */
 export const loadEntranceInfo = (
-  romData: Buffer,
+  romData: Uint8Array,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ): EntranceInfo => {
@@ -25,45 +29,94 @@ export const loadEntranceInfo = (
     levelConstant,
     entranceId,
   );
+
   const {
-    terrainMetaIndex,
-    terrainTileOffset,
-    terrainTypeMetaAddress,
-    terrainTileMapBank,
-  } = readTerrainTypeMeta(romData, levelConstant, opcodeEntries);
+    levelsTilemapOffset,
+    levelsTilemapBank,
+    terrainTilemapAddress,
+    levelsTilemapVramAddress,
+  } = readTerrainTilemapInfo(romData, levelConstant, opcodeEntries);
 
-  const graphicsInfo = readGraphicsInfo(romData, levelConstant, opcodeEntries);
+  const levelsTilemapAddress = RomAddress.fromBankAndAbsolute(
+    levelsTilemapBank,
+    levelsTilemapOffset,
+  );
 
-  const { levelTileMapAddress, levelTileMapLength } = readLevelTileMapInfo(
+  const loadTilesetSubroutine = findSubroutine(
+    opcodeEntries,
+    levelConstant.subroutines.loadTilesetWithTerrainIndex,
+  );
+  const terrainDataIndex = findArgumentInPreviousOpcodes(
+    opcodeEntries,
+    loadTilesetSubroutine,
+    'LDA',
+  );
+  const dmaTransfers = readDmaTransfers(
+    romData,
+    levelConstant,
+    terrainDataIndex,
+  );
+
+  const levelsTilemapBackgroundAbsolute = readLevelsTilemapBackgroundAbsolute(
+    levelConstant,
+    opcodeEntries,
+    levelsTilemapOffset,
+  );
+  const levelsTilemapBackgroundAddress =
+    levelsTilemapBackgroundAbsolute !== null
+      ? RomAddress.fromBankAndAbsolute(
+          levelsTilemapBank,
+          levelsTilemapBackgroundAbsolute,
+        )
+      : undefined;
+
+  const tilesetsInfo = buildTilesetsInfo(
+    romData,
+    levelConstant,
+    dmaTransfers,
+    opcodeEntries,
+  );
+
+  const { levelXStart, levelXEnd } = readLevelBounds(
     romData,
     levelConstant,
     entranceId,
-    terrainTileMapBank,
-    terrainTileOffset,
   );
+  const levelLength = levelXEnd - levelXStart;
 
-  const terrainPalettesAddress = readTerrainPaletteAddress(
+  const palettesAddress = readTerrainPaletteAddress(
     levelConstant,
     opcodeEntries,
   );
 
-  return {
-    terrainMetaIndex: terrainMetaIndex,
-    terrainTypeMetaAddress: terrainTypeMetaAddress,
-    terrainPalettesAddress: terrainPalettesAddress,
-    terrainGraphicsInfo: graphicsInfo,
-    levelTileMapAddress: levelTileMapAddress,
-    levelTileMapOffset:
-      levelConstant.entrances.correctedTileMapOffset[entranceId] ?? 0,
-    levelTileMapLength:
-      levelConstant.entrances.correctedTileMapLength[entranceId] ??
-      levelTileMapLength,
+  const terrain: TerrainInfo = {
+    levelsTilemapVramAddress,
+    levelsTilemapBackgroundAddress,
+    levelsTilemapAddress,
+    palettesAddress,
+    tilemapAddress: terrainTilemapAddress,
+    tilesetsInfo,
+    dmaTransfers,
+  };
+  const level: LevelInfo = {
+    tilemapOffset:
+      levelConstant.entrances.correctedTilemapOffset[entranceId] ?? levelXStart,
+    tilemapLength:
+      levelConstant.entrances.correctedTilemapLength[entranceId] ?? levelLength,
     isVertical: levelConstant.entrances.isVertical.includes(entranceId),
   };
+  const layers = buildLayersInfo(
+    romData,
+    levelConstant,
+    opcodeEntries,
+    terrain,
+  );
+
+  return { terrain, level, layers };
 };
 
 const readLoadEntranceOpcodes = (
-  romData: Buffer,
+  romData: Uint8Array,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ) => {

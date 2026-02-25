@@ -20,7 +20,7 @@ export const rgbToHex = (r: number, g: number, b: number) => {
 
 export const isHexadecimal = (str: string) => /^[0-9A-F]+$/.test(str);
 
-export const bufferToString = (bytes: Buffer): string => {
+export const bufferToString = (bytes: Uint8Array): string => {
   const lines = [];
   const allBytes = Array.from(hexFormatValues(bytes));
   for (const line of chunk(allBytes, 32)) {
@@ -29,7 +29,7 @@ export const bufferToString = (bytes: Buffer): string => {
   return lines.join('\n').toUpperCase();
 };
 
-const hexFormatValues = function* (buffer: Buffer) {
+const hexFormatValues = function* (buffer: Uint8Array) {
   for (const x of buffer) {
     const hex = x.toString(16);
     yield hex.padStart(2, '0');

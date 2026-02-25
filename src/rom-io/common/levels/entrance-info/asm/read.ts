@@ -6,7 +6,7 @@ import { Opcode, OPCODES_MAP } from './opcodes';
 export type OpcodeEntry = {
   address: RomAddress;
   opcode: Opcode;
-  bytes: Buffer;
+  bytes: Uint8Array;
 };
 
 type Mode = '8bit' | '16bit';
@@ -19,7 +19,7 @@ type ProcessorFlags = {
 const DEFAULT_FLAGS: ProcessorFlags = { memory: '16bit', index: '16bit' };
 
 export const readOpcodeEntry = (
-  romData: Buffer,
+  romData: Uint8Array,
   address: RomAddress,
   flags = DEFAULT_FLAGS,
 ): OpcodeEntry => {
@@ -40,13 +40,13 @@ export const readOpcodeEntry = (
 };
 
 export const readOpcodeUntil = (
-  romData: Buffer,
+  romData: Uint8Array,
   startAt: RomAddress,
   readStatus: { count: number; flags: ProcessorFlags } = {
     count: 0,
     flags: { ...DEFAULT_FLAGS },
   },
-  options: { readLimit: number } = { readLimit: 1000 },
+  options: { readLimit: number } = { readLimit: 0x400 },
 ) => {
   let readOffset = 0;
   const opcodeEntries: OpcodeEntry[] = [];

@@ -5,7 +5,7 @@ import { getSpriteHeader } from '../sprites/header';
 import { Coordinate } from '../sprites/types';
 import { validateSpriteHeader } from '../sprites/validation';
 
-export const scanSprites = (romData: Buffer) => {
+export const scanSprites = (romData: Uint8Array) => {
   const spriteAddresses: RomAddress[] = [];
   for (let i = 0; i < romData.length; i++) {
     const address: RomAddress = RomAddress.fromSnesAddress(i);

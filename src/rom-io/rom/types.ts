@@ -2,5 +2,5 @@ import { RomHeader } from './header';
 
 export interface Rom {
   header: RomHeader;
-  data: Buffer;
+  data: Uint8Array;
 }

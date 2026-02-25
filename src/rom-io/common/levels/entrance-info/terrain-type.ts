@@ -1,59 +1,72 @@
 import { read16, read8 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
-import { OpcodeEntry } from './asm/read';
 import { GameLevelConstant } from '../types';
+import { OpcodeEntry } from './asm/read';
 import { findArgumentInPreviousOpcodes, findSubroutine } from './utils';
 
-export const readTerrainTypeMeta = (
-  romData: Buffer,
+// Ref: ASM Code at $818C66
+export const readTerrainTilemapInfo = (
+  romData: Uint8Array,
   levelConstant: GameLevelConstant,
   opcodeEntries: OpcodeEntry[],
 ) => {
-  const loadTerrainMetaSubroutine = findSubroutine(
+  const loadTerrainTilemapSubroutine = findSubroutine(
     opcodeEntries,
-    levelConstant.subroutines.loadTerrainMeta,
+    levelConstant.subroutines.loadTerrainTilemap,
   );
-  const terrainMetaIndex = findArgumentInPreviousOpcodes(
+  const terrainIndex = findArgumentInPreviousOpcodes(
     opcodeEntries,
-    loadTerrainMetaSubroutine,
+    loadTerrainTilemapSubroutine,
     'LDA',
   );
 
-  // Ref: ASM Code at $818C66
-  const metaTableOffset = terrainMetaIndex * 3;
+  // X
+  const tilemapTableOffset = terrainIndex * 3;
 
-  const terrainTileOffset = read16(
-    romData,
-    levelConstant.tables.terrainMetaTileOffset.getOffsetAddress(metaTableOffset)
-      .pcAddress,
-  );
-  const terrainMetaAbsolute = read16(
-    romData,
-    levelConstant.tables.terrainMetaPointer.getOffsetAddress(metaTableOffset)
-      .pcAddress,
-  );
+  // Y
+  const vramTableOffset = terrainIndex << 1;
 
-  /* For most terrain type, value in terrainMetaBank is zero
-     In that case, the bank to use is terrainTileMapBank */
-  const terrainMetaBank = read8(
+  const levelsTilemapOffset = read16(
     romData,
-    levelConstant.tables.terrainMetaBank.getOffsetAddress(metaTableOffset)
-      .pcAddress,
+    levelConstant.tables.levelsTilemapOffset.getOffsetAddress(
+      tilemapTableOffset,
+    ).pcAddress,
   );
-  const terrainTileMapBank = read8(
+  const terrainTilemapAbsolute = read16(
     romData,
-    levelConstant.tables.terrainTileMapBank.getOffsetAddress(metaTableOffset)
-      .pcAddress,
+    levelConstant.tables.terrainTilemapPointer.getOffsetAddress(
+      tilemapTableOffset,
+    ).pcAddress,
   );
 
-  const terrainTypeMetaAddress = RomAddress.fromBankAndAbsolute(
-    terrainMetaBank !== 0 ? terrainMetaBank : terrainTileMapBank,
-    terrainMetaAbsolute,
+  /* For most terrain type, value in terrainTilemapBank is zero
+     In that case, the bank to use is levelsTilemapBank */
+  const terrainTilemapBank = read8(
+    romData,
+    levelConstant.tables.terrainTilemapBank.getOffsetAddress(tilemapTableOffset)
+      .pcAddress,
+  );
+  const levelsTilemapBank = read8(
+    romData,
+    levelConstant.tables.levelsTilemapBank.getOffsetAddress(tilemapTableOffset)
+      .pcAddress,
+  );
+
+  const levelsTilemapVramAddress = read16(
+    romData,
+    levelConstant.tables.levelsTilemapVramAddress.getOffsetAddress(
+      vramTableOffset,
+    ).pcAddress,
+  );
+
+  const terrainTilemapAddress = RomAddress.fromBankAndAbsolute(
+    terrainTilemapBank !== 0 ? terrainTilemapBank : levelsTilemapBank,
+    terrainTilemapAbsolute,
   );
   return {
-    terrainMetaIndex,
-    terrainTileOffset,
-    terrainTypeMetaAddress,
-    terrainTileMapBank,
+    levelsTilemapBank,
+    levelsTilemapOffset,
+    terrainTilemapAddress,
+    levelsTilemapVramAddress,
   };
 };
