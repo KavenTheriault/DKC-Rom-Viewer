@@ -85,4 +85,8 @@ export const DKC1_LEVELS: LevelGroup[] = [
       { label: 'Winky', value: { entranceIndex: 0xd3 } },
     ],
   },
+  {
+    label: 'Other',
+    items: [{ label: "DK's Cabin", value: { entranceIndex: 0x5c } }],
+  },
 ];
