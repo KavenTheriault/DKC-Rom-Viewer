@@ -67,11 +67,18 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
 
   const loadLevelFromEntranceId = async (entrance: number) => {
     setError('');
-    setDisplayMode(defaultDisplayMode);
 
     let info: EntranceInfo | null = null;
     try {
       info = loadEntranceInfo(rom.data, Dkc1LevelConstant, entrance);
+
+      const hasLevelLayer = info.layers.some((l) => l.type === 'Level');
+      if (hasLevelLayer) {
+        setDisplayMode(defaultDisplayMode);
+      } else {
+        setDisplayMode({ mode: 'Layer', layerIndex: 0 });
+      }
+
       setEntranceInfo(info);
     } catch (error) {
       setError(

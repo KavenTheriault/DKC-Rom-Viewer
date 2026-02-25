@@ -15,16 +15,18 @@ export const buildLayersInfo = (
     opcodeEntries,
   );
 
-  let terrainTilesetAddress;
+  const levelLayer = backgroundRegisters.layers.find(
+    (l) => l.tilemapAddress === terrainInfo.levelsTilemapVramAddress,
+  );
+  const terrainTilesetAddress = levelLayer
+    ? levelLayer.tilesetAddress
+    : undefined;
+
   for (const layer of backgroundRegisters.layers) {
     if (!layer.tilesetAddress) continue; // Layer is empty
 
-    if (terrainTilesetAddress === undefined) {
-      terrainTilesetAddress = layer.tilesetAddress;
-    }
-
     let type: Layer['type'];
-    if (layer.tilemapAddress === terrainInfo.levelsTilemapVramAddress) {
+    if (layer === levelLayer) {
       type = 'Level';
     } else if (layer.tilesetAddress === terrainTilesetAddress) {
       type = 'Tileset';
