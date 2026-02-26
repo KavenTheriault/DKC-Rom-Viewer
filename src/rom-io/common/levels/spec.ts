@@ -2,13 +2,14 @@ import { extract } from '../../buffer';
 import { ImageMatrix } from '../../types/image-matrix';
 import { readPalette } from '../palettes';
 import { assembleImages } from './tiles/assemble';
+import { DecodeTileOptions } from './tiles/decode-tile';
 import { decodeTiles } from './tiles/decode-tiles';
 import { TilesDecodeSpec } from './types';
 
 export const decodeTilesFromSpec = (
   romData: Uint8Array,
   spec: TilesDecodeSpec,
-  tilesPerRow: number,
+  decodeTileOptions?: DecodeTileOptions,
 ): ImageMatrix => {
   const tilesetOffset = spec.tileset.offset ?? 0;
   const tileset = new Uint8Array(tilesetOffset + spec.tileset.length);
@@ -27,9 +28,7 @@ export const decodeTilesFromSpec = (
     tilemapSize: { dataLength: spec.tilemap.length },
     palette,
     bpp: spec.bpp,
-    options: {
-      opaqueZero: true,
-    },
+    options: decodeTileOptions,
   });
-  return assembleImages(tiles, tilesPerRow);
+  return assembleImages(tiles, spec.tilesPerRow);
 };
