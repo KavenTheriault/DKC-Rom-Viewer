@@ -49,6 +49,7 @@ export interface TilesDecodeSpec {
   };
   paletteAddress: RomAddress;
   bpp: BPP;
+  tilesPerRow: number;
 }
 
 export interface GameLevelConstant {
@@ -80,6 +81,8 @@ export interface GameLevelConstant {
     terrainTilemapPointer: RomAddress;
     terrainTilesetInfo: RomAddress;
     vramRegisters: RomAddress;
+    worldIndex: RomAddress;
+    worldAddresses: RomAddress;
   };
   entrances: {
     correctedTilemapOffset: Record<number, number>;

@@ -12,6 +12,10 @@ import {
   TerrainInfo,
 } from '../../../../../../../rom-io/common/levels/types';
 import {
+  buildSpecFromWorldBackgroundInfo,
+  readWorldBackgroundInfo,
+} from '../../../../../../../rom-io/common/levels/world';
+import {
   DKC1_ASSETS,
   Dkc1LevelConstant,
 } from '../../../../../../../rom-io/dkc1/constants';
@@ -34,7 +38,7 @@ import { OptionsContainer, RadioText } from './styles';
 import { Level, LevelItem } from './types';
 
 type DisplayMode = {
-  mode: 'Level' | 'Tilemap' | 'Layer';
+  mode: 'Level' | 'Tilemap' | 'Layer' | 'World';
   layerIndex?: number;
 };
 const defaultDisplayMode: DisplayMode = { mode: 'Level' };
@@ -119,6 +123,16 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
             decodeTileOptions,
           );
           break;
+        case 'World': {
+          const worldBackgroundInfo = readWorldBackgroundInfo(
+            rom.data,
+            Dkc1LevelConstant,
+            entranceIndex,
+          );
+          const spec = buildSpecFromWorldBackgroundInfo(worldBackgroundInfo);
+          imageMatrix = decodeTilesFromSpec(rom.data, spec, decodeTileOptions);
+          break;
+        }
       }
 
       const bitmap = await convertToImageBitmap(imageMatrix);
@@ -335,6 +349,16 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
                 />
                 <RadioText>Tilemap</RadioText>
               </label>
+              <label>
+                <input
+                  type="radio"
+                  name="displayMode"
+                  value="world"
+                  checked={displayMode.mode === 'World'}
+                  onChange={() => setDisplayMode({ mode: 'World' })}
+                />
+                <RadioText>World Map</RadioText>
+              </label>
             </OptionsContainer>
           </CollapsiblePanel>
           <CollapsiblePanel title="Options">
@@ -388,7 +412,11 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
                   className="button is-small"
                   onClick={async () => {
                     if (!rom) return;
-                    const image = decodeTilesFromSpec(rom.data, spec, 32);
+                    const image = decodeTilesFromSpec(
+                      rom.data,
+                      spec,
+                      decodeTileOptions,
+                    );
                     const bitmap = await convertToImageBitmap(image);
                     setLevelBitmap(bitmap);
                   }}

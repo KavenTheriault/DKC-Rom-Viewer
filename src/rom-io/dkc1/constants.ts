@@ -81,6 +81,8 @@ export const Dkc1LevelConstant: GameLevelConstant = {
     terrainTilemapPointer: RomAddress.fromSnesAddress(0x818bbe),
     terrainTilesetInfo: RomAddress.fromSnesAddress(0xb9a994),
     vramRegisters: RomAddress.fromSnesAddress(0xb9a50e),
+    worldIndex: RomAddress.fromSnesAddress(0xbcf44b),
+    worldAddresses: RomAddress.fromSnesAddress(0x80e176),
   },
   entrances: {
     correctedTilemapOffset: {
@@ -121,18 +123,6 @@ export const Dkc1LevelConstant: GameLevelConstant = {
 };
 
 export const DKC1_ASSETS: Record<string, TilesDecodeSpec> = {
-  Overworld: {
-    tileset: {
-      address: RomAddress.fromSnesAddress(0x0116f1),
-      length: 0x7000,
-    },
-    tilemap: {
-      address: RomAddress.fromSnesAddress(0x010ff0),
-      length: 0x700,
-    },
-    paletteAddress: RomAddress.fromSnesAddress(0x39be03),
-    bpp: BPP.Four,
-  },
   Nintendo: {
     tileset: {
       address: RomAddress.fromSnesAddress(0x240690),
@@ -144,5 +134,6 @@ export const DKC1_ASSETS: Record<string, TilesDecodeSpec> = {
     },
     paletteAddress: RomAddress.fromSnesAddress(0x39c203),
     bpp: BPP.Four,
+    tilesPerRow: 32,
   },
 };
