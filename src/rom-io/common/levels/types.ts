@@ -72,6 +72,8 @@ export interface GameLevelConstant {
     loadTilesetWithTerrainIndex: RomAddress;
     loadTerrainPalette: RomAddress;
     loadVramRegisters: RomAddress;
+    loadEntrance: RomAddress;
+    loadWorld: RomAddress;
   };
   tables: {
     levelsTilemapBank: RomAddress;

@@ -23,19 +23,25 @@ export const loadEntranceInfo = (
   romData: Uint8Array,
   levelConstant: GameLevelConstant,
   entranceId: number,
-): EntranceInfo => {
+): EntranceInfo | undefined => {
   const opcodeEntries = readLoadEntranceOpcodes(
     romData,
     levelConstant,
     entranceId,
   );
 
+  const terrainTilemapInfo = readTerrainTilemapInfo(
+    romData,
+    levelConstant,
+    opcodeEntries,
+  );
+  if (!terrainTilemapInfo) return undefined;
   const {
     levelsTilemapOffset,
     levelsTilemapBank,
     terrainTilemapAddress,
     levelsTilemapVramAddress,
-  } = readTerrainTilemapInfo(romData, levelConstant, opcodeEntries);
+  } = terrainTilemapInfo;
 
   const levelsTilemapAddress = RomAddress.fromBankAndAbsolute(
     levelsTilemapBank,

@@ -2,7 +2,10 @@ import { read16, read8 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
 import { GameLevelConstant } from '../types';
 import { OpcodeEntry } from './asm/read';
-import { findArgumentInPreviousOpcodes, findSubroutine } from './utils';
+import {
+  findArgumentInPreviousOpcodes,
+  findOpcodeEntryByAddress,
+} from './utils';
 
 // Ref: ASM Code at $818C66
 export const readTerrainTilemapInfo = (
@@ -10,10 +13,12 @@ export const readTerrainTilemapInfo = (
   levelConstant: GameLevelConstant,
   opcodeEntries: OpcodeEntry[],
 ) => {
-  const loadTerrainTilemapSubroutine = findSubroutine(
+  const loadTerrainTilemapSubroutine = findOpcodeEntryByAddress(
     opcodeEntries,
     levelConstant.subroutines.loadTerrainTilemap,
   );
+  if (!loadTerrainTilemapSubroutine) return undefined;
+
   const terrainIndex = findArgumentInPreviousOpcodes(
     opcodeEntries,
     loadTerrainTilemapSubroutine,

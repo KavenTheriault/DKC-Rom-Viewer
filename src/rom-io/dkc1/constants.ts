@@ -72,6 +72,8 @@ export const Dkc1LevelConstant: GameLevelConstant = {
     loadTilesetWithTerrainIndex: RomAddress.fromSnesAddress(0xb9a924),
     loadTerrainPalette: RomAddress.fromSnesAddress(0xb999f1),
     loadVramRegisters: RomAddress.fromSnesAddress(0xb9a4dc),
+    loadEntrance: RomAddress.fromSnesAddress(0x80e870),
+    loadWorld: RomAddress.fromSnesAddress(0x80e1f8),
   },
   tables: {
     levelsTilemapBank: RomAddress.fromSnesAddress(0x818b96),

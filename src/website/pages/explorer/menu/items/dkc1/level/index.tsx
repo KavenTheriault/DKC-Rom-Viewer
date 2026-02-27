@@ -13,7 +13,10 @@ import {
 } from '../../../../../../../rom-io/common/levels/types';
 import {
   buildSpecFromWorldBackgroundInfo,
+  buildWorldImage,
   readWorldBackgroundInfo,
+  readWorldInfo,
+  WorldInfo,
 } from '../../../../../../../rom-io/common/levels/world';
 import {
   DKC1_ASSETS,
@@ -61,6 +64,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
     null,
   );
   const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
+  const [worldInfo, setWorldInfo] = useState<WorldInfo>();
   const [levelBitmap, setLevelBitmap] = useState<ImageBitmap>();
   const [displayMode, setDisplayMode] =
     useState<DisplayMode>(defaultDisplayMode);
@@ -72,29 +76,60 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   const loadLevelFromEntranceId = async (entrance: number) => {
     setError('');
 
-    let info: EntranceInfo | null = null;
-    try {
-      info = loadEntranceInfo(rom.data, Dkc1LevelConstant, entrance);
+    const levelInfo = tryLoadLevelFromEntranceId(entrance);
+    setEntranceInfo(levelInfo);
 
-      const hasLevelLayer = info.layers.some((l) => l.type === 'Level');
+    const worldInfo = !levelInfo
+      ? tryLoadWorldFromEntranceId(entrance)
+      : undefined;
+    setWorldInfo(worldInfo);
+
+    if (levelInfo) {
+      const hasLevelLayer = levelInfo.layers.some((l) => l.type === 'Level');
       if (hasLevelLayer) {
         setDisplayMode(defaultDisplayMode);
       } else {
         setDisplayMode({ mode: 'Layer', layerIndex: 0 });
       }
+      await loadBitmapFromEntranceInfo(levelInfo);
+      return;
+    }
 
-      setEntranceInfo(info);
+    if (worldInfo) {
+      await loadBitmapFromWorldInfo(worldInfo);
+      return;
+    }
+
+    setLevelBitmap(undefined);
+  };
+
+  const tryLoadLevelFromEntranceId = (
+    entrance: number,
+  ): EntranceInfo | undefined => {
+    try {
+      return loadEntranceInfo(rom.data, Dkc1LevelConstant, entrance);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : 'Invalid entrance index',
       );
-      setLevelBitmap(undefined);
+      return undefined;
     }
-
-    if (info) await loadFromEntranceInfoAndMode(info);
   };
 
-  const loadFromEntranceInfoAndMode = async (info: EntranceInfo) => {
+  const tryLoadWorldFromEntranceId = (
+    entrance: number,
+  ): WorldInfo | undefined => {
+    try {
+      return readWorldInfo(rom.data, Dkc1LevelConstant, entrance);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Invalid entrance index',
+      );
+      return undefined;
+    }
+  };
+
+  const loadBitmapFromEntranceInfo = async (info: EntranceInfo) => {
     setError('');
 
     try {
@@ -146,6 +181,22 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
     }
   };
 
+  const loadBitmapFromWorldInfo = async (info: WorldInfo) => {
+    setError('');
+
+    try {
+      const imageMatrix = buildWorldImage(rom.data, info, decodeTileOptions);
+      const bitmap = await convertToImageBitmap(imageMatrix);
+      setLevelBitmap(bitmap);
+    } catch (error) {
+      console.error(error);
+      setError(
+        error instanceof Error ? error.message : 'Invalid entrance info',
+      );
+      setLevelBitmap(undefined);
+    }
+  };
+
   const updateTerrainInfo = (partial: Partial<TerrainInfo>) => {
     if (!entranceInfo) return;
     setEntranceInfo({
@@ -170,7 +221,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
 
   const loadLevel = async () => {
     if (!entranceInfo) return;
-    await loadFromEntranceInfoAndMode(entranceInfo);
+    await loadBitmapFromEntranceInfo(entranceInfo);
   };
 
   const drawLevelImage = (
@@ -203,8 +254,8 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   }, [selectedLevelItem]);
 
   useEffect(() => {
-    if (!entranceInfo) return;
-    loadFromEntranceInfoAndMode(entranceInfo).then(noop);
+    if (entranceInfo) loadBitmapFromEntranceInfo(entranceInfo).then(noop);
+    if (worldInfo) loadBitmapFromWorldInfo(worldInfo).then(noop);
   }, [displayMode, decodeTileOptions]);
 
   useEffect(() => {
@@ -247,120 +298,125 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
       middle: (
         <>{error && <div className="notification is-danger">{error}</div>}</>
       ),
-      right: entranceInfo && (
+      right: (
         <OverlaySlotsContainer className="is-align-items-end">
-          <CollapsiblePanel title="Entrance info">
-            <AddressesDiv>
-              <LoadHexadecimalInput
-                label="Terrain Tilemap Address"
-                hexadecimalValue={
-                  entranceInfo.terrain.tilemapAddress.snesAddress
-                }
-                onValueChange={(value) => {
-                  if (value === undefined) return;
-                  updateTerrainInfo({
-                    tilemapAddress: RomAddress.fromSnesAddress(value),
-                  });
-                }}
-                onValueLoad={loadLevel}
-              />
-              <LoadHexadecimalInput
-                label="Palettes Address"
-                hexadecimalValue={
-                  entranceInfo.terrain.palettesAddress.snesAddress
-                }
-                onValueChange={(value) => {
-                  if (value === undefined) return;
-                  updateTerrainInfo({
-                    palettesAddress: RomAddress.fromSnesAddress(value),
-                  });
-                }}
-                onValueLoad={loadLevel}
-              />
-              <LoadHexadecimalInput
-                label="Levels Tilemap Address"
-                hexadecimalValue={
-                  entranceInfo.terrain.levelsTilemapAddress.snesAddress
-                }
-                onValueChange={(value) => {
-                  if (value === undefined) return;
-                  updateTerrainInfo({
-                    levelsTilemapAddress: RomAddress.fromSnesAddress(value),
-                  });
-                }}
-                onValueLoad={loadLevel}
-              />
-              <LoadHexadecimalInput
-                label="Level Tilemap Offset"
-                hexadecimalValue={entranceInfo.level.tilemapOffset}
-                onValueChange={(value) => {
-                  if (value === undefined) return;
-                  updateLevelInfo({
-                    tilemapOffset: value,
-                  });
-                }}
-                onValueLoad={loadLevel}
-              />
-              <LoadHexadecimalInput
-                label="Level Tilemap Length"
-                hexadecimalValue={entranceInfo.level.tilemapLength}
-                onValueChange={(value) => {
-                  if (value === undefined) return;
-                  updateLevelInfo({
-                    tilemapLength: value,
-                  });
-                }}
-                onValueLoad={loadLevel}
-              />
-            </AddressesDiv>
-          </CollapsiblePanel>
-          <CollapsiblePanel title="Layer">
-            <OptionsContainer>
-              {entranceInfo.layers.map((l, i) => {
-                const layerDisplayMode: DisplayMode =
-                  l.type === 'Level'
-                    ? { mode: 'Level' }
-                    : { mode: 'Layer', layerIndex: i };
-                return (
+          {entranceInfo && (
+            <>
+              <CollapsiblePanel title="Entrance info">
+                <AddressesDiv>
+                  <LoadHexadecimalInput
+                    label="Terrain Tilemap Address"
+                    hexadecimalValue={
+                      entranceInfo.terrain.tilemapAddress.snesAddress
+                    }
+                    onValueChange={(value) => {
+                      if (value === undefined) return;
+                      updateTerrainInfo({
+                        tilemapAddress: RomAddress.fromSnesAddress(value),
+                      });
+                    }}
+                    onValueLoad={loadLevel}
+                  />
+                  <LoadHexadecimalInput
+                    label="Palettes Address"
+                    hexadecimalValue={
+                      entranceInfo.terrain.palettesAddress.snesAddress
+                    }
+                    onValueChange={(value) => {
+                      if (value === undefined) return;
+                      updateTerrainInfo({
+                        palettesAddress: RomAddress.fromSnesAddress(value),
+                      });
+                    }}
+                    onValueLoad={loadLevel}
+                  />
+                  <LoadHexadecimalInput
+                    label="Levels Tilemap Address"
+                    hexadecimalValue={
+                      entranceInfo.terrain.levelsTilemapAddress.snesAddress
+                    }
+                    onValueChange={(value) => {
+                      if (value === undefined) return;
+                      updateTerrainInfo({
+                        levelsTilemapAddress: RomAddress.fromSnesAddress(value),
+                      });
+                    }}
+                    onValueLoad={loadLevel}
+                  />
+                  <LoadHexadecimalInput
+                    label="Level Tilemap Offset"
+                    hexadecimalValue={entranceInfo.level.tilemapOffset}
+                    onValueChange={(value) => {
+                      if (value === undefined) return;
+                      updateLevelInfo({
+                        tilemapOffset: value,
+                      });
+                    }}
+                    onValueLoad={loadLevel}
+                  />
+                  <LoadHexadecimalInput
+                    label="Level Tilemap Length"
+                    hexadecimalValue={entranceInfo.level.tilemapLength}
+                    onValueChange={(value) => {
+                      if (value === undefined) return;
+                      updateLevelInfo({
+                        tilemapLength: value,
+                      });
+                    }}
+                    onValueLoad={loadLevel}
+                  />
+                </AddressesDiv>
+              </CollapsiblePanel>
+              <CollapsiblePanel title="Layer">
+                <OptionsContainer>
+                  {entranceInfo.layers.map((l, i) => {
+                    const layerDisplayMode: DisplayMode =
+                      l.type === 'Level'
+                        ? { mode: 'Level' }
+                        : { mode: 'Layer', layerIndex: i };
+                    return (
+                      <label>
+                        <input
+                          type="radio"
+                          name="displayMode"
+                          value={l.type}
+                          checked={
+                            displayMode.mode === layerDisplayMode.mode &&
+                            displayMode.layerIndex ===
+                              layerDisplayMode.layerIndex
+                          }
+                          onChange={() => setDisplayMode(layerDisplayMode)}
+                        />
+                        <RadioText>
+                          Layer {i + 1}: {l.type}
+                        </RadioText>
+                      </label>
+                    );
+                  })}
                   <label>
                     <input
                       type="radio"
                       name="displayMode"
-                      value={l.type}
-                      checked={
-                        displayMode.mode === layerDisplayMode.mode &&
-                        displayMode.layerIndex === layerDisplayMode.layerIndex
-                      }
-                      onChange={() => setDisplayMode(layerDisplayMode)}
+                      value="tilemap"
+                      checked={displayMode.mode === 'Tilemap'}
+                      onChange={() => setDisplayMode({ mode: 'Tilemap' })}
                     />
-                    <RadioText>
-                      Layer {i + 1}: {l.type}
-                    </RadioText>
+                    <RadioText>Tilemap</RadioText>
                   </label>
-                );
-              })}
-              <label>
-                <input
-                  type="radio"
-                  name="displayMode"
-                  value="tilemap"
-                  checked={displayMode.mode === 'Tilemap'}
-                  onChange={() => setDisplayMode({ mode: 'Tilemap' })}
-                />
-                <RadioText>Tilemap</RadioText>
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="displayMode"
-                  value="world"
-                  checked={displayMode.mode === 'World'}
-                  onChange={() => setDisplayMode({ mode: 'World' })}
-                />
-                <RadioText>World Map</RadioText>
-              </label>
-            </OptionsContainer>
-          </CollapsiblePanel>
+                  <label>
+                    <input
+                      type="radio"
+                      name="displayMode"
+                      value="world"
+                      checked={displayMode.mode === 'World'}
+                      onChange={() => setDisplayMode({ mode: 'World' })}
+                    />
+                    <RadioText>World Map</RadioText>
+                  </label>
+                </OptionsContainer>
+              </CollapsiblePanel>
+            </>
+          )}
           <CollapsiblePanel title="Options">
             <OptionsContainer>
               <label className="checkbox">

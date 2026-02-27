@@ -1,9 +1,27 @@
 import { read16 } from '../../buffer';
 import { RomAddress } from '../../rom/address';
 import { BPP } from '../../types/bpp';
+import { Color } from '../../types/color';
+import { ImageMatrix } from '../../types/image-matrix';
+import { Matrix } from '../../types/matrix';
+import { readOpcodeUntil } from './entrance-info/asm/read';
+import {
+  findArgumentInPreviousOpcodes,
+  findSubroutine,
+  readOpcodeEntryArgument,
+} from './entrance-info/utils';
+import { decodeTilesFromSpec } from './spec';
+import { DecodeTileOptions } from './tiles/decode-tile';
 import { GameLevelConstant, TilesDecodeSpec } from './types';
 
 const WORLD_TABLE_LENGTH = 0x34;
+
+export interface WorldInfo {
+  firstEntranceId: number;
+  worldIndices: number[];
+  worldBackgroundInfos: WorldBackgroundInfo[];
+  backgroundSpecs: TilesDecodeSpec[];
+}
 
 interface WorldBackgroundInfo {
   tilemapAddress: RomAddress;
@@ -16,6 +34,19 @@ export const readWorldBackgroundInfo = (
   levelConstant: GameLevelConstant,
   entranceId: number,
 ): WorldBackgroundInfo => {
+  const worldIndex = readWorldIndex(romData, levelConstant, entranceId);
+  return readWorldBackgroundInfoFromWorldIndex(
+    romData,
+    levelConstant,
+    worldIndex,
+  );
+};
+
+const readWorldIndex = (
+  romData: Uint8Array,
+  levelConstant: GameLevelConstant,
+  entranceId: number,
+) => {
   // Ref: ASM Code at $80E20F
   // LDA $BCF44B,X
   let worldIndex = read16(
@@ -24,7 +55,14 @@ export const readWorldBackgroundInfo = (
   );
   // AND #$00FF
   worldIndex &= 0x00ff;
+  return worldIndex;
+};
 
+const readWorldBackgroundInfoFromWorldIndex = (
+  romData: Uint8Array,
+  levelConstant: GameLevelConstant,
+  worldIndex: number,
+): WorldBackgroundInfo => {
   // Ref: ASM Code at $80E499
   let tableOffset = worldIndex;
   // ASL (x2)
@@ -82,7 +120,10 @@ export const readWorldBackgroundInfo = (
       tilesetAbsolute,
     ),
     // Bank hardcoded to B9 (at $B99A03)
-    paletteAddress: RomAddress.fromBankAndAbsolute(0xb9, paletteAbsolute),
+    paletteAddress: RomAddress.fromBankAndAbsolute(
+      levelConstant.banks.terrainPalette,
+      paletteAbsolute,
+    ),
   };
 };
 
@@ -102,4 +143,119 @@ export const buildSpecFromWorldBackgroundInfo = (
     bpp: BPP.Four,
     tilesPerRow: 32,
   };
+};
+
+export const readWorldInfo = (
+  romData: Uint8Array,
+  levelConstant: GameLevelConstant,
+  entranceId: number,
+): WorldInfo | undefined => {
+  const firstEntranceId = readWorldFirstEntranceId(
+    romData,
+    levelConstant,
+    entranceId,
+  );
+  if (firstEntranceId === undefined) return undefined;
+
+  const worldIndex = readWorldIndex(romData, levelConstant, firstEntranceId);
+  const worldIndices = [worldIndex];
+  if (worldIndex !== 0) {
+    if (worldIndex % 2 !== 0) worldIndices.push(worldIndex + 1);
+    else worldIndices.push(worldIndex - 1);
+  }
+
+  const worldBackgroundInfos = worldIndices.map((w) =>
+    readWorldBackgroundInfoFromWorldIndex(romData, levelConstant, w),
+  );
+  const backgroundSpecs: TilesDecodeSpec[] = worldBackgroundInfos.map((w) =>
+    buildSpecFromWorldBackgroundInfo(w),
+  );
+
+  return {
+    firstEntranceId,
+    worldIndices,
+    worldBackgroundInfos,
+    backgroundSpecs,
+  };
+};
+
+// Ref: ASM Code at $80E870
+export const readWorldFirstEntranceId = (
+  romData: Uint8Array,
+  levelConstant: GameLevelConstant,
+  entranceId: number,
+): number | undefined => {
+  let opcodeEntries = readOpcodeUntil(
+    romData,
+    levelConstant.subroutines.loadEntrance,
+    undefined,
+    {
+      readLimit: 25,
+    },
+  );
+
+  let branchAddress: RomAddress | undefined = undefined;
+  for (let i = 0; i < opcodeEntries.length; i++) {
+    const opcode = opcodeEntries[i];
+
+    if (opcode.opcode.name === 'CMP #const') {
+      const nextOpcode = opcodeEntries[i + 1];
+      const argument = readOpcodeEntryArgument(opcode);
+
+      if (nextOpcode.opcode.name.includes('BEQ')) {
+        if (argument === entranceId) {
+          const offset = readOpcodeEntryArgument(nextOpcode);
+          branchAddress = nextOpcode.address.getOffsetAddress(offset + 2);
+          break;
+        }
+      } else if (nextOpcode.opcode.name.includes('BCS')) {
+        if (entranceId >= argument) {
+          /* This may be useful later for:
+           * Cranky's Cabin, Funky's Flights, Candy's Save Point */
+          const offset = readOpcodeEntryArgument(nextOpcode);
+          branchAddress = nextOpcode.address.getOffsetAddress(offset + 2);
+          break;
+        }
+      }
+    }
+  }
+  if (!branchAddress) return;
+
+  opcodeEntries = readOpcodeUntil(romData, branchAddress, undefined, {
+    readLimit: 10,
+  });
+
+  const loadWorldSubroutine = findSubroutine(
+    opcodeEntries,
+    levelConstant.subroutines.loadWorld,
+  );
+  return findArgumentInPreviousOpcodes(
+    opcodeEntries,
+    loadWorldSubroutine,
+    'LDA',
+  );
+};
+
+export const buildWorldImage = (
+  romData: Uint8Array,
+  worldInfo: WorldInfo,
+  decodeTileOptions?: DecodeTileOptions,
+): ImageMatrix => {
+  const allMatrix = worldInfo.backgroundSpecs.map((spec) =>
+    decodeTilesFromSpec(romData, spec, decodeTileOptions),
+  );
+
+  const width = allMatrix[0].width;
+  const height = allMatrix[0].height;
+  const imageMatrix = new Matrix<Color | null>(
+    width * allMatrix.length,
+    height,
+    null,
+  );
+
+  for (let i = 0; i < allMatrix.length; i++) {
+    const matrix = allMatrix[i];
+    imageMatrix.setMatrixAt(width * i, 0, matrix);
+  }
+  return imageMatrix;
 };
