@@ -114,7 +114,7 @@ export const RomSelection: MainMenuItemComponent = ({ children }) => {
                   Please select{' '}
                   <code>Donkey Kong Country (U) (V1.0) [!].smc</code>
                 </div>
-                <div className="file has-name is-fullwidth is-align-self-stretch">
+                <div className="file is-small has-name is-fullwidth is-align-self-stretch">
                   <label className="file-label">
                     <input
                       className="file-input"
@@ -135,7 +135,7 @@ export const RomSelection: MainMenuItemComponent = ({ children }) => {
                 </div>
                 <div className="m-2">Or</div>
                 <button
-                  className={`button is-primary is-align-self-stretch ${isDownloading ? 'is-loading' : ''}`}
+                  className={`button is-primary is-small is-align-self-stretch ${isDownloading ? 'is-loading' : ''}`}
                   onClick={loadRomFromWeb}
                 >
                   Download{' '}

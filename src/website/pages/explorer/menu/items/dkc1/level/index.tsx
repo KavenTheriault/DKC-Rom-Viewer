@@ -419,50 +419,66 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
           )}
           <CollapsiblePanel title="Options">
             <OptionsContainer>
-              <label className="checkbox">
-                <input
-                  className="mr-1"
-                  type="checkbox"
-                  checked={decodeTileOptions.opaqueZero}
-                  onChange={() =>
-                    setDecodeTileOptions({
-                      ...decodeTileOptions,
-                      opaqueZero: !decodeTileOptions.opaqueZero,
-                    })
-                  }
-                />
-                Fill background
-              </label>
-              <label className="checkbox">
-                <input
-                  className="mr-1"
-                  type="checkbox"
-                  checked={decodeTileOptions.skipBackgroundTiles}
-                  onChange={() =>
-                    setDecodeTileOptions({
-                      ...decodeTileOptions,
-                      skipBackgroundTiles:
-                        !decodeTileOptions.skipBackgroundTiles,
-                    })
-                  }
-                />
-                Foreground only
-              </label>
-              <label className="checkbox">
-                <input
-                  className="mr-1"
-                  type="checkbox"
-                  checked={decodeTileOptions.skipForegroundTiles}
-                  onChange={() =>
-                    setDecodeTileOptions({
-                      ...decodeTileOptions,
-                      skipForegroundTiles:
-                        !decodeTileOptions.skipForegroundTiles,
-                    })
-                  }
-                />
-                Background only
-              </label>
+              <button
+                className={`button is-small ${decodeTileOptions.opaqueZero ? 'is-success' : ''}`}
+                onClick={() =>
+                  setDecodeTileOptions({
+                    ...decodeTileOptions,
+                    opaqueZero: !decodeTileOptions.opaqueZero,
+                  })
+                }
+              >
+                <span className="icon is-small">
+                  {decodeTileOptions.opaqueZero && (
+                    <i className="fas fa-check"></i>
+                  )}
+                </span>
+                <span>Fill BG</span>
+              </button>
+              <div className="field has-addons">
+                <p className="control">
+                  <button
+                    className={`button is-small ${decodeTileOptions.skipBackgroundTiles ? 'is-info' : ''}`}
+                    onClick={() =>
+                      setDecodeTileOptions({
+                        ...decodeTileOptions,
+                        skipBackgroundTiles: true,
+                        skipForegroundTiles: false,
+                      })
+                    }
+                  >
+                    <span>FG</span>
+                  </button>
+                </p>
+                <p className="control">
+                  <button
+                    className={`button is-small ${!decodeTileOptions.skipForegroundTiles && !decodeTileOptions.skipBackgroundTiles ? 'is-info' : ''}`}
+                    onClick={() =>
+                      setDecodeTileOptions({
+                        ...decodeTileOptions,
+                        skipForegroundTiles: false,
+                        skipBackgroundTiles: false,
+                      })
+                    }
+                  >
+                    <span>Both</span>
+                  </button>
+                </p>
+                <p className="control">
+                  <button
+                    className={`button is-small ${decodeTileOptions.skipForegroundTiles ? 'is-info' : ''}`}
+                    onClick={() =>
+                      setDecodeTileOptions({
+                        ...decodeTileOptions,
+                        skipForegroundTiles: true,
+                        skipBackgroundTiles: false,
+                      })
+                    }
+                  >
+                    <span>BG</span>
+                  </button>
+                </p>
+              </div>
               {Object.entries(DKC1_ASSETS).map(([name, spec]) => (
                 <button
                   className="button is-small"
