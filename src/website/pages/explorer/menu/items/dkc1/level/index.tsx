@@ -3,6 +3,17 @@ import React, { useEffect, useState } from 'react';
 import { buildLevelImageFromEntranceInfo } from '../../../../../../../rom-io/common/levels';
 import { loadEntranceInfo } from '../../../../../../../rom-io/common/levels/entrance-info';
 import { buildLayer } from '../../../../../../../rom-io/common/levels/layers';
+import {
+  buildServiceImage,
+  readServiceInfo,
+} from '../../../../../../../rom-io/common/levels/non-level-entrance/service';
+import { WorldMapInfo } from '../../../../../../../rom-io/common/levels/non-level-entrance/types';
+import {
+  buildSpecFromWorldBackgroundInfo,
+  buildWorldMapImage,
+  readWorldBackgroundInfo,
+  readWorldMapInfo,
+} from '../../../../../../../rom-io/common/levels/non-level-entrance/world-map';
 import { decodeTilesFromSpec } from '../../../../../../../rom-io/common/levels/spec';
 import { buildTerrainTilesetImage } from '../../../../../../../rom-io/common/levels/terrain';
 import { DecodeTileOptions } from '../../../../../../../rom-io/common/levels/tiles/decode-tile';
@@ -11,13 +22,6 @@ import {
   LevelInfo,
   TerrainInfo,
 } from '../../../../../../../rom-io/common/levels/types';
-import {
-  buildSpecFromWorldBackgroundInfo,
-  buildWorldImage,
-  readWorldBackgroundInfo,
-  readWorldInfo,
-  WorldInfo,
-} from '../../../../../../../rom-io/common/levels/world';
 import {
   DKC1_ASSETS,
   Dkc1LevelConstant,
@@ -64,7 +68,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
     null,
   );
   const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
-  const [worldInfo, setWorldInfo] = useState<WorldInfo>();
+  const [worldMapInfo, setWorldMapInfo] = useState<WorldMapInfo>();
   const [levelBitmap, setLevelBitmap] = useState<ImageBitmap>();
   const [displayMode, setDisplayMode] =
     useState<DisplayMode>(defaultDisplayMode);
@@ -79,10 +83,28 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
     const levelInfo = tryLoadLevelFromEntranceId(entrance);
     setEntranceInfo(levelInfo);
 
-    const worldInfo = !levelInfo
+    const worldMapInfo = !levelInfo
       ? tryLoadWorldFromEntranceId(entrance)
       : undefined;
-    setWorldInfo(worldInfo);
+    setWorldMapInfo(worldMapInfo);
+
+    if (!levelInfo && !worldMapInfo) {
+      const serviceInfo = readServiceInfo(
+        rom.data,
+        Dkc1LevelConstant,
+        entrance,
+      );
+
+      if (serviceInfo) {
+        const imageMatrix = buildServiceImage(
+          rom.data,
+          serviceInfo,
+          decodeTileOptions,
+        );
+        const bitmap = await convertToImageBitmap(imageMatrix);
+        setLevelBitmap(bitmap);
+      }
+    }
 
     if (levelInfo) {
       const hasLevelLayer = levelInfo.layers.some((l) => l.type === 'Level');
@@ -95,12 +117,12 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
       return;
     }
 
-    if (worldInfo) {
-      await loadBitmapFromWorldInfo(worldInfo);
+    if (worldMapInfo) {
+      await loadBitmapFromWorldMapInfo(worldMapInfo);
       return;
     }
 
-    setLevelBitmap(undefined);
+    //setLevelBitmap(undefined);
   };
 
   const tryLoadLevelFromEntranceId = (
@@ -118,9 +140,9 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
 
   const tryLoadWorldFromEntranceId = (
     entrance: number,
-  ): WorldInfo | undefined => {
+  ): WorldMapInfo | undefined => {
     try {
-      return readWorldInfo(rom.data, Dkc1LevelConstant, entrance);
+      return readWorldMapInfo(rom.data, Dkc1LevelConstant, entrance);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : 'Invalid entrance index',
@@ -181,11 +203,11 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
     }
   };
 
-  const loadBitmapFromWorldInfo = async (info: WorldInfo) => {
+  const loadBitmapFromWorldMapInfo = async (info: WorldMapInfo) => {
     setError('');
 
     try {
-      const imageMatrix = buildWorldImage(rom.data, info, decodeTileOptions);
+      const imageMatrix = buildWorldMapImage(rom.data, info, decodeTileOptions);
       const bitmap = await convertToImageBitmap(imageMatrix);
       setLevelBitmap(bitmap);
     } catch (error) {
@@ -255,7 +277,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
 
   useEffect(() => {
     if (entranceInfo) loadBitmapFromEntranceInfo(entranceInfo).then(noop);
-    if (worldInfo) loadBitmapFromWorldInfo(worldInfo).then(noop);
+    if (worldMapInfo) loadBitmapFromWorldMapInfo(worldMapInfo).then(noop);
   }, [displayMode, decodeTileOptions]);
 
   useEffect(() => {

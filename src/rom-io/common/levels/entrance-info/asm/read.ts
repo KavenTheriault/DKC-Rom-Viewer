@@ -46,7 +46,7 @@ export const readOpcodeUntil = (
     count: 0,
     flags: { ...DEFAULT_FLAGS },
   },
-  options: { readLimit: number } = { readLimit: 0x400 },
+  options: { readLimit: number; skipAllJump?: boolean } = { readLimit: 0x400 },
 ) => {
   let readOffset = 0;
   const opcodeEntries: OpcodeEntry[] = [];
@@ -63,8 +63,9 @@ export const readOpcodeUntil = (
     readStatus.count++;
 
     if (
-      opcodeEntry.opcode.name.includes('JSR') ||
-      opcodeEntry.opcode.name.includes('JMP')
+      (opcodeEntry.opcode.name.includes('JSR') ||
+        opcodeEntry.opcode.name.includes('JMP')) &&
+      !options.skipAllJump
     ) {
       let jumpAddress: RomAddress;
       if (
@@ -103,7 +104,7 @@ export const readOpcodeUntil = (
         readStatus.flags.memory = '8bit';
       } else if (opcodeEntry.bytes[0] === 0x30) {
         readStatus.flags.index = '8bit';
-        readStatus.flags.index = '8bit';
+        readStatus.flags.memory = '8bit';
       }
     } else if (opcodeEntry.opcode.name.includes('REP')) {
       if (opcodeEntry.bytes[0] === 0x10) {
@@ -112,7 +113,7 @@ export const readOpcodeUntil = (
         readStatus.flags.memory = '16bit';
       } else if (opcodeEntry.bytes[0] === 0x30) {
         readStatus.flags.index = '16bit';
-        readStatus.flags.index = '16bit';
+        readStatus.flags.memory = '16bit';
       }
     } else if (
       opcodeEntry.opcode.name.includes('RTS') ||

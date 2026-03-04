@@ -2,7 +2,7 @@ import { read16, read24, read8 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
 import { OpcodeEntry } from './asm/read';
 
-export const readOpcodeEntryArgument = (opcodeEntry: OpcodeEntry) => {
+export const readOpcodeEntryValue = (opcodeEntry: OpcodeEntry) => {
   if (opcodeEntry.bytes.length === 1) return read8(opcodeEntry.bytes, 0);
   if (opcodeEntry.bytes.length === 2) return read16(opcodeEntry.bytes, 0);
   if (opcodeEntry.bytes.length === 3) return read24(opcodeEntry.bytes, 0);
@@ -25,25 +25,25 @@ export const findSubroutine = (
 export const findArgumentInPreviousOpcodes = (
   opcodeEntries: OpcodeEntry[],
   targetOpcodeEntry: OpcodeEntry,
-  argumentOpcode: string,
+  opcodeName: string,
 ): number => {
   const previousOpcodesToSearch = 4;
   const subroutineIndex = opcodeEntries.indexOf(targetOpcodeEntry);
-  const argument = findOpcodeEntryByName(
+  const argumentOpcode = findOpcodeEntryByName(
     opcodeEntries
       .slice(
         Math.max(subroutineIndex - previousOpcodesToSearch, 0),
         subroutineIndex,
       )
       .reverse(),
-    argumentOpcode,
+    opcodeName,
   );
 
-  if (!argument) {
+  if (!argumentOpcode) {
     throw new Error(`Can't find argument (${argumentOpcode})`);
   }
 
-  return readOpcodeEntryArgument(argument);
+  return readOpcodeEntryValue(argumentOpcode);
 };
 
 export const findOpcodeEntryByAddress = (
@@ -60,3 +60,13 @@ export const findOpcodeEntriesByName = (
   opcodeEntries: OpcodeEntry[],
   name: string,
 ) => opcodeEntries.filter((o) => o.opcode.name.includes(name));
+
+export const findOpcodeEntryByValue = (
+  opcodeEntries: OpcodeEntry[],
+  value: number,
+) => opcodeEntries.find((o) => readOpcodeEntryValue(o) === value);
+
+export const filterOpcodeEntryByValue = (
+  opcodeEntries: OpcodeEntry[],
+  value: number,
+) => opcodeEntries.filter((o) => readOpcodeEntryValue(o) === value);
