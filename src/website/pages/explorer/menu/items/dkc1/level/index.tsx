@@ -25,10 +25,7 @@ import {
   LevelInfo,
   TerrainInfo,
 } from '../../../../../../../rom-io/common/levels/types';
-import {
-  DKC1_ASSETS,
-  Dkc1LevelConstant,
-} from '../../../../../../../rom-io/dkc1/constants';
+import { Dkc1LevelConstant } from '../../../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../../../rom-io/rom/address';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
 import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
@@ -523,23 +520,6 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
                   </button>
                 </p>
               </div>
-              {Object.entries(DKC1_ASSETS).map(([name, spec]) => (
-                <button
-                  className="button is-small"
-                  onClick={async () => {
-                    if (!rom) return;
-                    const image = decodeTilesFromSpec(
-                      rom.data,
-                      spec,
-                      decodeTileOptions,
-                    );
-                    const bitmap = await convertToImageBitmap(image);
-                    setImageBitmap(bitmap);
-                  }}
-                >
-                  {name}
-                </button>
-              ))}
             </OptionsContainer>
           </CollapsiblePanel>
         </OverlaySlotsContainer>
