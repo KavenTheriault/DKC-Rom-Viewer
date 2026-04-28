@@ -59,6 +59,14 @@ export const DKC1_LEVELS: LevelGroup[] = [
     ],
   },
   {
+    label: 'Services',
+    items: [
+      { label: "Cranky's Cabin", value: { entranceIndex: 0xee } },
+      { label: "Funky's Flights", value: { entranceIndex: 0xf4 } },
+      { label: "Candy's Save Point", value: { entranceIndex: 0xfa } },
+    ],
+  },
+  {
     label: 'Animal Token Bonus',
     items: [
       { label: 'Rambi', value: { entranceIndex: 0xd2 } },
