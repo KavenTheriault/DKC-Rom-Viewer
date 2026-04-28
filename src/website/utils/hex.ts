@@ -1,4 +1,5 @@
 import { chunk } from 'lodash';
+import { Buffer } from '../../rom-io/types/buffer';
 
 export const toHexString = (
   val: number,
@@ -20,7 +21,7 @@ export const rgbToHex = (r: number, g: number, b: number) => {
 
 export const isHexadecimal = (str: string) => /^[0-9A-F]+$/.test(str);
 
-export const bufferToString = (bytes: Uint8Array): string => {
+export const bufferToString = (bytes: Buffer): string => {
   const lines = [];
   const allBytes = Array.from(hexFormatValues(bytes));
   for (const line of chunk(allBytes, 32)) {
@@ -29,7 +30,7 @@ export const bufferToString = (bytes: Uint8Array): string => {
   return lines.join('\n').toUpperCase();
 };
 
-const hexFormatValues = function* (buffer: Uint8Array) {
+const hexFormatValues = function* (buffer: Buffer) {
   for (const x of buffer) {
     const hex = x.toString(16);
     yield hex.padStart(2, '0');

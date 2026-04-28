@@ -1,10 +1,11 @@
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 import { EntityCommand } from '../entities/types';
 import { paletteReferenceToSnesAddress } from '../palettes';
 import { scanEntities } from './entities';
 
 export const scanPalettes = (
-  romData: Uint8Array,
+  romData: Buffer,
   entityBankSnesAddress: number,
   entityPaletteBankSnesAddress: number,
   entitiesStartReference: number,

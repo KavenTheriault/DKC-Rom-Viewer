@@ -1,5 +1,6 @@
 import { read32 } from '../../buffer';
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 import { getCoordinateDataLength, getSpriteCoordinates } from './coordinate';
 import {
   getSpriteHeader,
@@ -18,7 +19,7 @@ export type Sprite = {
 };
 
 export const getAddressFromSpritePointerIndex = (
-  romData: Uint8Array,
+  romData: Buffer,
   spritePointerTableSnesAddress: number,
   spritePointerIndex: number,
 ): RomAddress => {
@@ -29,7 +30,7 @@ export const getAddressFromSpritePointerIndex = (
 };
 
 export const readSpritePointer = (
-  romData: Uint8Array,
+  romData: Buffer,
   address: RomAddress,
 ): RomAddress => {
   const snesAddress: number = read32(romData, address.pcAddress);
@@ -37,7 +38,7 @@ export const readSpritePointer = (
 };
 
 export const readSprite = (
-  romData: Uint8Array,
+  romData: Buffer,
   spriteAddress: RomAddress,
 ): Sprite | undefined => {
   const spriteHeader = getSpriteHeader(romData, spriteAddress);

@@ -1,11 +1,12 @@
 import { read16 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
+import { Buffer } from '../../../types/buffer';
 import { GameLevelConstant } from '../types';
 
 const SCREEN_WIDTH = 0x100;
 
 export const readLevelBounds = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ) => {

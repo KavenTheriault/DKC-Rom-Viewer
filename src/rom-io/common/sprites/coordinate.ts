@@ -1,5 +1,6 @@
 import { extract } from '../../buffer';
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 import { SPRITE_HEADER_LENGTH, SpriteHeader } from './header';
 import { Coordinate } from './types';
 
@@ -12,14 +13,14 @@ export const getSpriteCoordinateQuantity = (spriteHeader: SpriteHeader) =>
   spriteHeader.tileQuantity.small2;
 
 export const getSpriteCoordinates = (
-  romData: Uint8Array,
+  romData: Buffer,
   spriteAddress: RomAddress,
   spriteHeader: SpriteHeader,
 ): Coordinate[] => {
   const coordinates: Coordinate[] = [];
   const coordinatesPosition: number =
     spriteAddress.pcAddress + SPRITE_HEADER_LENGTH;
-  const coordinatesData: Uint8Array = extract(
+  const coordinatesData: Buffer = extract(
     romData,
     coordinatesPosition,
     getSpriteCoordinateQuantity(spriteHeader) * 2,

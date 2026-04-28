@@ -9,7 +9,9 @@ import { drawImage, getDrawCenterOffset } from '../../../../utils/draw';
 
 export const useDrawAnimation = (animation: Animation | undefined) => {
   const canvasController = stateSelector((s) => s.canvasController);
-  const animationInterval = useRef<NodeJS.Timeout | undefined>(undefined);
+  const animationInterval = useRef<ReturnType<typeof setInterval> | undefined>(
+    undefined,
+  );
 
   const buildDrawFnAndStartAnimation = () => {
     if (!animation) return;

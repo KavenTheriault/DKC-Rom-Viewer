@@ -1,3 +1,4 @@
+import { Buffer } from '../../types/buffer';
 import { SNES_PUBLISHERS } from './publishers';
 import { REGIONS_VIDEO_OUTPUT, SNES_REGIONS } from './regions';
 import { getChipset } from './chipsets';
@@ -40,7 +41,7 @@ const HeaderLocation: Record<RomType, number> = {
   [RomType.ExHiROM]: 0x40ffb0,
 };
 
-const computeRomChecksum = (romData: Uint8Array) => {
+const computeRomChecksum = (romData: Buffer) => {
   let checksum = 0x0000;
   for (let i = 0; i < romData.length; i++) {
     // 16-bit - Overflow is discarded
@@ -49,7 +50,7 @@ const computeRomChecksum = (romData: Uint8Array) => {
   return checksum;
 };
 
-const getHeaderChecksums = (headerData: Uint8Array) => {
+const getHeaderChecksums = (headerData: Buffer) => {
   const checksumCompliment = (headerData[45] << 8) | headerData[44];
   const checksum = (headerData[47] << 8) | headerData[46];
   return {
@@ -67,15 +68,11 @@ const isValidChecksums = (
   return headerChecksum + headerChecksumCompliment === 0xffff;
 };
 
-const findRomType = (romData: Uint8Array): RomType => {
+const findRomType = (romData: Buffer): RomType => {
   const computedChecksum = computeRomChecksum(romData);
   for (const romType in RomType) {
     const headerLocation = HeaderLocation[romType as RomType];
-    const headerData: Uint8Array = extract(
-      romData,
-      headerLocation,
-      HEADER_LENGTH,
-    );
+    const headerData: Buffer = extract(romData, headerLocation, HEADER_LENGTH);
     const { checksum, checksumCompliment } = getHeaderChecksums(headerData);
     if (isValidChecksums(computedChecksum, checksum, checksumCompliment)) {
       return romType as RomType;
@@ -84,7 +81,7 @@ const findRomType = (romData: Uint8Array): RomType => {
   throw new Error('Unable to find Rom Type - Checksum invalid');
 };
 
-const getCompanyCode = (headerData: Uint8Array) => {
+const getCompanyCode = (headerData: Buffer) => {
   let firstPart: number, secondPart: number;
   if (headerData[42] != 0x33) {
     firstPart = (headerData[42] >> 4) & 0x0f;
@@ -101,7 +98,7 @@ const getCompanyCode = (headerData: Uint8Array) => {
   return firstPart * 36 + secondPart;
 };
 
-export const getRomHeader = (romData: Uint8Array): RomHeader => {
+export const getRomHeader = (romData: Buffer): RomHeader => {
   const romType: RomType = findRomType(romData);
   const headerData = extract(romData, HeaderLocation[romType], HEADER_LENGTH);
 

@@ -1,6 +1,7 @@
 import { toHexString } from '../../../website/utils/hex';
 import { extract, read16, read8 } from '../../buffer';
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 import { Color } from '../../types/color';
 import { ImageMatrix } from '../../types/image-matrix';
 import { buildImageFromPixelsAndPalette } from '../images';
@@ -19,7 +20,7 @@ import {
 const ANIMATION_POINTER_LENGTH = 2;
 
 export const readAnimationPointer = (
-  romData: Uint8Array,
+  romData: Buffer,
   animationScriptBankSnesAddress: number,
   animationScriptTableSnesAddress: number,
   animationIndex: number,
@@ -42,7 +43,7 @@ const animationPointerToSnesAddress = (
 };
 
 export const readAnimationInfo = (
-  romData: Uint8Array,
+  romData: Buffer,
   animationAddress: RomAddress,
 ): AnimationInfo => {
   const entries: (EntryCommand | EntrySprite)[] = [];
@@ -63,7 +64,7 @@ export const readAnimationInfo = (
     if (entryStart in AnimationCommandParametersCount) {
       const parametersCount =
         AnimationCommandParametersCount[entryStart as AnimationCommand];
-      const parameters: Uint8Array = extract(
+      const parameters: Buffer = extract(
         romData,
         animationAddress.pcAddress + offset,
         parametersCount,
@@ -87,7 +88,7 @@ export const readAnimationInfo = (
 };
 
 export const buildAnimation = (
-  romData: Uint8Array,
+  romData: Buffer,
   spritePointerTableSnesAddress: number,
   animationInfo: AnimationInfo,
   palette: Color[],

@@ -1,4 +1,5 @@
 import { extract } from '../../buffer';
+import { Buffer } from '../../types/buffer';
 import { ImageMatrix } from '../../types/image-matrix';
 import { readPalette } from '../palettes';
 import { assembleImages } from './tiles/assemble';
@@ -7,7 +8,7 @@ import { decodeTiles } from './tiles/decode-tiles';
 import { TilesDecodeSpec } from './types';
 
 export const decodeTilesFromSpec = (
-  romData: Uint8Array,
+  romData: Buffer,
   spec: TilesDecodeSpec,
   decodeTileOptions?: DecodeTileOptions,
 ): ImageMatrix => {

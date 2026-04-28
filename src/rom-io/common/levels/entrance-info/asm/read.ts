@@ -1,12 +1,13 @@
 import { toHexString } from '../../../../../website/utils/hex';
 import { extract, read16, read24, read8 } from '../../../../buffer';
 import { RomAddress } from '../../../../rom/address';
+import { Buffer } from '../../../../types/buffer';
 import { Opcode, OPCODES_MAP } from './opcodes';
 
 export type OpcodeEntry = {
   address: RomAddress;
   opcode: Opcode;
-  bytes: Uint8Array;
+  bytes: Buffer;
 };
 
 type Mode = '8bit' | '16bit';
@@ -19,7 +20,7 @@ type ProcessorFlags = {
 const DEFAULT_FLAGS: ProcessorFlags = { memory: '16bit', index: '16bit' };
 
 export const readOpcodeEntry = (
-  romData: Uint8Array,
+  romData: Buffer,
   address: RomAddress,
   flags = DEFAULT_FLAGS,
 ): OpcodeEntry => {
@@ -40,7 +41,7 @@ export const readOpcodeEntry = (
 };
 
 export const readOpcodeUntil = (
-  romData: Uint8Array,
+  romData: Buffer,
   startAt: RomAddress,
   readStatus: { count: number; flags: ProcessorFlags } = {
     count: 0,

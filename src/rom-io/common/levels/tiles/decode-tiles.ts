@@ -1,4 +1,5 @@
 import { BPP } from '../../../types/bpp';
+import { Buffer } from '../../../types/buffer';
 import { Color } from '../../../types/color';
 import { ImageMatrix } from '../../../types/image-matrix';
 import { Matrix } from '../../../types/matrix';
@@ -11,9 +12,9 @@ interface DecodeTilesOptions extends DecodeTileOptions {
 }
 
 interface BaseDecodeTilesParams {
-  tileset: Uint8Array;
+  tileset: Buffer;
   tilemap: {
-    data: Uint8Array;
+    data: Buffer;
     address: number;
   };
   palette: Palette;

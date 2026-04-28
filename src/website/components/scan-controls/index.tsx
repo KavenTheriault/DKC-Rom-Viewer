@@ -1,16 +1,17 @@
 import { ChangeEvent, useState } from 'react';
 import { RomAddress } from '../../../rom-io/rom/address';
 import { Rom } from '../../../rom-io/rom/types';
+import { Buffer } from '../../../rom-io/types/buffer';
 
 interface ScanControlsProps {
   onSelectedAddressChange: (address: RomAddress) => void;
-  scanFn: (romData: Uint8Array) => RomAddress[];
+  scanFn: (romData: Buffer) => RomAddress[];
   rom: Rom;
 }
 
 const scanAsync = (
-  romData: Uint8Array,
-  scan: (romData: Uint8Array) => RomAddress[],
+  romData: Buffer,
+  scan: (romData: Buffer) => RomAddress[],
 ): Promise<RomAddress[]> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {

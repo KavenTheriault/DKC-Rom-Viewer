@@ -1,6 +1,7 @@
 import { Size } from '../../../../website/types/spatial';
 import { RomAddress } from '../../../rom/address';
 import { BPP } from '../../../types/bpp';
+import { Buffer } from '../../../types/buffer';
 import { readPalette } from '../../palettes';
 import {
   buildTerrainTilemapFromLevelTilemap,
@@ -17,7 +18,7 @@ const LAYER_TILEMAP_LENGTH = 0x200;
 const LAYER_PART_DATA_LENGTH = LAYER_TILEMAP_LENGTH * 4;
 
 export const buildLayer = (
-  romData: Uint8Array,
+  romData: Buffer,
   entranceInfo: EntranceInfo,
   layerIndex: number,
   decodeTileOptions?: DecodeTileOptions,
@@ -79,7 +80,7 @@ export const buildLayer = (
 };
 
 const buildLayerTilemap = (
-  romData: Uint8Array,
+  romData: Buffer,
   terrainTilemapAddress: RomAddress,
   levelsTilemapAddress: RomAddress,
   size: Size,

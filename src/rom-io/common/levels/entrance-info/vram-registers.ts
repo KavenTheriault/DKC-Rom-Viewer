@@ -1,6 +1,7 @@
 import { Size } from '../../../../website/types/spatial';
 import { read16, read8 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
+import { Buffer } from '../../../types/buffer';
 import { GameLevelConstant } from '../types';
 import { OpcodeEntry } from './asm/read';
 import { findArgumentInPreviousOpcodes, findSubroutine } from './utils';
@@ -24,7 +25,7 @@ export interface BackgroundRegisters {
 
 // Ref: ASM Code at $B9A4DC
 export const readVramRegisters = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   opcodeEntries: OpcodeEntry[],
 ): BackgroundRegisters => {

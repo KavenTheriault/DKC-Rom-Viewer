@@ -1,12 +1,13 @@
 import { clone } from 'lodash';
 import { RomAddress } from '../../../rom/address';
+import { Buffer } from '../../../types/buffer';
 import { GameLevelConstant, TilesetInfo } from '../types';
 import { OpcodeEntry } from './asm/read';
 import { DmaTransfer } from './dma-transfers';
 import { findOpcodeEntryByAddress, readOpcodeEntryValue } from './utils';
 
 export const buildTilesetsInfo = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   dmaTransfers: DmaTransfer[],
   opcodeEntries: OpcodeEntry[],

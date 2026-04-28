@@ -1,5 +1,6 @@
 import { extract } from '../../buffer';
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 import { parseTilePixels } from '../tile-pixels';
 import { getCoordinateDataLength } from './coordinate';
 import {
@@ -12,7 +13,7 @@ import { SmallTile } from './types';
 export const TILE_DATA_LENGTH = 32;
 
 export const getSmallTiles = (
-  romData: Uint8Array,
+  romData: Buffer,
   spriteAddress: RomAddress,
   spriteHeader: SpriteHeader,
 ): SmallTile[] => {
@@ -24,7 +25,7 @@ export const getSmallTiles = (
     const tileAddress: RomAddress = tilesStartAddress.getOffsetAddress(
       i * TILE_DATA_LENGTH,
     );
-    const tileData: Uint8Array = extract(
+    const tileData: Buffer = extract(
       romData,
       tileAddress.pcAddress,
       TILE_DATA_LENGTH,

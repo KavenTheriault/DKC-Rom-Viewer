@@ -1,5 +1,6 @@
 import { read16 } from '../../buffer';
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 import { Color } from '../../types/color';
 import { Palette } from './types';
 
@@ -49,7 +50,7 @@ export const grayscalePalette = (): Color[] => {
 };
 
 export const readPalette = (
-  romData: Uint8Array,
+  romData: Buffer,
   paletteAddress: RomAddress,
   paletteLength: number = SPRITE_PALETTE_LENGTH,
 ): Palette => {
@@ -62,7 +63,7 @@ export const readPalette = (
 };
 
 export const readPalettes = (
-  romData: Uint8Array,
+  romData: Buffer,
   palettesAddress: RomAddress,
   paletteQuantity: number,
   paletteLength: number,

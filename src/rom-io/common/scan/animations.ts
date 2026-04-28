@@ -1,10 +1,11 @@
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 import { readAnimationPointer } from '../animations';
 import { EntityCommand } from '../entities/types';
 import { scanEntities } from './entities';
 
 export const scanAnimations = (
-  romData: Uint8Array,
+  romData: Buffer,
   entityBankSnesAddress: number,
   entitiesStartReference: number,
   entitiesEndReference: number,

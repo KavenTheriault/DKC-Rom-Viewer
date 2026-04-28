@@ -1,6 +1,7 @@
 import { read16 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
 import { BPP } from '../../../types/bpp';
+import { Buffer } from '../../../types/buffer';
 import { Color } from '../../../types/color';
 import { ImageMatrix } from '../../../types/image-matrix';
 import { Matrix } from '../../../types/matrix';
@@ -22,7 +23,7 @@ import {
 const WORLD_TABLE_LENGTH = 0x34;
 
 export const readWorldBackgroundInfo = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ): BackgroundAddresses => {
@@ -35,7 +36,7 @@ export const readWorldBackgroundInfo = (
 };
 
 const readWorldIndex = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ) => {
@@ -51,7 +52,7 @@ const readWorldIndex = (
 };
 
 const readWorldBackgroundInfoFromWorldIndex = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   worldIndex: number,
 ): BackgroundAddresses => {
@@ -138,7 +139,7 @@ export const buildSpecFromWorldBackgroundInfo = (
 };
 
 export const readWorldMapInfo = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ): WorldMapInfo | undefined => {
@@ -178,7 +179,7 @@ export const readWorldMapInfo = (
 };
 
 const readWorldFirstEntranceId = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   nonLevelEntranceInfo: NonLevelEntranceInfo,
 ): number => {
@@ -203,7 +204,7 @@ const readWorldFirstEntranceId = (
 };
 
 export const buildWorldMapImage = (
-  romData: Uint8Array,
+  romData: Buffer,
   worldMapInfo: WorldMapInfo,
   decodeTileOptions?: DecodeTileOptions,
 ): ImageMatrix => {

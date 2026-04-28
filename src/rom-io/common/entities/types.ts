@@ -1,4 +1,5 @@
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 
 /* Script Commands
    Ref: http://www.dkc-atlas.com/forum/viewtopic.php?f=26&t=2413&p=43098&hilit=8000
@@ -59,7 +60,7 @@ export const EntityCommandParametersCount: Record<EntityCommand, number> = {
 
 export type Entity = {
   address: RomAddress;
-  bytes: Uint8Array;
+  bytes: Buffer;
   length: number;
   instructions: EntityInstruction[];
   inheritEntities: Entity[];
