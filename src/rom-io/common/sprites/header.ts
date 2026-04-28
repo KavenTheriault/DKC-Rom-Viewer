@@ -1,6 +1,7 @@
 import { dropRightWhile } from 'lodash';
 import { extract } from '../../buffer';
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 
 export const SPRITE_HEADER_LENGTH = 8;
 export const VRAM_ROW_LENGTH = 16;
@@ -28,10 +29,10 @@ export const getSpriteTilesQuantity = (spriteHeader: SpriteHeader) =>
   spriteHeader.tileQuantity.small2;
 
 export const getSpriteHeader = (
-  romData: Uint8Array,
+  romData: Buffer,
   spriteAddress: RomAddress,
 ): SpriteHeader | undefined => {
-  const headerData: Uint8Array = extract(
+  const headerData: Buffer = extract(
     romData,
     spriteAddress.pcAddress,
     SPRITE_HEADER_LENGTH,

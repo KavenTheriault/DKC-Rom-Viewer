@@ -13,6 +13,7 @@ import {
   Dkc1EntityPaletteBank,
 } from '../../../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../../../rom-io/rom/address';
+import { Buffer } from '../../../../../../../rom-io/types/buffer';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
 import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
 import { ScanControls } from '../../../../../../components/scan-controls';
@@ -124,7 +125,7 @@ export const Dkc1Palette: MainMenuItemComponent = ({ children }) => {
         <CollapsiblePanel title="Scan Palettes" startCollapsed>
           <ScanControls
             rom={rom}
-            scanFn={(romData: Uint8Array) => {
+            scanFn={(romData: Buffer) => {
               return scanPalettes(
                 romData,
                 Dkc1EntityBank,

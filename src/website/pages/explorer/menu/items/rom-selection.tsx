@@ -2,6 +2,7 @@ import { cloneDeep } from 'lodash';
 import React, { ChangeEvent, useState } from 'react';
 import { readRomFile } from '../../../../../rom-io/rom';
 import { Rom } from '../../../../../rom-io/rom/types';
+import { Buffer } from '../../../../../rom-io/types/buffer';
 import { CollapsiblePanel } from '../../../../components/collapsible-panel';
 import { stateSelector, useAppStore } from '../../../../state/selector';
 import { MainMenuItemComponent } from '../../../../types/layout';
@@ -35,7 +36,7 @@ export const RomSelection: MainMenuItemComponent = ({ children }) => {
 
     if (event.target.files?.length) {
       const file: File = event.target.files[0];
-      const bytes: Uint8Array = await file.bytes();
+      const bytes: Buffer = await file.bytes();
 
       const rom = await readRomFile(bytes);
       onSelectedRom(rom);
@@ -48,7 +49,7 @@ export const RomSelection: MainMenuItemComponent = ({ children }) => {
     try {
       setIsDownloading(true);
       const response = await fetch(atob(DKC1_ROM_BASE64_URL));
-      const bytes: Uint8Array = await response.bytes();
+      const bytes: Buffer = await response.bytes();
 
       const rom = await readRomFile(bytes);
       onSelectedRom(rom);

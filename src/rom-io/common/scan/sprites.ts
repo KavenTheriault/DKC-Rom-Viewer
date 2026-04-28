@@ -1,11 +1,12 @@
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 import { getSpriteTotalLength } from '../sprites';
 import { getSpriteCoordinates } from '../sprites/coordinate';
 import { getSpriteHeader } from '../sprites/header';
 import { Coordinate } from '../sprites/types';
 import { validateSpriteHeader } from '../sprites/validation';
 
-export const scanSprites = (romData: Uint8Array) => {
+export const scanSprites = (romData: Buffer) => {
   const spriteAddresses: RomAddress[] = [];
   for (let i = 0; i < romData.length; i++) {
     const address: RomAddress = RomAddress.fromSnesAddress(i);

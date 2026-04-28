@@ -1,9 +1,10 @@
 import { read16 } from '../../buffer';
+import { Buffer } from '../../types/buffer';
 import { readEntityFromReference } from '../entities';
 import { Entity } from '../entities/types';
 
 export const scanEntities = (
-  romData: Uint8Array,
+  romData: Buffer,
   entityBankSnesAddress: number,
   entitiesStartReference: number,
   entitiesEndReference: number,
@@ -34,7 +35,7 @@ export const scanEntities = (
 };
 
 export const scanEntityAddresses = (
-  romData: Uint8Array,
+  romData: Buffer,
   entityBankSnesAddress: number,
   entitiesStartReference: number,
   entitiesEndReference: number,

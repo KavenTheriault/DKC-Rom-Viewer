@@ -1,5 +1,6 @@
 import { RomAddress } from '../../../rom/address';
 import { BPP } from '../../../types/bpp';
+import { Buffer } from '../../../types/buffer';
 import { Color } from '../../../types/color';
 import { ImageMatrix } from '../../../types/image-matrix';
 import { Matrix } from '../../../types/matrix';
@@ -17,7 +18,7 @@ import { readNonLevelEntranceInfo } from './common';
 import { ServiceInfo } from './types';
 
 export const readServiceInfo = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ): ServiceInfo | undefined => {
@@ -119,7 +120,7 @@ export const readServiceInfo = (
 };
 
 export const buildServiceImage = (
-  romData: Uint8Array,
+  romData: Buffer,
   serviceInfo: ServiceInfo,
   decodeTileOptions?: DecodeTileOptions,
 ): ImageMatrix => {

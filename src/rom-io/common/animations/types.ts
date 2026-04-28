@@ -1,4 +1,5 @@
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 import { ImageMatrix } from '../../types/image-matrix';
 
 /* Animation Commands
@@ -45,13 +46,13 @@ export const AnimationCommandParametersCount: Record<AnimationCommand, number> =
 
 export type AnimationInfo = {
   address: RomAddress;
-  bytes: Uint8Array;
+  bytes: Buffer;
   entries: (EntryCommand | EntrySprite)[];
 };
 
 export type EntryCommand = {
   command: AnimationCommand;
-  parameters: Uint8Array;
+  parameters: Buffer;
 };
 
 export type EntrySprite = {

@@ -1,5 +1,6 @@
 import { read16, read8 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
+import { Buffer } from '../../../types/buffer';
 import { GameLevelConstant } from '../types';
 
 export type DmaTransfer = {
@@ -16,7 +17,7 @@ const DATA_LENGTH_OFFSET = 5; // $a999
 
 // Ref: ASM Code at $B9A924
 export const readDmaTransfers = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   terrainDataIndex: number,
 ): DmaTransfer[] => {
@@ -60,7 +61,7 @@ export const readDmaTransfers = (
 };
 
 const readDmaTransfer = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   offset: number,
   isCompressed: boolean,

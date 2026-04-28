@@ -1,6 +1,7 @@
 import { extract, read16 } from '../../buffer';
 import { RomAddress } from '../../rom/address';
 import { BPP } from '../../types/bpp';
+import { Buffer } from '../../types/buffer';
 import { Matrix } from '../../types/matrix';
 import { readTerrainTilemapTileBytes, readTilesetAndPalette } from './terrain';
 import { assembleImages } from './tiles/assemble';
@@ -9,7 +10,7 @@ import { decodeTiles } from './tiles/decode-tiles';
 import { EntranceInfo, LevelInfo } from './types';
 
 export const buildLevelImageFromEntranceInfo = (
-  romData: Uint8Array,
+  romData: Buffer,
   entranceInfo: EntranceInfo,
   decodeTileOptions?: DecodeTileOptions,
 ) => {
@@ -44,7 +45,7 @@ export const buildLevelImageFromEntranceInfo = (
 };
 
 export const readLevelTilemap = (
-  romData: Uint8Array,
+  romData: Buffer,
   tilemapAddress: RomAddress,
   level: LevelInfo,
 ) => {
@@ -93,11 +94,11 @@ export const readLevelTilemap = (
 };
 
 export const buildTerrainTilemapFromLevelTilemap = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelTilemap: Matrix<number>,
   terrainTilemapAddress: RomAddress,
-): { bytes: Uint8Array; width: number; height: number } => {
-  const terrainTilemap = new Matrix<Uint8Array>(
+): { bytes: Buffer; width: number; height: number } => {
+  const terrainTilemap = new Matrix<Buffer>(
     levelTilemap.width * 4,
     levelTilemap.height * 4,
     new Uint8Array(0),

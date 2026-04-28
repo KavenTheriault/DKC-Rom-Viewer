@@ -1,6 +1,7 @@
 import { extract } from '../../buffer';
 import { RomAddress } from '../../rom/address';
 import { BPP } from '../../types/bpp';
+import { Buffer } from '../../types/buffer';
 import { Matrix } from '../../types/matrix';
 import { readPalette } from '../palettes';
 import { Palette } from '../palettes/types';
@@ -16,12 +17,12 @@ const PARTS_IN_TILE = 16;
 const PALETTE_LENGTH = 128;
 
 type TerrainTilesetAndPalette = {
-  tileset: Uint8Array;
+  tileset: Buffer;
   palette: Palette;
 };
 
 export const readTilesetAndPalette = (
-  romData: Uint8Array,
+  romData: Buffer,
   terrain: TerrainInfo,
 ): TerrainTilesetAndPalette => {
   const tileset = buildTerrainTileset(romData, terrain.tilesetsInfo);
@@ -30,12 +31,12 @@ export const readTilesetAndPalette = (
 };
 
 export const readTerrainTilemapTileBytes = (
-  romData: Uint8Array,
+  romData: Buffer,
   tilemapAddress: RomAddress,
   tilemapIndex: number,
   options: { vFlip: boolean; hFlip: boolean },
 ) => {
-  const tileBytesMatrix = new Matrix<Uint8Array>(4, 4, new Uint8Array(0));
+  const tileBytesMatrix = new Matrix<Buffer>(4, 4, new Uint8Array(0));
 
   let tilemapOffset = tilemapIndex * BYTES_PER_TILE_META * PARTS_IN_TILE;
   for (let y = 0; y < tileBytesMatrix.height; y++) {
@@ -60,14 +61,14 @@ export const readTerrainTilemapTileBytes = (
 };
 
 export const buildTerrainTileset = (
-  romData: Uint8Array,
+  romData: Buffer,
   tilesetInfos: TilesetInfo[],
 ) => {
   const result: number[] = [];
 
-  let decompressedData: Uint8Array | undefined = undefined;
+  let decompressedData: Buffer | undefined = undefined;
   for (const tilesetInfo of tilesetInfos) {
-    let dataToAdd: Uint8Array;
+    let dataToAdd: Buffer;
 
     if (tilesetInfo.isCompressed) {
       if (!decompressedData) {
@@ -102,7 +103,7 @@ export const buildTerrainTileset = (
 };
 
 export const buildTerrainTilesetImage = (
-  romData: Uint8Array,
+  romData: Buffer,
   terrain: TerrainInfo,
   decodeTileOptions?: DecodeTileOptions,
 ) => {

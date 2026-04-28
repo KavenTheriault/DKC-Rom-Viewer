@@ -1,5 +1,6 @@
 import { extract, read16 } from '../../buffer';
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 import { readAnimationInfo, readAnimationPointer } from '../animations';
 import { AnimationInfo } from '../animations/types';
 import { paletteReferenceToSnesAddress, readPalette } from '../palettes';
@@ -12,7 +13,7 @@ import {
 } from './types';
 
 export const readEntityFromReference = (
-  romData: Uint8Array,
+  romData: Buffer,
   entityBankSnesAddress: number,
   entityReference: number,
 ) => {
@@ -35,7 +36,7 @@ export const snesAddressToEntityReference = (romAddress: RomAddress) => {
 };
 
 export const readEntity = (
-  romData: Uint8Array,
+  romData: Buffer,
   entityBankSnesAddress: number,
   romAddress: RomAddress,
 ): Entity => {
@@ -107,7 +108,7 @@ export const findEntityInstruction = (
 };
 
 export const readEntityAnimationInfo = (
-  romData: Uint8Array,
+  romData: Buffer,
   animationScriptBankSnesAddress: number,
   animationScriptTableSnesAddress: number,
   entity: Entity,
@@ -129,7 +130,7 @@ export const readEntityAnimationInfo = (
 };
 
 export const readEntityPalette = (
-  romData: Uint8Array,
+  romData: Buffer,
   entityPaletteBankSnesAddress: number,
   entity: Entity,
 ): Palette | undefined => {

@@ -1,5 +1,6 @@
 import { extract, read16 } from '../../../buffer';
 import { BPP } from '../../../types/bpp';
+import { Buffer } from '../../../types/buffer';
 import { Color } from '../../../types/color';
 import { ImageMatrix } from '../../../types/image-matrix';
 import { Matrix } from '../../../types/matrix';
@@ -16,9 +17,9 @@ export interface DecodeTileOptions {
 }
 
 interface DecodeTileParams {
-  tileset: Uint8Array;
+  tileset: Buffer;
   tilemap: {
-    data: Uint8Array;
+    data: Buffer;
     address: number;
     offset: number;
   };

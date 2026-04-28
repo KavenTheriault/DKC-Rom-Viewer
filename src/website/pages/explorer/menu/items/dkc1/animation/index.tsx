@@ -19,6 +19,7 @@ import {
   Dkc1SpritePointerTable,
 } from '../../../../../../../rom-io/dkc1/constants';
 import { RomAddress } from '../../../../../../../rom-io/rom/address';
+import { Buffer } from '../../../../../../../rom-io/types/buffer';
 import { CollapsiblePanel } from '../../../../../../components/collapsible-panel';
 import { LoadHexadecimalInput } from '../../../../../../components/hexadecimal-input/with-load-button';
 import { ScanControls } from '../../../../../../components/scan-controls';
@@ -177,7 +178,7 @@ export const Dkc1Animation: MainMenuItemComponent = ({ children }) => {
         <CollapsiblePanel title="Scan Animations" startCollapsed>
           <ScanControls
             rom={rom}
-            scanFn={(romData: Uint8Array) => {
+            scanFn={(romData: Buffer) => {
               return scanAnimations(
                 romData,
                 Dkc1EntityBank,

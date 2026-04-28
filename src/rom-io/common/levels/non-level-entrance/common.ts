@@ -1,3 +1,4 @@
+import { Buffer } from '../../../types/buffer';
 import { readOpcodeUntil } from '../entrance-info/asm/read';
 import { readOpcodeEntryValue } from '../entrance-info/utils';
 import { GameLevelConstant } from '../types';
@@ -5,7 +6,7 @@ import { NonLevelEntranceInfo } from './types';
 
 // Ref: ASM Code at $80E870
 export const readNonLevelEntranceInfo = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ): NonLevelEntranceInfo | undefined => {

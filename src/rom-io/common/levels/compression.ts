@@ -1,5 +1,6 @@
 import { read16, read8 } from '../../buffer';
 import { RomAddress } from '../../rom/address';
+import { Buffer } from '../../types/buffer';
 
 enum CompressionCommand {
   Common = 0xc0,
@@ -8,7 +9,7 @@ enum CompressionCommand {
   Raw = 0x00,
 }
 
-export const decompress = (romData: Uint8Array, address: RomAddress) => {
+export const decompress = (romData: Buffer, address: RomAddress) => {
   let index = 0x80;
   const readNextByte = () => {
     const result = read8(romData, address.pcAddress + index);

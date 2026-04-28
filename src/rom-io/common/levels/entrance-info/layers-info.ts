@@ -1,9 +1,10 @@
+import { Buffer } from '../../../types/buffer';
 import { GameLevelConstant, Layer, TerrainInfo } from '../types';
 import { OpcodeEntry } from './asm/read';
 import { readVramRegisters } from './vram-registers';
 
 export const buildLayersInfo = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   opcodeEntries: OpcodeEntry[],
   terrainInfo: TerrainInfo,

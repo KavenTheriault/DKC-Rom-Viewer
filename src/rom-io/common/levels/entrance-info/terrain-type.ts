@@ -1,5 +1,6 @@
 import { read16, read8 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
+import { Buffer } from '../../../types/buffer';
 import { GameLevelConstant } from '../types';
 import { OpcodeEntry } from './asm/read';
 import {
@@ -9,7 +10,7 @@ import {
 
 // Ref: ASM Code at $818C66
 export const readTerrainTilemapInfo = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   opcodeEntries: OpcodeEntry[],
 ) => {

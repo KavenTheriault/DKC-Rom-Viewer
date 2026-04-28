@@ -1,5 +1,6 @@
 import { read16, read24 } from '../../../buffer';
 import { RomAddress } from '../../../rom/address';
+import { Buffer } from '../../../types/buffer';
 import {
   EntranceInfo,
   GameLevelConstant,
@@ -20,7 +21,7 @@ import {
 } from './utils';
 
 export const loadEntranceInfo = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ): EntranceInfo | undefined => {
@@ -122,7 +123,7 @@ export const loadEntranceInfo = (
 };
 
 const readLoadEntranceOpcodes = (
-  romData: Uint8Array,
+  romData: Buffer,
   levelConstant: GameLevelConstant,
   entranceId: number,
 ) => {
