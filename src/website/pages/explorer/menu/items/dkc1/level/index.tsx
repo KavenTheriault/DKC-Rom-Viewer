@@ -7,7 +7,10 @@ import {
   buildServiceImage,
   readServiceInfo,
 } from '../../../../../../../rom-io/common/levels/non-level-entrance/service';
-import { WorldMapInfo } from '../../../../../../../rom-io/common/levels/non-level-entrance/types';
+import {
+  ServiceInfo,
+  WorldMapInfo,
+} from '../../../../../../../rom-io/common/levels/non-level-entrance/types';
 import {
   buildSpecFromWorldBackgroundInfo,
   buildWorldMapImage,
@@ -69,7 +72,9 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   );
   const [entranceInfo, setEntranceInfo] = useState<EntranceInfo>();
   const [worldMapInfo, setWorldMapInfo] = useState<WorldMapInfo>();
-  const [levelBitmap, setLevelBitmap] = useState<ImageBitmap>();
+  const [serviceInfo, setServiceInfo] = useState<ServiceInfo>();
+
+  const [imageBitmap, setImageBitmap] = useState<ImageBitmap>();
   const [displayMode, setDisplayMode] =
     useState<DisplayMode>(defaultDisplayMode);
   const [decodeTileOptions, setDecodeTileOptions] = useState<DecodeTileOptions>(
@@ -88,23 +93,11 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
       : undefined;
     setWorldMapInfo(worldMapInfo);
 
-    if (!levelInfo && !worldMapInfo) {
-      const serviceInfo = readServiceInfo(
-        rom.data,
-        Dkc1LevelConstant,
-        entrance,
-      );
-
-      if (serviceInfo) {
-        const imageMatrix = buildServiceImage(
-          rom.data,
-          serviceInfo,
-          decodeTileOptions,
-        );
-        const bitmap = await convertToImageBitmap(imageMatrix);
-        setLevelBitmap(bitmap);
-      }
-    }
+    const serviceInfo =
+      !levelInfo && !worldMapInfo
+        ? tryLoadServiceFromEntranceId(entrance)
+        : undefined;
+    setServiceInfo(serviceInfo);
 
     if (levelInfo) {
       const hasLevelLayer = levelInfo.layers.some((l) => l.type === 'Level');
@@ -122,7 +115,10 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
       return;
     }
 
-    //setLevelBitmap(undefined);
+    if (serviceInfo) {
+      await loadBitmapFromServiceInfo(serviceInfo);
+      return;
+    }
   };
 
   const tryLoadLevelFromEntranceId = (
@@ -143,6 +139,19 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   ): WorldMapInfo | undefined => {
     try {
       return readWorldMapInfo(rom.data, Dkc1LevelConstant, entrance);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : 'Invalid entrance index',
+      );
+      return undefined;
+    }
+  };
+
+  const tryLoadServiceFromEntranceId = (
+    entrance: number,
+  ): ServiceInfo | undefined => {
+    try {
+      return readServiceInfo(rom.data, Dkc1LevelConstant, entrance);
     } catch (error) {
       setError(
         error instanceof Error ? error.message : 'Invalid entrance index',
@@ -193,13 +202,11 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
       }
 
       const bitmap = await convertToImageBitmap(imageMatrix);
-      setLevelBitmap(bitmap);
+      setImageBitmap(bitmap);
     } catch (error) {
       console.error(error);
-      setError(
-        error instanceof Error ? error.message : 'Invalid entrance info',
-      );
-      setLevelBitmap(undefined);
+      setError(error instanceof Error ? error.message : 'Invalid level info');
+      setImageBitmap(undefined);
     }
   };
 
@@ -209,13 +216,27 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
     try {
       const imageMatrix = buildWorldMapImage(rom.data, info, decodeTileOptions);
       const bitmap = await convertToImageBitmap(imageMatrix);
-      setLevelBitmap(bitmap);
+      setImageBitmap(bitmap);
     } catch (error) {
       console.error(error);
       setError(
-        error instanceof Error ? error.message : 'Invalid entrance info',
+        error instanceof Error ? error.message : 'Invalid world map info',
       );
-      setLevelBitmap(undefined);
+      setImageBitmap(undefined);
+    }
+  };
+
+  const loadBitmapFromServiceInfo = async (info: ServiceInfo) => {
+    setError('');
+
+    try {
+      const imageMatrix = buildServiceImage(rom.data, info, decodeTileOptions);
+      const bitmap = await convertToImageBitmap(imageMatrix);
+      setImageBitmap(bitmap);
+    } catch (error) {
+      console.error(error);
+      setError(error instanceof Error ? error.message : 'Invalid service info');
+      setImageBitmap(undefined);
     }
   };
 
@@ -250,12 +271,12 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
     canvas: HTMLCanvasElement,
     context: CanvasRenderingContext2D,
   ) => {
-    if (levelBitmap) {
+    if (imageBitmap) {
       const centerOffset = getDrawCenterOffset(canvas, {
-        width: levelBitmap.width,
-        height: levelBitmap.height,
+        width: imageBitmap.width,
+        height: imageBitmap.height,
       });
-      drawImageBitmap(context, levelBitmap, centerOffset);
+      drawImageBitmap(context, imageBitmap, centerOffset);
     }
   };
 
@@ -266,7 +287,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
     return () => {
       canvasController.unregisterDrawHandler(drawLevelImage);
     };
-  }, [levelBitmap]);
+  }, [imageBitmap]);
 
   useEffect(() => {
     if (selectedLevelItem) {
@@ -278,6 +299,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
   useEffect(() => {
     if (entranceInfo) loadBitmapFromEntranceInfo(entranceInfo).then(noop);
     if (worldMapInfo) loadBitmapFromWorldMapInfo(worldMapInfo).then(noop);
+    if (serviceInfo) loadBitmapFromServiceInfo(serviceInfo).then(noop);
   }, [displayMode, decodeTileOptions]);
 
   useEffect(() => {
@@ -512,7 +534,7 @@ export const Dkc1Level: MainMenuItemComponent = ({ children }) => {
                       decodeTileOptions,
                     );
                     const bitmap = await convertToImageBitmap(image);
-                    setLevelBitmap(bitmap);
+                    setImageBitmap(bitmap);
                   }}
                 >
                   {name}
