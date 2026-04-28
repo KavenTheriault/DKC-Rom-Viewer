@@ -123,19 +123,3 @@ export const Dkc1LevelConstant: GameLevelConstant = {
     ],
   },
 };
-
-export const DKC1_ASSETS: Record<string, TilesDecodeSpec> = {
-  Nintendo: {
-    tileset: {
-      address: RomAddress.fromSnesAddress(0x240690),
-      length: 0x2000,
-    },
-    tilemap: {
-      address: RomAddress.fromSnesAddress(0x240450),
-      length: 0x280,
-    },
-    paletteAddress: RomAddress.fromSnesAddress(0x39c203),
-    bpp: BPP.Four,
-    tilesPerRow: 32,
-  },
-};

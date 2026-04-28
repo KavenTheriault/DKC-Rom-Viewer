@@ -3,7 +3,7 @@ import { RomAddress } from '../../../rom/address';
 import { GameLevelConstant, TilesetInfo } from '../types';
 import { OpcodeEntry } from './asm/read';
 import { DmaTransfer } from './dma-transfers';
-import { findOpcodeEntryByAddress, readOpcodeEntryArgument } from './utils';
+import { findOpcodeEntryByAddress, readOpcodeEntryValue } from './utils';
 
 export const buildTilesetsInfo = (
   romData: Uint8Array,
@@ -39,10 +39,8 @@ export const buildTilesetsInfo = (
     );
     if (loadTilesetSubroutine) {
       const subroutineIndex = opcodeEntries.indexOf(loadTilesetSubroutine);
-      const bank = readOpcodeEntryArgument(opcodeEntries[subroutineIndex - 2]);
-      const absolute = readOpcodeEntryArgument(
-        opcodeEntries[subroutineIndex - 3],
-      );
+      const bank = readOpcodeEntryValue(opcodeEntries[subroutineIndex - 2]);
+      const absolute = readOpcodeEntryValue(opcodeEntries[subroutineIndex - 3]);
 
       mainTilesetAddress = RomAddress.fromBankAndAbsolute(bank, absolute);
     }

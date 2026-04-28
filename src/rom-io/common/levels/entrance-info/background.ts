@@ -3,7 +3,7 @@ import { OpcodeEntry } from './asm/read';
 import {
   findOpcodeEntriesByName,
   findOpcodeEntryByAddress,
-  readOpcodeEntryArgument,
+  readOpcodeEntryValue,
 } from './utils';
 
 const PREVIOUS_OPCODES_TO_SEARCH = 6;
@@ -32,9 +32,9 @@ export const readLevelsTilemapBackgroundAbsolute = (
   if (ldaOpcodes.length === 0) return null;
 
   // Ref: ASM Code at $B18711
-  const codeConstant1 = readOpcodeEntryArgument(ldaOpcodes[0]);
+  const codeConstant1 = readOpcodeEntryValue(ldaOpcodes[0]);
   const codeConstant2 =
-    ldaOpcodes.length > 1 ? readOpcodeEntryArgument(ldaOpcodes[1]) : 0;
+    ldaOpcodes.length > 1 ? readOpcodeEntryValue(ldaOpcodes[1]) : 0;
 
   let absolute = codeConstant1;
   // ADC #$0100

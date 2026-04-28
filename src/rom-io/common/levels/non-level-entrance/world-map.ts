@@ -1,39 +1,31 @@
-import { read16 } from '../../buffer';
-import { RomAddress } from '../../rom/address';
-import { BPP } from '../../types/bpp';
-import { Color } from '../../types/color';
-import { ImageMatrix } from '../../types/image-matrix';
-import { Matrix } from '../../types/matrix';
-import { readOpcodeUntil } from './entrance-info/asm/read';
+import { read16 } from '../../../buffer';
+import { RomAddress } from '../../../rom/address';
+import { BPP } from '../../../types/bpp';
+import { Color } from '../../../types/color';
+import { ImageMatrix } from '../../../types/image-matrix';
+import { Matrix } from '../../../types/matrix';
+import { readOpcodeUntil } from '../entrance-info/asm/read';
 import {
   findArgumentInPreviousOpcodes,
   findSubroutine,
-  readOpcodeEntryArgument,
-} from './entrance-info/utils';
-import { decodeTilesFromSpec } from './spec';
-import { DecodeTileOptions } from './tiles/decode-tile';
-import { GameLevelConstant, TilesDecodeSpec } from './types';
+} from '../entrance-info/utils';
+import { decodeTilesFromSpec } from '../spec';
+import { DecodeTileOptions } from '../tiles/decode-tile';
+import { GameLevelConstant, TilesDecodeSpec } from '../types';
+import { readNonLevelEntranceInfo } from './common';
+import {
+  BackgroundAddresses,
+  WorldMapInfo,
+  NonLevelEntranceInfo,
+} from './types';
 
 const WORLD_TABLE_LENGTH = 0x34;
-
-export interface WorldInfo {
-  firstEntranceId: number;
-  worldIndices: number[];
-  worldBackgroundInfos: WorldBackgroundInfo[];
-  backgroundSpecs: TilesDecodeSpec[];
-}
-
-interface WorldBackgroundInfo {
-  tilemapAddress: RomAddress;
-  tilesetAddress: RomAddress;
-  paletteAddress: RomAddress;
-}
 
 export const readWorldBackgroundInfo = (
   romData: Uint8Array,
   levelConstant: GameLevelConstant,
   entranceId: number,
-): WorldBackgroundInfo => {
+): BackgroundAddresses => {
   const worldIndex = readWorldIndex(romData, levelConstant, entranceId);
   return readWorldBackgroundInfoFromWorldIndex(
     romData,
@@ -62,7 +54,7 @@ const readWorldBackgroundInfoFromWorldIndex = (
   romData: Uint8Array,
   levelConstant: GameLevelConstant,
   worldIndex: number,
-): WorldBackgroundInfo => {
+): BackgroundAddresses => {
   // Ref: ASM Code at $80E499
   let tableOffset = worldIndex;
   // ASL (x2)
@@ -128,7 +120,7 @@ const readWorldBackgroundInfoFromWorldIndex = (
 };
 
 export const buildSpecFromWorldBackgroundInfo = (
-  worldBackgroundInfo: WorldBackgroundInfo,
+  worldBackgroundInfo: BackgroundAddresses,
 ): TilesDecodeSpec => {
   return {
     tileset: {
@@ -145,17 +137,23 @@ export const buildSpecFromWorldBackgroundInfo = (
   };
 };
 
-export const readWorldInfo = (
+export const readWorldMapInfo = (
   romData: Uint8Array,
   levelConstant: GameLevelConstant,
   entranceId: number,
-): WorldInfo | undefined => {
-  const firstEntranceId = readWorldFirstEntranceId(
+): WorldMapInfo | undefined => {
+  const nonLevelEntranceInfo = readNonLevelEntranceInfo(
     romData,
     levelConstant,
     entranceId,
   );
-  if (firstEntranceId === undefined) return undefined;
+  if (nonLevelEntranceInfo?.type !== 'world-map') return undefined;
+
+  const firstEntranceId = readWorldFirstEntranceId(
+    romData,
+    levelConstant,
+    nonLevelEntranceInfo,
+  );
 
   const worldIndex = readWorldIndex(romData, levelConstant, firstEntranceId);
   const worldIndices = [worldIndex];
@@ -174,56 +172,24 @@ export const readWorldInfo = (
   return {
     firstEntranceId,
     worldIndices,
-    worldBackgroundInfos,
+    backgroundAddresses: worldBackgroundInfos,
     backgroundSpecs,
   };
 };
 
-// Ref: ASM Code at $80E870
-export const readWorldFirstEntranceId = (
+const readWorldFirstEntranceId = (
   romData: Uint8Array,
   levelConstant: GameLevelConstant,
-  entranceId: number,
-): number | undefined => {
-  let opcodeEntries = readOpcodeUntil(
+  nonLevelEntranceInfo: NonLevelEntranceInfo,
+): number => {
+  const opcodeEntries = readOpcodeUntil(
     romData,
-    levelConstant.subroutines.loadEntrance,
+    nonLevelEntranceInfo.branchAddress,
     undefined,
     {
-      readLimit: 25,
+      readLimit: 10,
     },
   );
-
-  let branchAddress: RomAddress | undefined = undefined;
-  for (let i = 0; i < opcodeEntries.length; i++) {
-    const opcode = opcodeEntries[i];
-
-    if (opcode.opcode.name === 'CMP #const') {
-      const nextOpcode = opcodeEntries[i + 1];
-      const argument = readOpcodeEntryArgument(opcode);
-
-      if (nextOpcode.opcode.name.includes('BEQ')) {
-        if (argument === entranceId) {
-          const offset = readOpcodeEntryArgument(nextOpcode);
-          branchAddress = nextOpcode.address.getOffsetAddress(offset + 2);
-          break;
-        }
-      } else if (nextOpcode.opcode.name.includes('BCS')) {
-        if (entranceId >= argument) {
-          /* This may be useful later for:
-           * Cranky's Cabin, Funky's Flights, Candy's Save Point */
-          const offset = readOpcodeEntryArgument(nextOpcode);
-          branchAddress = nextOpcode.address.getOffsetAddress(offset + 2);
-          break;
-        }
-      }
-    }
-  }
-  if (!branchAddress) return;
-
-  opcodeEntries = readOpcodeUntil(romData, branchAddress, undefined, {
-    readLimit: 10,
-  });
 
   const loadWorldSubroutine = findSubroutine(
     opcodeEntries,
@@ -236,12 +202,12 @@ export const readWorldFirstEntranceId = (
   );
 };
 
-export const buildWorldImage = (
+export const buildWorldMapImage = (
   romData: Uint8Array,
-  worldInfo: WorldInfo,
+  worldMapInfo: WorldMapInfo,
   decodeTileOptions?: DecodeTileOptions,
 ): ImageMatrix => {
-  const allMatrix = worldInfo.backgroundSpecs.map((spec) =>
+  const allMatrix = worldMapInfo.backgroundSpecs.map((spec) =>
     decodeTilesFromSpec(romData, spec, decodeTileOptions),
   );
 
